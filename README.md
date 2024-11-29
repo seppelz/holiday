@@ -1,59 +1,88 @@
 # 🏖 Holiday Planner
 
-Smart holiday planning tool that helps you optimize your vacation days using bridge days and provides traffic forecasts.
+Ein intelligentes Tool zur Urlaubsplanung, das dir hilft, deine Urlaubstage durch Brückentage optimal zu nutzen und Verkehrsspitzen zu vermeiden.
 
 ## Features
 
-- 🗓 Smart bridge day calculations
-- 🚦 Traffic forecasts
-- 📅 Vacation day management
-- 🏫 School holiday overview
-- 🌍 Multi-region support
-- 💾 Local storage for planning scenarios
+### Implementiert ✅
+- 🗓 Intelligente Berechnung von Brückentagen
+  - Berücksichtigung von Wochenenden
+  - Optimale Verbindung von Feiertagen
+  - Effizienzberechnung (Urlaubstage vs. freie Tage)
+- 🌍 Unterstützung für alle Bundesländer
+  - Bundesweite Feiertage
+  - Länderspezifische Feiertage
+
+### In Entwicklung 🚧
+- 🤝 Dual-State Modus für länderübergreifende Planung
+  - Optimal für Paare in verschiedenen Bundesländern
+  - Perfekt für grenzüberschreitende Arbeit
+  - Familienbesuche leicht geplant
+- 🚦 Verkehrsprognosen für Reiseplanung
+- 📅 Flexible und feste Urlaubsplanung
+- 🏫 Übersicht der Schulferien
+- 💾 Lokale Speicherung von Planungsszenarien
 
 ## Tech Stack
 
-- React + TypeScript
-- Vite
-- TailwindCSS
-- React Query
-- Zustand
-- Vitest
+- ⚛️ React 18 mit TypeScript
+- 🎨 TailwindCSS für Styling
+- 🔄 React Query für API-Anfragen
+- 📦 Zustand für State Management
+- 🛣 React Router für Navigation
+- 🏃 Vite als Build Tool
+- 🧪 Jest für Testing
 
-## Getting Started
+## Erste Schritte
 
+1. Repository klonen:
 ```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Run tests
-npm run test
+git clone https://github.com/seppelz/holiday.git
+cd holiday
 ```
 
-## Development
+2. Abhängigkeiten installieren:
+```bash
+npm install
+```
 
-This project uses:
-- GitHub Flow for branching
-- Conventional Commits
-- GitHub Projects for project management
-- GitHub Actions for CI/CD
+3. Entwicklungsserver starten:
+```bash
+npm run dev
+```
 
-## APIs
+4. Browser öffnen:
+```
+http://localhost:5173
+```
 
-- School Holidays: ferien-api.de
-- Public Holidays: date.nager.at
-- International Holidays: openholidaysapi.org
+## Entwicklung
 
-## Browser Support
+- 🌿 GitHub Flow für Branching
+- 📝 Conventional Commits
+- 📋 GitHub Projects für Projektmanagement
+- 🔄 GitHub Actions für CI/CD
 
-Supporting all modern browsers (last 2 versions):
+### Aktueller Status
+- ✅ Projekt-Boilerplate erstellt
+- ✅ Grundlegende Brückentag-Berechnung implementiert
+- 🚧 Bundesland-Auswahl in Arbeit
+- 📋 Dual-State Feature geplant
+
+## API-Integrationen
+
+- Schulferien: [ferien-api.de](https://ferien-api.de)
+- Feiertage: [date.nager.at](https://date.nager.at)
+- Internationale Feiertage: [openholidaysapi.org](https://openholidaysapi.org)
+
+## Browser-Unterstützung
+
+Unterstützt alle modernen Browser (letzte 2 Versionen):
 - Chrome
 - Firefox
 - Safari
 - Edge
+
+## Lizenz
+
+MIT
