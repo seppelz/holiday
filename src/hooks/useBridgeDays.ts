@@ -1,46 +1,40 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { Holiday } from '../types/holiday';
+import { GermanState } from '../types/germanState';
 import { bridgeDayService } from '../services/bridgeDayService';
 import { holidayService } from '../services/holidayService';
-import type { Holiday, BridgeDay, GermanState } from '../types/holiday';
 
-interface UseBridgeDaysOptions {
-  state: GermanState;
-  year: number;
-}
+export function useBridgeDays(state: GermanState) {
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [bridgeDays, setBridgeDays] = useState<Date[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-interface UseBridgeDaysResult {
-  holidays: Holiday[];
-  bridgeDays: BridgeDay[];
-  isLoading: boolean;
-  error: Error | null;
-}
+  useEffect(() => {
+    const fetchHolidays = async () => {
+      setIsLoading(true);
+      try {
+        const [publicHolidays, schoolHolidays] = await Promise.all([
+          holidayService.getPublicHolidays(state),
+          holidayService.getSchoolHolidays(state.toString())
+        ]);
+        
+        const allHolidays = [...publicHolidays, ...schoolHolidays];
+        setHolidays(allHolidays);
+        
+        // Calculate bridge days from public holidays only
+        const calculatedBridgeDays = bridgeDayService.calculateBridgeDays(publicHolidays, state);
+        setBridgeDays(calculatedBridgeDays.map(bd => bd.date));
+      } catch (error) {
+        console.error('Error fetching holidays:', error);
+        setHolidays([]);
+        setBridgeDays([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-export function useBridgeDays({
-  state,
-  year,
-}: UseBridgeDaysOptions): UseBridgeDaysResult {
-  const {
-    data: holidays = [],
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['holidays', state, year],
-    queryFn: async () => {
-      const [schoolHolidays, publicHolidays] = await Promise.all([
-        holidayService.getSchoolHolidays(state, year),
-        holidayService.getPublicHolidays(state, year),
-      ]);
-      return [...schoolHolidays, ...publicHolidays];
-    },
-  });
+    fetchHolidays();
+  }, [state]);
 
-  // Calculate bridge days
-  const bridgeDays = bridgeDayService.calculateBridgeDays(holidays, state);
-
-  return {
-    holidays,
-    bridgeDays,
-    isLoading,
-    error: error as Error | null,
-  };
+  return { holidays, bridgeDays, isLoading };
 } 

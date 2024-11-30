@@ -1,168 +1,97 @@
-import {
-  addDays,
-  subDays,
-  isWeekend,
-  parseISO,
-  differenceInDays,
-  getDay,
-} from 'date-fns';
-import { Holiday, BridgeDay, GermanState } from '../types/holiday';
+import { Holiday, BridgeDay } from '../types/holiday';
+import { addDays, isWeekend, isSameDay, isWithinInterval } from 'date-fns';
+import { GermanState } from '../types/germanState';
 
 export const bridgeDayService = {
-  calculateBridgeDays(holidays: Holiday[], region?: GermanState): BridgeDay[] {
-    if (holidays.length === 0) return [];
+  calculateBridgeDays(holidays: Holiday[], state: GermanState): BridgeDay[] {
+    const bridgeDays: BridgeDay[] = [];
+    const publicHolidays = holidays.filter(h => h.type === 'public' && h.state === state);
+    const schoolHolidays = holidays.filter(h => h.type === 'regional' && h.state === state);
 
-    // Filter holidays based on region
-    const relevantHolidays = holidays.filter(h => 
-      h.type === 'public' || // Always include public holidays
-      (h.type === 'regional' && h.region === region) // Include matching regional holidays
-    );
+    // Helper function to check if a date is within any school holiday period
+    const isSchoolHoliday = (date: Date) => {
+      return schoolHolidays.some(holiday => 
+        holiday.endDate && 
+        isWithinInterval(date, { start: holiday.date, end: holiday.endDate })
+      );
+    };
 
-    if (relevantHolidays.length === 0) return [];
+    // Helper function to check if a date is the start of school holidays
+    const isSchoolHolidayStart = (date: Date) => {
+      return schoolHolidays.some(holiday => 
+        isSameDay(holiday.date, date)
+      );
+    };
 
-    // Create a map of holidays for quick lookup
-    const holidayMap = new Map<string, Holiday>();
-    relevantHolidays.forEach(h => {
-      const date = typeof h.date === 'string' ? parseISO(h.date) : h.date;
-      holidayMap.set(date.toDateString(), h);
-    });
+    // Helper function to check if a date is next to a public holiday
+    const isNextToPublicHoliday = (date: Date) => {
+      return publicHolidays.some(holiday => {
+        const dayAfterHoliday = addDays(holiday.date, 1);
+        return isSameDay(date, dayAfterHoliday);
+      });
+    };
 
-    // Check if holidays are too far apart
-    const sortedHolidays = [...relevantHolidays].sort((a, b) => {
-      const dateA = typeof a.date === 'string' ? parseISO(a.date) : a.date;
-      const dateB = typeof b.date === 'string' ? parseISO(b.date) : b.date;
-      return dateA.getTime() - dateB.getTime();
-    });
+    // Check each day after public holidays
+    for (const holiday of publicHolidays) {
+      const nextDay = addDays(holiday.date, 1);
+      const nextNextDay = addDays(holiday.date, 2);
 
-    for (let i = 1; i < sortedHolidays.length; i++) {
-      const prevDate = sortedHolidays[i - 1].date;
-      const currDate = sortedHolidays[i].date;
-      const daysBetween = Math.abs(differenceInDays(currDate, prevDate));
-      if (daysBetween > 7) {
-        return []; // Holidays are too far apart, no bridge days possible
-      }
-    }
-
-    // First pass: collect all potential bridge days
-    const potentialBridgeDays: BridgeDay[] = [];
-
-    // Process each holiday
-    for (const holiday of relevantHolidays) {
-      const holidayDate = typeof holiday.date === 'string' ? parseISO(holiday.date) : holiday.date;
-      const weekday = getDay(holidayDate);
-
-      // Thursday holiday -> Friday bridge day
-      if (weekday === 4) {
-        const bridgeDate = addDays(holidayDate, 1);
-        if (!isWeekend(bridgeDate) && !holidayMap.has(bridgeDate.toDateString())) {
-          potentialBridgeDays.push({
-            date: bridgeDate,
-            name: `Brückentag nach ${holiday.name}`,
-            type: 'bridge',
-            region: holiday.region,
-            connectedHolidays: [holiday],
-            requiredVacationDays: 1,
-            totalDaysOff: 4, // Thu-Sun
-            efficiency: 4,
-          });
-        }
-      }
-
-      // Monday holiday -> Tuesday bridge day
-      if (weekday === 1) {
-        const bridgeDate = addDays(holidayDate, 1);
-        if (!isWeekend(bridgeDate) && !holidayMap.has(bridgeDate.toDateString())) {
-          potentialBridgeDays.push({
-            date: bridgeDate,
-            name: `Brückentag nach ${holiday.name}`,
-            type: 'bridge',
-            region: holiday.region,
-            connectedHolidays: [holiday],
-            requiredVacationDays: 1,
-            totalDaysOff: 4, // Sat-Tue
-            efficiency: 4,
-          });
-        }
-      }
-
-      // Wednesday holiday -> Monday/Tuesday and Thursday/Friday bridge days
-      if (weekday === 3) {
-        // Monday/Tuesday before the holiday
-        const mondayDate = subDays(holidayDate, 2);
-        if (!holidayMap.has(mondayDate.toDateString())) {
-          potentialBridgeDays.push({
-            date: mondayDate,
-            name: `Brückentage vor ${holiday.name}`,
-            type: 'bridge',
-            region: holiday.region,
-            connectedHolidays: [holiday],
-            requiredVacationDays: 2,
-            totalDaysOff: 5, // Mon-Fri
-            efficiency: 2.5,
-          });
-        }
-
-        // Thursday/Friday after the holiday
-        const thursdayDate = addDays(holidayDate, 1);
-        if (!holidayMap.has(thursdayDate.toDateString())) {
-          potentialBridgeDays.push({
-            date: thursdayDate,
-            name: `Brückentage nach ${holiday.name}`,
-            type: 'bridge',
-            region: holiday.region,
-            connectedHolidays: [holiday],
-            requiredVacationDays: 2,
-            totalDaysOff: 5, // Wed-Sun
-            efficiency: 2.5,
-          });
-        }
-      }
-    }
-
-    // Second pass: merge connected bridge days
-    const mergedBridgeDays: BridgeDay[] = [];
-    let currentBridgeDay: BridgeDay | null = null;
-
-    // Sort bridge days by date
-    potentialBridgeDays.sort((a, b) => a.date.getTime() - b.date.getTime());
-
-    for (const bridgeDay of potentialBridgeDays) {
-      if (!currentBridgeDay) {
-        currentBridgeDay = bridgeDay;
+      // Skip if the holiday itself is during school holidays
+      if (isSchoolHoliday(holiday.date)) {
         continue;
       }
 
-      const daysBetween = differenceInDays(bridgeDay.date, currentBridgeDay.date);
-      
-      // Only merge if they're connected and not from the same holiday
-      const sameHoliday = currentBridgeDay.connectedHolidays.some(h1 => 
-        bridgeDay.connectedHolidays.some(h2 => 
-          h1.date.getTime() === h2.date.getTime()
-        )
-      );
+      // Skip if next day is during school holidays
+      if (isSchoolHoliday(nextDay)) {
+        continue;
+      }
 
-      const shouldMerge = daysBetween <= 4 && !sameHoliday;
+      // Skip if next day is a public holiday
+      if (publicHolidays.some(h => isSameDay(h.date, nextDay))) {
+        continue;
+      }
 
-      if (shouldMerge) {
-        // Merge bridge days
-        currentBridgeDay = {
-          ...currentBridgeDay,
-          name: `${currentBridgeDay.name} und ${bridgeDay.name}`,
-          connectedHolidays: [...currentBridgeDay.connectedHolidays, ...bridgeDay.connectedHolidays],
-          requiredVacationDays: Math.min(currentBridgeDay.requiredVacationDays, bridgeDay.requiredVacationDays),
-          totalDaysOff: 6, // Extended period (e.g., Thu-Tue)
-          efficiency: 6,
-        };
-      } else {
-        mergedBridgeDays.push(currentBridgeDay);
-        currentBridgeDay = bridgeDay;
+      // Skip if next day is a weekend
+      if (isWeekend(nextDay)) {
+        continue;
+      }
+
+      // Check if the next next day is either:
+      // 1. A weekend
+      // 2. The start of school holidays
+      // 3. Another public holiday
+      if (isWeekend(nextNextDay) || 
+          isSchoolHolidayStart(nextNextDay) ||
+          publicHolidays.some(h => isSameDay(h.date, nextNextDay))) {
+        
+        // Skip if the next next day is during school holidays
+        if (isSchoolHoliday(nextNextDay)) {
+          continue;
+        }
+
+        // Skip if the next next day is a school holiday start but also during school holidays
+        if (isSchoolHolidayStart(nextNextDay) && isSchoolHoliday(nextNextDay)) {
+          continue;
+        }
+
+        // Skip if the next next day is a weekend and the next day is during school holidays
+        if (isWeekend(nextNextDay) && isSchoolHoliday(nextDay)) {
+          continue;
+        }
+
+        bridgeDays.push({
+          date: nextDay,
+          name: 'Brückentag',
+          type: 'bridge',
+          state: state,
+          connectedHolidays: [holiday],
+          requiredVacationDays: 1,
+          totalDaysOff: 4,
+          efficiency: 4
+        });
       }
     }
 
-    if (currentBridgeDay) {
-      mergedBridgeDays.push(currentBridgeDay);
-    }
-
-    return mergedBridgeDays;
+    return bridgeDays;
   }
 }; 

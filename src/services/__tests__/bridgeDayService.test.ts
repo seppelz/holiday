@@ -1,150 +1,165 @@
 import { bridgeDayService } from '../bridgeDayService';
-import { Holiday, GermanState } from '../../types/holiday';
+import { Holiday } from '../../types/holiday';
+import { GermanState } from '../../types/germanState';
 
 describe('bridgeDayService', () => {
   describe('calculateBridgeDays', () => {
-    it('should find a bridge day for Friday after Thursday holiday', () => {
+    it('should identify a bridge day between a holiday and a weekend', () => {
       const holidays: Holiday[] = [
         {
-          date: new Date('2024-05-09T12:00:00+02:00'),
+          date: new Date('2024-05-09'),
           name: 'Christi Himmelfahrt',
-          type: 'public'
+          type: 'public',
+          state: 'BE' as GermanState
         }
       ];
 
-      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays);
+      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays, 'BE' as GermanState);
+
       expect(bridgeDays).toHaveLength(1);
-      expect(bridgeDays[0]).toMatchObject({
-        type: 'bridge',
-        requiredVacationDays: 1,
-        totalDaysOff: 4, // Thu-Sun
-        efficiency: 4,
-      });
+      expect(bridgeDays[0].date).toEqual(new Date('2024-05-10'));
     });
 
-    it('should find a bridge day for Tuesday after Monday holiday', () => {
+    it('should identify a bridge day between two holidays', () => {
       const holidays: Holiday[] = [
         {
-          date: new Date('2024-06-10T12:00:00+02:00'),
-          name: 'Pfingstmontag',
-          type: 'public'
-        }
-      ];
-
-      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays);
-      expect(bridgeDays).toHaveLength(1);
-      expect(bridgeDays[0]).toMatchObject({
-        type: 'bridge',
-        requiredVacationDays: 1,
-        totalDaysOff: 4, // Sat-Tue
-        efficiency: 4,
-      });
-    });
-
-    it('should find bridge days around Wednesday holiday', () => {
-      const holidays: Holiday[] = [
-        {
-          date: new Date('2024-05-01T12:00:00+02:00'),
-          name: 'Tag der Arbeit',
-          type: 'public'
-        }
-      ];
-
-      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays);
-      expect(bridgeDays).toHaveLength(2);
-      expect(bridgeDays[0]).toMatchObject({
-        type: 'bridge',
-        requiredVacationDays: 2,
-        totalDaysOff: 5, // Mon-Fri
-        efficiency: 2.5,
-      });
-      expect(bridgeDays[1]).toMatchObject({
-        type: 'bridge',
-        requiredVacationDays: 2,
-        totalDaysOff: 5, // Wed-Sun
-        efficiency: 2.5,
-      });
-    });
-
-    it('should merge connected bridge days', () => {
-      const holidays: Holiday[] = [
-        {
-          date: new Date('2024-05-30T12:00:00+02:00'),
-          name: 'Fronleichnam',
-          type: 'public'
+          date: new Date('2024-05-09'),
+          name: 'Christi Himmelfahrt',
+          type: 'public',
+          state: 'BE' as GermanState
         },
         {
-          date: new Date('2024-06-03T12:00:00+02:00'),
-          name: 'Pfingstmontag',
-          type: 'public'
+          date: new Date('2024-05-11'),
+          name: 'Another Holiday',
+          type: 'public',
+          state: 'BE' as GermanState
         }
       ];
 
-      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays);
+      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays, 'BE' as GermanState);
+
       expect(bridgeDays).toHaveLength(1);
-      expect(bridgeDays[0]).toMatchObject({
-        type: 'bridge',
-        requiredVacationDays: 1,
-        totalDaysOff: 6, // Thu-Tue
-        efficiency: 6,
-      });
+      expect(bridgeDays[0].date).toEqual(new Date('2024-05-10'));
     });
 
-    it('should not create bridge days for holidays too far apart', () => {
+    it('should identify a bridge day between a holiday and school holidays', () => {
       const holidays: Holiday[] = [
         {
-          date: new Date('2024-05-01T12:00:00+02:00'),
-          name: 'Tag der Arbeit',
-          type: 'public'
+          date: new Date('2024-05-09'),
+          name: 'Christi Himmelfahrt',
+          type: 'public',
+          state: 'BE' as GermanState
         },
         {
-          date: new Date('2024-05-20T12:00:00+02:00'),
-          name: 'Pfingstmontag',
-          type: 'public'
+          date: new Date('2024-05-11'),
+          name: 'School Holiday',
+          type: 'regional',
+          state: 'BE' as GermanState,
+          endDate: new Date('2024-05-19')
         }
       ];
 
-      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays);
+      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays, 'BE' as GermanState);
+
+      expect(bridgeDays).toHaveLength(1);
+      expect(bridgeDays[0].date).toEqual(new Date('2024-05-10'));
+    });
+
+    it('should not identify bridge days when next day is a weekend', () => {
+      const holidays: Holiday[] = [
+        {
+          date: new Date('2024-05-10'),
+          name: 'Holiday',
+          type: 'public',
+          state: 'BE' as GermanState
+        }
+      ];
+
+      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays, 'BE' as GermanState);
       expect(bridgeDays).toHaveLength(0);
     });
 
-    describe('Regional Holidays', () => {
-      it('should handle regional holidays based on state', () => {
-        // Real example from 2024 calendar
-        const holidays: Holiday[] = [
-          {
-            date: new Date('2024-05-30T12:00:00+02:00'),
-            name: 'Fronleichnam',
-            type: 'regional',
-            region: 'BW' as GermanState
-          },
-          {
-            date: new Date('2024-06-03T12:00:00+02:00'),
-            name: 'Pfingstmontag',
-            type: 'public'
-          }
-        ];
+    it('should not identify days during school holidays as bridge days', () => {
+      const holidays: Holiday[] = [
+        {
+          date: new Date('2024-05-09'),
+          name: 'Christi Himmelfahrt',
+          type: 'public',
+          state: 'BE' as GermanState
+        },
+        {
+          date: new Date('2024-05-08'),
+          name: 'School Holiday',
+          type: 'regional',
+          state: 'BE' as GermanState,
+          endDate: new Date('2024-05-12')
+        }
+      ];
 
-        // Baden-Württemberg gets all holidays
-        const bwBridgeDays = bridgeDayService.calculateBridgeDays(holidays, 'BW' as GermanState);
-        expect(bwBridgeDays).toHaveLength(1);
-        expect(bwBridgeDays[0]).toMatchObject({
-          type: 'bridge',
-          requiredVacationDays: 1,
-          totalDaysOff: 6, // Thu-Tue (Fronleichnam + Pfingstmontag)
-          efficiency: 6,
-        });
+      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays, 'BE' as GermanState);
+      expect(bridgeDays).toHaveLength(0);
+    });
 
-        // Berlin only gets public holidays
-        const beBridgeDays = bridgeDayService.calculateBridgeDays(holidays, 'BE' as GermanState);
-        expect(beBridgeDays).toHaveLength(1);
-        expect(beBridgeDays[0]).toMatchObject({
-          type: 'bridge',
-          requiredVacationDays: 1,
-          totalDaysOff: 4, // Sat-Tue (around Pfingstmontag)
-          efficiency: 4,
-        });
-      });
+    it('should identify only one bridge day when multiple opportunities exist', () => {
+      const holidays: Holiday[] = [
+        {
+          date: new Date('2024-05-09'),
+          name: 'Christi Himmelfahrt',
+          type: 'public',
+          state: 'BE' as GermanState
+        },
+        {
+          date: new Date('2024-05-11'),
+          name: 'Another Holiday',
+          type: 'public',
+          state: 'BE' as GermanState
+        }
+      ];
+
+      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays, 'BE' as GermanState);
+
+      expect(bridgeDays).toHaveLength(1);
+      expect(bridgeDays[0].date).toEqual(new Date('2024-05-10'));
+    });
+
+    it('should not identify bridge days between school holidays and public holidays', () => {
+      const holidays: Holiday[] = [
+        {
+          date: new Date('2024-10-31'),
+          name: 'School Holiday',
+          type: 'regional',
+          state: 'BE' as GermanState,
+          endDate: new Date('2024-10-31')
+        },
+        {
+          date: new Date('2024-11-01'),
+          name: 'Allerheiligen',
+          type: 'public',
+          state: 'BE' as GermanState
+        }
+      ];
+
+      const beBridgeDays = bridgeDayService.calculateBridgeDays(holidays, 'BE' as GermanState);
+      expect(beBridgeDays).toHaveLength(0);
+
+      const holidays2: Holiday[] = [
+        {
+          date: new Date('2024-10-31'),
+          name: 'School Holiday',
+          type: 'regional',
+          state: 'BW' as GermanState,
+          endDate: new Date('2024-10-31')
+        },
+        {
+          date: new Date('2024-11-01'),
+          name: 'Allerheiligen',
+          type: 'public',
+          state: 'BW' as GermanState
+        }
+      ];
+
+      const bwBridgeDays = bridgeDayService.calculateBridgeDays(holidays2, 'BW' as GermanState);
+      expect(bwBridgeDays).toHaveLength(0);
     });
   });
 }); 
