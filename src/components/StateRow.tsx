@@ -2,9 +2,10 @@ import React from 'react';
 import { GermanState } from '../types/germanState';
 import { StateSelect } from './StateSelect';
 import { VacationForm } from './VacationForm';
-import { Holiday, VacationPlan } from '../types/holiday';
+import { VacationPlan } from '../types/vacationPlan';
 
 interface StateRowProps {
+  personId: 1 | 2;
   state: GermanState | null;
   onStateChange: (state: GermanState | null) => void;
   availableVacationDays: number;
@@ -12,11 +13,12 @@ interface StateRowProps {
   remainingDays: number;
   showVacationForm: boolean;
   onToggleVacationForm: () => void;
-  onVacationSubmit: (plan: Omit<VacationPlan, 'id'>) => void;
+  onVacationSubmit: (plan: Omit<VacationPlan, 'id' | 'personId'>) => void;
   isFirst?: boolean;
 }
 
 export const StateRow: React.FC<StateRowProps> = ({
+  personId,
   state,
   onStateChange,
   availableVacationDays,
@@ -51,7 +53,7 @@ export const StateRow: React.FC<StateRowProps> = ({
                     type="number"
                     value={availableVacationDays}
                     onChange={(e) => onVacationDaysChange(parseInt(e.target.value) || 0)}
-                    className="w-16 px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-16 px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
                     min="0"
                     max="365"
                   />
@@ -61,33 +63,22 @@ export const StateRow: React.FC<StateRowProps> = ({
               <div className="flex items-center gap-1 text-sm">
                 <span className="text-gray-600">|</span>
                 <span className="text-gray-600">Verbleibend:</span>
-                <span className="font-semibold text-indigo-600">{remainingDays}</span>
+                <span className="font-semibold text-teal-600">{remainingDays}</span>
               </div>
             </div>
 
             {/* Add Vacation Button */}
             <button
               onClick={onToggleVacationForm}
-              className="px-3 py-1 text-sm bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 transition-colors ml-4"
+              className={`px-3 py-1 text-sm text-white rounded-full transition-all shadow-sm hover:shadow 
+                active:shadow-inner active:translate-y-px ${
+                  personId === 1
+                    ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600'
+                    : 'bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600'
+                }`}
             >
               + Urlaub planen
             </button>
-
-            {/* Legend */}
-            <div className="flex items-center gap-4 text-sm ml-auto">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-100 border border-gray-200 rounded"></div>
-                <span className="text-sm">Feiertage</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-100 border border-gray-200 rounded"></div>
-                <span className="text-sm">Brückentage</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-100 border border-gray-200 rounded"></div>
-                <span className="text-sm">Schulferien</span>
-              </div>
-            </div>
           </>
         )}
       </div>
@@ -95,6 +86,7 @@ export const StateRow: React.FC<StateRowProps> = ({
       {/* Vacation Form */}
       {showVacationForm && state && (
         <VacationForm
+          personId={personId}
           state={state}
           onSubmit={onVacationSubmit}
           onClose={onToggleVacationForm}

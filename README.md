@@ -12,12 +12,19 @@ Ein intelligentes Tool zur Urlaubsplanung, das dir hilft, deine Urlaubstage durc
 - 🌍 Unterstützung für alle Bundesländer
   - Bundesweite Feiertage
   - Länderspezifische Feiertage
+- 🎨 Modernes UI-Design
+  - Responsive Layout
+  - State-spezifische Themes
+  - Glassmorphism Effekte
+- 🤝 Basis Dual-State Unterstützung
+  - Auswahl zweier Bundesländer
+  - Kombinierte Kalenderansicht
 
 ### In Entwicklung 🚧
-- 🤝 Dual-State Modus für länderübergreifende Planung
-  - Optimal für Paare in verschiedenen Bundesländern
-  - Perfekt für grenzüberschreitende Arbeit
-  - Familienbesuche leicht geplant
+- 🧮 Erweiterte Dual-State Funktionen
+  - Effizienzkalkulation für kombinierte Staaten
+  - Hervorhebung optimaler Kombinationen
+- ⚠️ Fehlerbehandlung und Nutzerfeedback
 - 🚦 Verkehrsprognosen für Reiseplanung
 - 📅 Flexible und feste Urlaubsplanung
 - 🏫 Übersicht der Schulferien
@@ -66,8 +73,10 @@ http://localhost:5173
 ### Aktueller Status
 - ✅ Projekt-Boilerplate erstellt
 - ✅ Grundlegende Brückentag-Berechnung implementiert
-- 🚧 Bundesland-Auswahl in Arbeit
-- 📋 Dual-State Feature geplant
+- ✅ Bundesland-Auswahl implementiert
+- ✅ Basis Dual-State Feature implementiert
+- 🚧 Erweiterte Dual-State Funktionen in Entwicklung
+- 📋 Fehlerbehandlung in Planung
 
 ## API-Integrationen
 

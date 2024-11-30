@@ -1,67 +1,44 @@
 import React from 'react';
-import { Holiday, BridgeDay } from '../../types/holiday';
+import { Holiday } from '../../types/holiday';
 import { differenceInBusinessDays } from 'date-fns';
-import { useStateContext } from '../../layouts/MainLayout';
+import { usePersonContext } from '../../layouts/MainLayout';
 
 interface VacationCounterProps {
   holidays: Holiday[];
-  totalVacationDays?: number;
+  personId: 1 | 2;
 }
 
-export const VacationCounter: React.FC<VacationCounterProps> = ({
-  holidays,
-  totalVacationDays = 30
-}) => {
-  const { vacationPlans } = useStateContext();
+export const VacationCounter: React.FC<VacationCounterProps> = ({ holidays, personId }) => {
+  const { persons } = usePersonContext();
+  const person = personId === 1 ? persons.person1 : persons.person2;
 
-  // Calculate used vacation days
-  const usedVacationDays = vacationPlans.reduce((total, plan) => {
-    const workingDays = differenceInBusinessDays(plan.end, plan.start) + 1;
-    
-    // Subtract holidays that fall within the vacation period
-    const holidaysInPeriod = holidays.filter(holiday => {
-      const holidayDate = new Date(holiday.date);
-      return holidayDate >= plan.start && holidayDate <= plan.end;
-    }).length;
+  if (!person) return null;
 
-    return total + (workingDays - holidaysInPeriod);
+  const totalVacationDays = person.vacationPlans.reduce((total, plan) => {
+    const days = Math.ceil((plan.end.getTime() - plan.start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    return total + days;
   }, 0);
 
-  // Calculate bridge days
-  const bridgeDays = holidays.filter((h): h is BridgeDay => h.type === 'bridge');
-  const bridgeDayCount = bridgeDays.reduce((total, day) => total + day.requiredVacationDays, 0);
-
-  // Calculate remaining days
-  const remainingDays = totalVacationDays - usedVacationDays - bridgeDayCount;
+  const bridgeDays = holidays.reduce((total, holiday) => {
+    if (holiday.type === 'bridge') {
+      return total + differenceInBusinessDays(new Date(holiday.endDate!), new Date(holiday.date)) + 1;
+    }
+    return total;
+  }, 0);
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">Urlaubstage Übersicht</h3>
-      
-      <div className="grid grid-cols-3 gap-4">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-indigo-600">{usedVacationDays}</div>
-          <div className="text-sm text-gray-600">Geplante Tage</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-emerald-600">{bridgeDayCount}</div>
-          <div className="text-sm text-gray-600">Brückentage</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-amber-600">{remainingDays}</div>
-          <div className="text-sm text-gray-600">Verbleibend</div>
-        </div>
+    <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-600">Urlaubstage:</span>
+        <span className="font-medium text-gray-900">{totalVacationDays}</span>
       </div>
-
-      <div className="w-full bg-gray-200 rounded-full h-2.5">
-        <div 
-          className="bg-indigo-600 h-2.5 rounded-full transition-all"
-          style={{ width: `${(usedVacationDays / totalVacationDays) * 100}%` }}
-        />
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-600">Brückentage:</span>
+        <span className="font-medium text-gray-900">{bridgeDays}</span>
       </div>
-
-      <div className="text-sm text-gray-600 text-center">
-        {totalVacationDays} Urlaubstage gesamt
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-600">Gesamt:</span>
+        <span className="font-medium text-gray-900">{totalVacationDays + bridgeDays}</span>
       </div>
     </div>
   );

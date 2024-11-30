@@ -1,19 +1,19 @@
 import React from 'react';
 import Calendar from '../components/Calendar/Calendar';
-import { useStateContext } from '../layouts/MainLayout';
+import { usePersonContext } from '../layouts/MainLayout';
 import { useBridgeDays } from '../hooks/useBridgeDays';
 import { GermanState } from '../types/germanState';
 
 export function CalendarPage() {
-  const { selectedStates } = useStateContext();
-  const { holidays, bridgeDays, isLoading: isFirstStateLoading } = useBridgeDays(selectedStates.first);
+  const { persons } = usePersonContext();
+  const { holidays, bridgeDays, isLoading: isFirstStateLoading } = useBridgeDays(persons.person1.selectedState);
   const { 
     holidays: secondStateHolidays, 
     bridgeDays: secondStateBridgeDays, 
     isLoading: isSecondStateLoading 
-  } = useBridgeDays(selectedStates.second || GermanState.BE);
+  } = useBridgeDays(persons.person2?.selectedState || GermanState.BE);
 
-  const isLoading = isFirstStateLoading || (selectedStates.second && isSecondStateLoading);
+  const isLoading = isFirstStateLoading || (persons.person2 && isSecondStateLoading);
   
   if (isLoading) {
     return (
@@ -26,12 +26,14 @@ export function CalendarPage() {
   return (
     <div className="container mx-auto p-4">
       <Calendar
-        state={selectedStates.first}
-        secondState={selectedStates.second}
+        state={persons.person1.selectedState}
+        secondState={persons.person2?.selectedState || null}
         holidays={holidays}
-        secondStateHolidays={selectedStates.second ? secondStateHolidays : []}
+        secondStateHolidays={secondStateHolidays}
         bridgeDays={bridgeDays}
-        secondStateBridgeDays={selectedStates.second ? secondStateBridgeDays : []}
+        secondStateBridgeDays={secondStateBridgeDays}
+        vacationPlans={persons.person1.vacationPlans}
+        secondStateVacationPlans={persons.person2?.vacationPlans || []}
       />
     </div>
   );

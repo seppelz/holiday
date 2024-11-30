@@ -1,20 +1,21 @@
 import React from 'react';
+import { usePersonContext } from '../layouts/MainLayout';
 import Calendar from '../components/Calendar/Calendar';
+import { useHolidays } from '../hooks/useHolidays';
 import { useBridgeDays } from '../hooks/useBridgeDays';
-import { useStateContext } from '../layouts/MainLayout';
-import { GermanState } from '../types/germanState';
 
-export function HomePage() {
-  const { selectedStates } = useStateContext();
-  const { holidays, bridgeDays, isLoading: isFirstStateLoading } = useBridgeDays(selectedStates.first);
+export const HomePage: React.FC = () => {
+  const { persons } = usePersonContext();
+  const { holidays: person1Holidays, bridgeDays: person1BridgeDays, isLoading: isFirstStateLoading } = 
+    useBridgeDays(persons.person1.selectedState);
   const { 
-    holidays: secondStateHolidays, 
-    bridgeDays: secondStateBridgeDays, 
+    holidays: person2Holidays, 
+    bridgeDays: person2BridgeDays, 
     isLoading: isSecondStateLoading 
-  } = useBridgeDays(selectedStates.second || GermanState.BE);
+  } = useBridgeDays(persons.person2?.selectedState || null);
 
-  const isLoading = isFirstStateLoading || (selectedStates.second && isSecondStateLoading);
-  
+  const isLoading = isFirstStateLoading || (persons.person2 && isSecondStateLoading);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -24,15 +25,19 @@ export function HomePage() {
   }
 
   return (
-    <Calendar
-      state={selectedStates.first}
-      secondState={selectedStates.second}
-      holidays={holidays}
-      secondStateHolidays={selectedStates.second ? secondStateHolidays : []}
-      bridgeDays={bridgeDays}
-      secondStateBridgeDays={selectedStates.second ? secondStateBridgeDays : []}
-    />
+    <div className="container mx-auto p-4">
+      <Calendar
+        state={persons.person1.selectedState}
+        secondState={persons.person2?.selectedState || null}
+        holidays={person1Holidays}
+        secondStateHolidays={person2Holidays}
+        bridgeDays={person1BridgeDays}
+        secondStateBridgeDays={person2BridgeDays}
+        vacationPlans={persons.person1.vacationPlans}
+        secondStateVacationPlans={persons.person2?.vacationPlans || []}
+      />
+    </div>
   );
-}
+};
 
 export default HomePage; 
