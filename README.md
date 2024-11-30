@@ -1,97 +1,47 @@
-# 🏖 Holiday Planner
+# Holiday Planner
 
-Ein intelligentes Tool zur Urlaubsplanung, das dir hilft, deine Urlaubstage durch Brückentage optimal zu nutzen und Verkehrsspitzen zu vermeiden.
+Ein modernes Tool zur Urlaubsplanung und Brückentag-Analyse.
 
 ## Features
 
-### Implementiert ✅
-- 🗓 Intelligente Berechnung von Brückentagen
-  - Berücksichtigung von Wochenenden
-  - Optimale Verbindung von Feiertagen
-  - Effizienzberechnung (Urlaubstage vs. freie Tage)
-- 🌍 Unterstützung für alle Bundesländer
-  - Bundesweite Feiertage
-  - Länderspezifische Feiertage
-- 🎨 Modernes UI-Design
-  - Responsive Layout
-  - State-spezifische Themes
-  - Glassmorphism Effekte
-- 🤝 Basis Dual-State Unterstützung
-  - Auswahl zweier Bundesländer
-  - Kombinierte Kalenderansicht
+- 📅 12-Monats-Kalenderansicht (kompakt, ohne Scrollen)
+- 🎨 Moderne, übersichtliche Benutzeroberfläche
+- 👥 Personenbasierte Urlaubsplanung
+- 🌉 Automatische Brückentag-Erkennung
+- 🏫 Anzeige von Schulferien
+- 🎯 Effiziente Urlaubsoptimierung
+- 🔄 Dynamische Urlaubstage-Berechnung
 
-### In Entwicklung 🚧
-- 🧮 Erweiterte Dual-State Funktionen
-  - Effizienzkalkulation für kombinierte Staaten
-  - Hervorhebung optimaler Kombinationen
-- ⚠️ Fehlerbehandlung und Nutzerfeedback
-- 🚦 Verkehrsprognosen für Reiseplanung
-- 📅 Flexible und feste Urlaubsplanung
-- 🏫 Übersicht der Schulferien
-- 💾 Lokale Speicherung von Planungsszenarien
+## Technischer Stand
 
-## Tech Stack
+- ✅ Personenbasiertes Datenmodell implementiert
+- ✅ Optimierte Kalenderdarstellung mit perfekter Ausrichtung
+- ✅ Modernes, responsives Design
+- ✅ Effiziente State-Management-Struktur
+- ✅ TypeScript-Integration für robuste Typsicherheit
 
-- ⚛️ React 18 mit TypeScript
-- 🎨 TailwindCSS für Styling
-- 🔄 React Query für API-Anfragen
-- 📦 Zustand für State Management
-- 🛣 React Router für Navigation
-- 🏃 Vite als Build Tool
-- 🧪 Jest für Testing
+## Nächste Schritte
 
-## Erste Schritte
+- [ ] Erweiterte Filterfunktionen für Urlaubsansichten
+- [ ] Export-Funktionalität für Urlaubsplanung
+- [ ] Erweiterte Statistiken und Analysen
+- [ ] Speicherfunktion für verschiedene Planungsszenarien
 
-1. Repository klonen:
-```bash
-git clone https://github.com/seppelz/holiday.git
-cd holiday
-```
+## Technologie-Stack
 
-2. Abhängigkeiten installieren:
+- React
+- TypeScript
+- Tailwind CSS
+- Vite
+- date-fns
+
+## Installation
+
 ```bash
 npm install
-```
-
-3. Entwicklungsserver starten:
-```bash
 npm run dev
-```
-
-4. Browser öffnen:
-```
-http://localhost:5173
 ```
 
 ## Entwicklung
 
-- 🌿 GitHub Flow für Branching
-- 📝 Conventional Commits
-- 📋 GitHub Projects für Projektmanagement
-- 🔄 GitHub Actions für CI/CD
-
-### Aktueller Status
-- ✅ Projekt-Boilerplate erstellt
-- ✅ Grundlegende Brückentag-Berechnung implementiert
-- ✅ Bundesland-Auswahl implementiert
-- ✅ Basis Dual-State Feature implementiert
-- 🚧 Erweiterte Dual-State Funktionen in Entwicklung
-- 📋 Fehlerbehandlung in Planung
-
-## API-Integrationen
-
-- Schulferien: [ferien-api.de](https://ferien-api.de)
-- Feiertage: [date.nager.at](https://date.nager.at)
-- Internationale Feiertage: [openholidaysapi.org](https://openholidaysapi.org)
-
-## Browser-Unterstützung
-
-Unterstützt alle modernen Browser (letzte 2 Versionen):
-- Chrome
-- Firefox
-- Safari
-- Edge
-
-## Lizenz
-
-MIT
+Das Projekt befindet sich in aktiver Entwicklung. Neue Features und Verbesserungen werden kontinuierlich implementiert.
