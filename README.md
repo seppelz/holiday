@@ -12,6 +12,7 @@ Ein modernes Tool zur Urlaubsplanung und Brückentag-Analyse.
 - 🌍 Unterstützung für alle Bundesländer
   - Bundesweite Feiertage
   - Länderspezifische Feiertage
+  - Schulferien-Integration
 - 🎨 Modernes UI-Design
   - Responsive Layout für Desktop und Mobile
   - State-spezifische Themes
@@ -22,26 +23,39 @@ Ein modernes Tool zur Urlaubsplanung und Brückentag-Analyse.
   - Kombinierte Kalenderansicht
   - Separate Urlaubsplanung pro Person
   - Urlaubstage-Tracking pro Person
-- 📅 Flexible Urlaubsplanung
-  - Popup-Kalender mit Jahresansicht
-  - Datumseingabe per Tastatur oder Kalender
-  - Validierung von Urlaubszeiträumen
-  - Markierung bereits gebuchter Urlaube
+- ⌨️ Umfangreiche Tastatursteuerung
+  - Schnelle Navigation (Pfeiltasten, Tab)
+  - Urlaubsplanung (n für Person 1, m für Person 2)
+  - Direkte Urlaubsverwaltung (1-8 für schnelles Löschen)
+  - Hilfemenü mit ? Taste
+- 📅 Intelligente Urlaubsplanung
+  - Direkte Kalenderauswahl für Urlaubstage
+  - Automatische Zusammenführung überlappender Urlaube
+  - Verhinderung von Doppelbuchungen
+  - Smarte Benachrichtigungen für Benutzerinteraktionen
 - 💾 Lokale Datenspeicherung
   - Persistente Speicherung aller Einstellungen
   - Automatisches Laden beim Start
+  - Sortierte Urlaubsanzeige nach Datum
 
 ### In Entwicklung 🚧
-- 📱 Optimierte Mobile Ansicht
+- 📱 Aktuelle Prioritäten
+  1. Optimierung der Urlaubsauswahl
+     - Verbesserte farbliche Kennzeichnung der Auswahl
+     - Hover-Effekte für Datumsbereich
+     - Klarere visuelle Unterscheidung zwischen Start- und Enddatum
+  2. UX-Verbesserungen
+     - Besseres Feedback während der Auswahl
+     - Tooltips und Hilfestellungen
+     - Optimierte Mobile-Ansicht
+
+- 📱 Mobile Optimierung
   - Separate Komponenten für Mobile/Desktop
   - Verbesserte Touch-Interaktion
   - Angepasstes Layout für kleine Bildschirme
 - 🧮 Erweiterte Analysefunktionen
   - Effizienzkalkulation für kombinierte Staaten
   - Hervorhebung optimaler Kombinationen
-- 🏫 Integration von Schulferien
-  - Anzeige im Kalender
-  - Berücksichtigung bei der Planung
 - 📊 Statistiken und Auswertungen
   - Urlaubsübersicht pro Person
   - Vergleich zwischen Personen
@@ -55,6 +69,20 @@ Ein modernes Tool zur Urlaubsplanung und Brückentag-Analyse.
 - ✅ TypeScript-Integration
 - ✅ Komponenten-Struktur für Desktop/Mobile
 - ✅ Erweiterte Test-Abdeckung
+- ✅ Direkte Kalenderintegration für Urlaubsauswahl
+- ✅ Intelligentes Benachrichtigungssystem
+- ✅ Automatische Urlaubsorganisation
+
+## Tastaturkürzel
+- `?` - Zeigt/Versteckt die Tastaturkürzel-Übersicht
+- `n` - Neuen Urlaub für Person 1 planen
+- `m` - Neuen Urlaub für Person 2 planen
+- `1-4` - Urlaub 1-4 von Person 1 löschen (4 löscht den letzten bei mehr als 4)
+- `5-8` - Urlaub 1-4 von Person 2 löschen (8 löscht den letzten bei mehr als 4)
+- `p` - Person 2 ein-/ausblenden
+- `←/→` - Vorheriger/Nächster Tag
+- `↑/↓` - Vorherige/Nächste Woche
+- `Enter` - Tag auswählen
 
 ## Tech Stack
 - ⚛️ React 18 mit TypeScript
@@ -64,11 +92,26 @@ Ein modernes Tool zur Urlaubsplanung und Brückentag-Analyse.
 - 🧪 Jest für Testing
 
 ## Roadmap
-- [ ] PWA-Unterstützung
-- [ ] Export-Funktionalität (PDF, iCal)
-- [ ] Erweiterte Statistiken
-- [ ] Team-Kalender Feature
-- [ ] Internationalisierung
+1. Q1 2024
+   - [x] Grundlegende Kalenderfunktionalität
+   - [x] Bundesland-spezifische Feiertage
+   - [x] Brückentag-Berechnung
+   - [x] Zwei-Personen-Support
+   - [x] Direkte Kalenderauswahl
+   - [x] Tastatursteuerung
+   - [x] Intelligente Urlaubsverwaltung
+
+2. Q2 2024
+   - [ ] Optimierte Urlaubsauswahl
+   - [ ] Erweiterte Personenfunktionen
+   - [ ] Mobile Optimierung
+   - [ ] PWA-Unterstützung
+
+3. Q3 2024
+   - [ ] Export-Funktionalität (PDF, iCal)
+   - [ ] Erweiterte Statistiken
+   - [ ] Team-Kalender Feature
+   - [ ] Internationalisierung
 
 ## Installation & Entwicklung
 
@@ -92,8 +135,8 @@ src/
 ├── layouts/           # Layout Komponenten
 ├── pages/             # Seiten-Komponenten
 ├── services/          # API Services
-├── types/             # TypeScript Typen
-└── utils/             # Hilfsfunktionen
+├── types/            # TypeScript Typen
+└── utils/            # Hilfsfunktionen
 ```
 
 ### Entwicklungsrichtlinien

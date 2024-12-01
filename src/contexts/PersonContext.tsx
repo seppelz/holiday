@@ -3,6 +3,7 @@ import { GermanState } from '../types/GermanState';
 import { Person, PersonInfo } from '../types/person';
 import { VacationPlan } from '../types/vacationPlan';
 import { usePersonStorage } from '../hooks/usePersonStorage';
+import { useNotification } from './NotificationContext';
 
 interface PersonContextType {
   persons: PersonInfo;
@@ -24,6 +25,7 @@ export const usePersonContext = () => {
 
 export const PersonProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { savePersons, loadPersons } = usePersonStorage();
+  const { showNotification } = useNotification();
   const [persons, setPersons] = useState<PersonInfo>(() => {
     const savedPersons = loadPersons();
     return savedPersons || {
@@ -38,32 +40,120 @@ export const PersonProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   });
 
   const updatePerson = (personId: 1 | 2, updates: Partial<Person>) => {
-    setPersons(prev => ({
-      ...prev,
-      [`person${personId}`]: {
-        ...prev[`person${personId}`],
-        ...updates
-      } as Person
-    }));
-    savePersons(persons);
+    setPersons(prev => {
+      const newPersons: PersonInfo = personId === 2 && prev.person2 === null
+        ? {
+            ...prev,
+            person2: {
+              id: 2 as const,
+              selectedState: updates.selectedState || prev.person1.selectedState,
+              availableVacationDays: updates.availableVacationDays || 30,
+              vacationPlans: [],
+              ...updates
+            }
+          }
+        : {
+            ...prev,
+            [`person${personId}`]: {
+              ...prev[`person${personId}`],
+              ...updates
+            } as Person
+          };
+      savePersons(newPersons);
+      return newPersons;
+    });
+  };
+
+  const isDateRangeOverlapping = (start1: Date, end1: Date, start2: Date, end2: Date) => {
+    return start1 <= end2 && end1 >= start2;
+  };
+
+  const isDateRangeInside = (innerStart: Date, innerEnd: Date, outerStart: Date, outerEnd: Date) => {
+    return innerStart >= outerStart && innerEnd <= outerEnd;
+  };
+
+  const findOverlappingVacation = (
+    personId: 1 | 2,
+    start: Date,
+    end: Date,
+    excludePlanId?: string
+  ): VacationPlan | null => {
+    const existingPlans = persons[`person${personId}`]?.vacationPlans || [];
+    return existingPlans.find(plan => 
+      plan.id !== excludePlanId && 
+      isDateRangeOverlapping(start, end, plan.start, plan.end)
+    ) || null;
   };
 
   const addVacationPlan = (personId: 1 | 2, plan: Omit<VacationPlan, 'id' | 'personId'>) => {
-    setPersons(prev => ({
-      ...prev,
-      [`person${personId}`]: {
-        ...prev[`person${personId}`],
-        vacationPlans: [
-          ...(prev[`person${personId}`]?.vacationPlans || []),
-          {
-            ...plan,
-            id: Math.random().toString(36).substr(2, 9),
-            personId
-          }
-        ]
-      } as Person
-    }));
-    savePersons(persons);
+    setPersons(prev => {
+      const existingPlans = prev[`person${personId}`]?.vacationPlans || [];
+      
+      // Check if the new vacation is completely inside an existing one
+      const isInsideExisting = existingPlans.some(existingPlan =>
+        isDateRangeInside(plan.start, plan.end, existingPlan.start, existingPlan.end)
+      );
+
+      if (isInsideExisting) {
+        showNotification('Diese Urlaubstage sind bereits vollständig in einem bestehenden Urlaub enthalten.', 'warning');
+        return prev;
+      }
+
+      // Find any overlapping vacation
+      const overlappingPlan = findOverlappingVacation(personId, plan.start, plan.end);
+
+      if (overlappingPlan) {
+        showNotification('Überlappende Urlaubstage werden automatisch zusammengeführt.', 'info');
+        // Merge the vacations by extending the date range
+        const mergedPlan = {
+          ...overlappingPlan,
+          start: new Date(Math.min(plan.start.getTime(), overlappingPlan.start.getTime())),
+          end: new Date(Math.max(plan.end.getTime(), overlappingPlan.end.getTime()))
+        };
+
+        // Replace the overlapping plan with the merged one
+        const updatedPlans = existingPlans
+          .filter(p => p.id !== overlappingPlan.id)
+          .concat(mergedPlan);
+
+        // Sort by start date
+        const sortedPlans = updatedPlans.sort((a, b) => 
+          a.start.getTime() - b.start.getTime()
+        );
+
+        const newPersons = {
+          ...prev,
+          [`person${personId}`]: {
+            ...prev[`person${personId}`],
+            vacationPlans: sortedPlans
+          } as Person
+        };
+        savePersons(newPersons);
+        return newPersons;
+      }
+
+      // No overlap, add as new vacation
+      const newPlan = {
+        ...plan,
+        id: Math.random().toString(36).substr(2, 9),
+        personId
+      };
+      
+      // Add new plan and sort all plans by start date
+      const sortedPlans = [...existingPlans, newPlan].sort((a, b) => 
+        a.start.getTime() - b.start.getTime()
+      );
+
+      const newPersons = {
+        ...prev,
+        [`person${personId}`]: {
+          ...prev[`person${personId}`],
+          vacationPlans: sortedPlans
+        } as Person
+      };
+      savePersons(newPersons);
+      return newPersons;
+    });
   };
 
   const updateVacationPlan = (
@@ -71,27 +161,92 @@ export const PersonProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     planId: string,
     updates: Partial<Omit<VacationPlan, 'id' | 'personId'>>
   ) => {
-    setPersons(prev => ({
-      ...prev,
-      [`person${personId}`]: {
-        ...prev[`person${personId}`],
-        vacationPlans: prev[`person${personId}`]?.vacationPlans.map(plan =>
-          plan.id === planId ? { ...plan, ...updates } : plan
-        )
-      } as Person
-    }));
-    savePersons(persons);
+    setPersons(prev => {
+      const existingPlans = prev[`person${personId}`]?.vacationPlans || [];
+      const currentPlan = existingPlans.find(p => p.id === planId);
+      
+      if (!currentPlan) return prev;
+
+      const updatedPlan = { ...currentPlan, ...updates };
+
+      // Check if the updated vacation would be completely inside another existing one
+      const isInsideExisting = existingPlans.some(existingPlan =>
+        existingPlan.id !== planId &&
+        isDateRangeInside(updatedPlan.start, updatedPlan.end, existingPlan.start, existingPlan.end)
+      );
+
+      if (isInsideExisting) {
+        showNotification('Diese Urlaubstage wären vollständig in einem bestehenden Urlaub enthalten.', 'warning');
+        return prev;
+      }
+
+      // Find any overlapping vacation (excluding the current plan)
+      const overlappingPlan = findOverlappingVacation(personId, updatedPlan.start, updatedPlan.end, planId);
+
+      if (overlappingPlan) {
+        showNotification('Überlappende Urlaubstage werden automatisch zusammengeführt.', 'info');
+        // Merge the vacations by extending the date range
+        const mergedPlan = {
+          ...overlappingPlan,
+          start: new Date(Math.min(updatedPlan.start.getTime(), overlappingPlan.start.getTime())),
+          end: new Date(Math.max(updatedPlan.end.getTime(), overlappingPlan.end.getTime()))
+        };
+
+        // Remove both plans and add the merged one
+        const updatedPlans = existingPlans
+          .filter(p => p.id !== planId && p.id !== overlappingPlan.id)
+          .concat(mergedPlan);
+
+        // Sort by start date
+        const sortedPlans = updatedPlans.sort((a, b) => 
+          a.start.getTime() - b.start.getTime()
+        );
+
+        const newPersons = {
+          ...prev,
+          [`person${personId}`]: {
+            ...prev[`person${personId}`],
+            vacationPlans: sortedPlans
+          } as Person
+        };
+        savePersons(newPersons);
+        return newPersons;
+      }
+
+      // No overlap, just update the plan
+      const updatedPlans = existingPlans.map(plan =>
+        plan.id === planId ? updatedPlan : plan
+      );
+
+      // Sort by start date
+      const sortedPlans = updatedPlans.sort((a, b) => 
+        a.start.getTime() - b.start.getTime()
+      );
+
+      const newPersons = {
+        ...prev,
+        [`person${personId}`]: {
+          ...prev[`person${personId}`],
+          vacationPlans: sortedPlans
+        } as Person
+      };
+      savePersons(newPersons);
+      return newPersons;
+    });
   };
 
   const deleteVacationPlan = (personId: 1 | 2, planId: string) => {
-    setPersons(prev => ({
-      ...prev,
-      [`person${personId}`]: {
-        ...prev[`person${personId}`],
-        vacationPlans: prev[`person${personId}`]?.vacationPlans.filter(plan => plan.id !== planId)
-      } as Person
-    }));
-    savePersons(persons);
+    setPersons(prev => {
+      const newPersons = {
+        ...prev,
+        [`person${personId}`]: {
+          ...prev[`person${personId}`],
+          vacationPlans: prev[`person${personId}`]?.vacationPlans.filter(plan => plan.id !== planId)
+        } as Person
+      };
+      savePersons(newPersons);
+      return newPersons;
+    });
   };
 
   return (

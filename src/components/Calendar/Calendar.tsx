@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { DesktopCalendar } from '../Desktop/Calendar/DesktopCalendar';
+import { MobileCalendar } from '../Mobile/Calendar/MobileCalendar';
+import { BaseCalendarProps } from '../Shared/Calendar/BaseCalendar';
+import { GermanState } from '../../types/GermanState';
 import { Holiday } from '../../types/holiday';
 import { VacationPlan } from '../../types/vacationPlan';
-import { GermanState } from '../../types/GermanState';
-import { MonthCalendar } from './MonthCalendar';
+import { differenceInDays, isWithinInterval } from 'date-fns';
 
 interface CalendarProps {
   state: GermanState;
@@ -13,69 +17,92 @@ interface CalendarProps {
   secondStateBridgeDays: Date[];
   vacationPlans: VacationPlan[];
   secondStateVacationPlans: VacationPlan[];
+  onVacationSelect?: (start: Date, end: Date) => void;
+  onAddVacation?: (plan: Omit<VacationPlan, 'id' | 'personId'>) => void;
+  onDeleteVacation?: (personId: 1 | 2, index: number) => void;
+  vacationCount?: { person1: number; person2: number };
+  personId?: 1 | 2;
+  isSelectingVacation?: boolean;
+  onVacationSelectComplete?: () => void;
 }
 
-export const Calendar: React.FC<CalendarProps> = ({
-  state,
-  secondState,
-  holidays,
-  secondStateHolidays = [],
-  bridgeDays,
-  secondStateBridgeDays = [],
-  vacationPlans,
-  secondStateVacationPlans = []
-}) => {
-  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+export const Calendar: React.FC<CalendarProps> = (props) => {
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const [currentMonth] = useState<Date>(new Date(2025, 0, 1));
+  const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
+  const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
 
-  useEffect(() => {
-    const handleResize = () => {
-      setScreenWidth(window.innerWidth);
+  // Function to check if a date has matching vacations
+  const getDateVacationInfo = (date: Date) => {
+    const person1Vacation = props.vacationPlans.some(vp => 
+      vp.isVisible && isWithinInterval(date, { start: vp.start, end: vp.end })
+    );
+    const person2Vacation = props.secondStateVacationPlans.some(vp => 
+      vp.isVisible && isWithinInterval(date, { start: vp.start, end: vp.end })
+    );
+    
+    return {
+      person1Vacation,
+      person2Vacation,
+      isSharedVacation: person1Vacation && person2Vacation
     };
+  };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const handleDateSelect = (date: Date) => {
+    if (!props.isSelectingVacation) return;
 
-  // Calculate months per row based on screen width
-  const monthsPerRow = screenWidth >= 1024 ? 4 : 1;
-
-  // Generate months for the year
-  const months = Array.from({ length: 12 }, (_, i) => {
-    const date = new Date(2025, i, 1);
-    return date;
-  });
-
-  // Split months into rows
-  const monthRows = months.reduce((rows: Date[][], month: Date, index: number) => {
-    if (index % monthsPerRow === 0) {
-      rows.push([month]);
+    if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
+      setSelectedStartDate(date);
+      setSelectedEndDate(null);
     } else {
-      rows[rows.length - 1].push(month);
-    }
-    return rows;
-  }, []);
+      const start = selectedStartDate < date ? selectedStartDate : date;
+      const end = selectedStartDate < date ? date : selectedStartDate;
+      setSelectedEndDate(date);
 
-  return (
-    <div className="space-y-2">
-      {monthRows.map((row, rowIndex) => (
-        <div key={rowIndex} className="grid grid-cols-1 lg:grid-cols-4 gap-1">
-          {row.map((month) => (
-            <MonthCalendar
-              key={month.getTime()}
-              month={month}
-              state={state}
-              secondState={secondState}
-              holidays={holidays}
-              secondStateHolidays={secondStateHolidays}
-              bridgeDays={bridgeDays}
-              secondStateBridgeDays={secondStateBridgeDays}
-              vacationPlans={vacationPlans}
-              secondStateVacationPlans={secondStateVacationPlans}
-            />
-          ))}
-        </div>
-      ))}
-    </div>
+      if (props.onAddVacation) {
+        const days = differenceInDays(end, start) + 1;
+        if (days > 0) {
+          props.onAddVacation({
+            start,
+            end,
+            isVisible: true
+          });
+        }
+      } else if (props.onVacationSelect) {
+        props.onVacationSelect(start, end);
+      }
+
+      setTimeout(() => {
+        setSelectedStartDate(null);
+        setSelectedEndDate(null);
+        if (props.onVacationSelectComplete) {
+          props.onVacationSelectComplete();
+        }
+      }, 500);
+    }
+  };
+
+  const baseCalendarProps: BaseCalendarProps = {
+    month: currentMonth,
+    startDate: selectedStartDate,
+    endDate: selectedEndDate,
+    onDateSelect: handleDateSelect,
+    holidays: props.holidays,
+    secondStateHolidays: props.secondStateHolidays,
+    bridgeDays: props.bridgeDays,
+    secondStateBridgeDays: props.secondStateBridgeDays,
+    getDateVacationInfo,
+    activePersonId: props.personId,
+    tabIndex: 0,
+    isSelectingVacation: props.isSelectingVacation,
+    onDeleteVacation: props.onDeleteVacation,
+    vacationCount: props.vacationCount
+  };
+
+  return isMobile ? (
+    <MobileCalendar {...baseCalendarProps} />
+  ) : (
+    <DesktopCalendar {...baseCalendarProps} />
   );
 };
 

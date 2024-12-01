@@ -1,11 +1,20 @@
 import React from 'react';
 import { usePersonContext } from '../contexts/PersonContext';
 import Calendar from '../components/Calendar/Calendar';
-import { useHolidays } from '../hooks/useHolidays';
 import { useBridgeDays } from '../hooks/useBridgeDays';
 
-export const HomePage: React.FC = () => {
-  const { persons } = usePersonContext();
+interface HomePageProps {
+  isSelectingVacation?: boolean;
+  onVacationSelectComplete?: () => void;
+  selectedPersonId?: 1 | 2 | null;
+}
+
+export const HomePage: React.FC<HomePageProps> = ({
+  isSelectingVacation = false,
+  onVacationSelectComplete,
+  selectedPersonId
+}) => {
+  const { persons, addVacationPlan, deleteVacationPlan } = usePersonContext();
   const { holidays: person1Holidays, bridgeDays: person1BridgeDays, isLoading: isFirstStateLoading } = 
     useBridgeDays(persons.person1.selectedState);
   const { 
@@ -25,16 +34,36 @@ export const HomePage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto px-4">
       <Calendar
         state={persons.person1.selectedState}
         secondState={persons.person2?.selectedState || null}
         holidays={person1Holidays}
-        secondStateHolidays={person2Holidays}
+        secondStateHolidays={person2Holidays || []}
         bridgeDays={person1BridgeDays}
-        secondStateBridgeDays={person2BridgeDays}
+        secondStateBridgeDays={person2BridgeDays || []}
         vacationPlans={persons.person1.vacationPlans}
         secondStateVacationPlans={persons.person2?.vacationPlans || []}
+        onAddVacation={(plan) => {
+          addVacationPlan(selectedPersonId || 1, plan);
+          if (onVacationSelectComplete) {
+            onVacationSelectComplete();
+          }
+        }}
+        onDeleteVacation={(personId, index) => {
+          const plans = personId === 1 ? persons.person1.vacationPlans : persons.person2?.vacationPlans || [];
+          const planId = plans[index]?.id;
+          if (planId) {
+            deleteVacationPlan(personId, planId);
+          }
+        }}
+        vacationCount={{
+          person1: persons.person1.vacationPlans.length,
+          person2: persons.person2?.vacationPlans.length || 0
+        }}
+        personId={selectedPersonId || 1}
+        isSelectingVacation={isSelectingVacation}
+        onVacationSelectComplete={onVacationSelectComplete}
       />
     </div>
   );

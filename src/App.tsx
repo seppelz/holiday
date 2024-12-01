@@ -1,32 +1,16 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MainLayout } from './layouts/MainLayout';
 import { PersonProvider } from './contexts/PersonContext';
-import HomePage from './pages/HomePage';
+import { NotificationProvider } from './contexts/NotificationContext';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-export const App: React.FC = () => {
+function App() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <NotificationProvider>
       <PersonProvider>
-        <BrowserRouter>
-          <MainLayout>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-            </Routes>
-          </MainLayout>
-        </BrowserRouter>
+        <MainLayout />
       </PersonProvider>
-    </QueryClientProvider>
+    </NotificationProvider>
   );
-};
+}
 
 export default App;
