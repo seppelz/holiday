@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GermanState } from '../types/germanState';
+import { GermanState } from '../types/GermanState';
 import { VacationPlan } from '../types/vacationPlan';
 import { format } from 'date-fns';
 

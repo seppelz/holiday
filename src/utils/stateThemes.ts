@@ -1,4 +1,4 @@
-import { GermanState } from '../types/germanState';
+import { GermanState } from '../types/GermanState';
 
 interface StateTheme {
   gradient: string;

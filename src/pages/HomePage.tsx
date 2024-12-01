@@ -1,5 +1,5 @@
 import React from 'react';
-import { usePersonContext } from '../layouts/MainLayout';
+import { usePersonContext } from '../contexts/PersonContext';
 import Calendar from '../components/Calendar/Calendar';
 import { useHolidays } from '../hooks/useHolidays';
 import { useBridgeDays } from '../hooks/useBridgeDays';

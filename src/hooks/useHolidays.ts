@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Holiday } from '../types/holiday';
 import { holidayService } from '../services/holidayService';
-import { usePersonContext } from '../layouts/MainLayout';
+import { usePersonContext } from '../contexts/PersonContext';
 
 export function useHolidays() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);

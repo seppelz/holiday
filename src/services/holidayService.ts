@@ -1,5 +1,5 @@
 import { Holiday } from '../types/holiday';
-import { GermanState } from '../types/germanState';
+import { GermanState } from '../types/GermanState';
 import { schoolHolidays2025 } from '../data/schoolHolidays2025';
 
 // Static public holidays data for 2025

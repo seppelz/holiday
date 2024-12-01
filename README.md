@@ -1,47 +1,113 @@
-# Holiday Planner
+# 🏖 Holiday Planner
 
 Ein modernes Tool zur Urlaubsplanung und Brückentag-Analyse.
 
 ## Features
 
-- 📅 12-Monats-Kalenderansicht (kompakt, ohne Scrollen)
-- 🎨 Moderne, übersichtliche Benutzeroberfläche
-- 👥 Personenbasierte Urlaubsplanung
-- 🌉 Automatische Brückentag-Erkennung
-- 🏫 Anzeige von Schulferien
-- 🎯 Effiziente Urlaubsoptimierung
-- 🔄 Dynamische Urlaubstage-Berechnung
+### Implementiert ✅
+- 🗓 Intelligente Berechnung von Brückentagen
+  - Berücksichtigung von Wochenenden
+  - Optimale Verbindung von Feiertagen
+  - Effizienzberechnung (Urlaubstage vs. freie Tage)
+- 🌍 Unterstützung für alle Bundesländer
+  - Bundesweite Feiertage
+  - Länderspezifische Feiertage
+- 🎨 Modernes UI-Design
+  - Responsive Layout für Desktop und Mobile
+  - State-spezifische Themes
+  - Glassmorphism Effekte
+  - Kompakte Menüleiste mit erweiterbarer Ansicht
+- 🤝 Erweiterte Dual-State Unterstützung
+  - Auswahl zweier Bundesländer
+  - Kombinierte Kalenderansicht
+  - Separate Urlaubsplanung pro Person
+  - Urlaubstage-Tracking pro Person
+- 📅 Flexible Urlaubsplanung
+  - Popup-Kalender mit Jahresansicht
+  - Datumseingabe per Tastatur oder Kalender
+  - Validierung von Urlaubszeiträumen
+  - Markierung bereits gebuchter Urlaube
+- 💾 Lokale Datenspeicherung
+  - Persistente Speicherung aller Einstellungen
+  - Automatisches Laden beim Start
 
-## Technischer Stand
+### In Entwicklung 🚧
+- 📱 Optimierte Mobile Ansicht
+  - Separate Komponenten für Mobile/Desktop
+  - Verbesserte Touch-Interaktion
+  - Angepasstes Layout für kleine Bildschirme
+- 🧮 Erweiterte Analysefunktionen
+  - Effizienzkalkulation für kombinierte Staaten
+  - Hervorhebung optimaler Kombinationen
+- 🏫 Integration von Schulferien
+  - Anzeige im Kalender
+  - Berücksichtigung bei der Planung
+- 📊 Statistiken und Auswertungen
+  - Urlaubsübersicht pro Person
+  - Vergleich zwischen Personen
+  - Jahresauswertung
 
-- ✅ Personenbasiertes Datenmodell implementiert
-- ✅ Optimierte Kalenderdarstellung mit perfekter Ausrichtung
+### Technische Verbesserungen ✅
+- ✅ Personenbasiertes Datenmodell
+- ✅ Optimierte Kalenderdarstellung
 - ✅ Modernes, responsives Design
-- ✅ Effiziente State-Management-Struktur
-- ✅ TypeScript-Integration für robuste Typsicherheit
+- ✅ Effizientes State-Management
+- ✅ TypeScript-Integration
+- ✅ Komponenten-Struktur für Desktop/Mobile
+- ✅ Erweiterte Test-Abdeckung
 
-## Nächste Schritte
+## Tech Stack
+- ⚛️ React 18 mit TypeScript
+- 🎨 TailwindCSS für Styling
+- 📦 Zustand für State Management
+- 🏃 Vite als Build Tool
+- 🧪 Jest für Testing
 
-- [ ] Erweiterte Filterfunktionen für Urlaubsansichten
-- [ ] Export-Funktionalität für Urlaubsplanung
-- [ ] Erweiterte Statistiken und Analysen
-- [ ] Speicherfunktion für verschiedene Planungsszenarien
+## Roadmap
+- [ ] PWA-Unterstützung
+- [ ] Export-Funktionalität (PDF, iCal)
+- [ ] Erweiterte Statistiken
+- [ ] Team-Kalender Feature
+- [ ] Internationalisierung
 
-## Technologie-Stack
+## Installation & Entwicklung
 
-- React
-- TypeScript
-- Tailwind CSS
-- Vite
-- date-fns
-
-## Installation
-
+### Setup
 ```bash
+git clone https://github.com/seppelz/holiday.git
+cd holiday
 npm install
 npm run dev
 ```
 
-## Entwicklung
+### Projektstruktur
+```
+src/
+├── components/
+│   ├── Desktop/       # Desktop-spezifische Komponenten
+│   ├── Mobile/        # Mobile-spezifische Komponenten
+│   └── Shared/        # Gemeinsam genutzte Komponenten
+├── contexts/          # React Contexts
+├── hooks/             # Custom Hooks
+├── layouts/           # Layout Komponenten
+├── pages/             # Seiten-Komponenten
+├── services/          # API Services
+├── types/             # TypeScript Typen
+└── utils/             # Hilfsfunktionen
+```
 
-Das Projekt befindet sich in aktiver Entwicklung. Neue Features und Verbesserungen werden kontinuierlich implementiert.
+### Entwicklungsrichtlinien
+- 🌿 GitHub Flow für Branching
+- 📝 Conventional Commits
+- 📋 GitHub Projects für Projektmanagement
+- 🔄 GitHub Actions für CI/CD
+- 📱 Mobile-First Design Prinzipien
+
+## Browser-Unterstützung
+- Chrome (letzte 2 Versionen)
+- Firefox (letzte 2 Versionen)
+- Safari (letzte 2 Versionen)
+- Edge (letzte 2 Versionen)
+
+## Lizenz
+MIT

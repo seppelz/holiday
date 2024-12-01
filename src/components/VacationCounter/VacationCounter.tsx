@@ -1,7 +1,7 @@
 import React from 'react';
 import { Holiday } from '../../types/holiday';
 import { differenceInBusinessDays } from 'date-fns';
-import { usePersonContext } from '../../layouts/MainLayout';
+import { usePersonContext } from '../../contexts/PersonContext';
 
 interface VacationCounterProps {
   holidays: Holiday[];

@@ -1,5 +1,5 @@
 import React from 'react';
-import { GermanState, stateNames } from '../types/germanState';
+import { GermanState, stateNames } from '../types/GermanState';
 
 interface StateSelectProps {
   selectedState: GermanState | null;

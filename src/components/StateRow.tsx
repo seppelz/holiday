@@ -1,5 +1,5 @@
 import React from 'react';
-import { GermanState } from '../types/germanState';
+import { GermanState } from '../types/GermanState';
 import { StateSelect } from './StateSelect';
 import { VacationForm } from './VacationForm';
 import { VacationPlan } from '../types/vacationPlan';

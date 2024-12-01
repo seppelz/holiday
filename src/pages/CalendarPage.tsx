@@ -1,8 +1,8 @@
 import React from 'react';
-import Calendar from '../components/Calendar/Calendar';
-import { usePersonContext } from '../layouts/MainLayout';
+import { Calendar } from '../components/Calendar/Calendar';
+import { usePersonContext } from '../contexts/PersonContext';
+import { GermanState } from '../types/GermanState';
 import { useBridgeDays } from '../hooks/useBridgeDays';
-import { GermanState } from '../types/germanState';
 
 export function CalendarPage() {
   const { persons } = usePersonContext();
@@ -11,7 +11,7 @@ export function CalendarPage() {
     holidays: secondStateHolidays, 
     bridgeDays: secondStateBridgeDays, 
     isLoading: isSecondStateLoading 
-  } = useBridgeDays(persons.person2?.selectedState || GermanState.BE);
+  } = useBridgeDays(persons.person2?.selectedState || null);
 
   const isLoading = isFirstStateLoading || (persons.person2 && isSecondStateLoading);
   

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import Calendar from '../Calendar';
 import { GermanState } from '../../../types/germanState';
-import { PersonContext } from '../../../layouts/MainLayout';
+import { PersonContext } from '../../../contexts/PersonContext';
 import { VacationPlan } from '../../../types/vacationPlan';
 
 describe('Calendar', () => {

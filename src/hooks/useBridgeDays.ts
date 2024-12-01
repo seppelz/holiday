@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Holiday } from '../types/holiday';
-import { GermanState } from '../types/germanState';
+import { GermanState } from '../types/GermanState';
 import { bridgeDayService } from '../services/bridgeDayService';
 import { holidayService } from '../services/holidayService';
 
-export function useBridgeDays(state: GermanState) {
+export function useBridgeDays(state: GermanState | null) {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [bridgeDays, setBridgeDays] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -13,6 +13,12 @@ export function useBridgeDays(state: GermanState) {
     const fetchHolidays = async () => {
       setIsLoading(true);
       try {
+        if (!state) {
+          setHolidays([]);
+          setBridgeDays([]);
+          return;
+        }
+
         const [publicHolidays, schoolHolidays] = await Promise.all([
           holidayService.getPublicHolidays(state),
           holidayService.getSchoolHolidays(state.toString())
