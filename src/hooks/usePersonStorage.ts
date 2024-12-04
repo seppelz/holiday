@@ -1,11 +1,24 @@
 import Cookies from 'js-cookie'
 import { PersonInfo } from '../types/person'
+import { calculateVacationEfficiency } from '../utils/vacationEfficiency'
 
 const PERSON_STORAGE_KEY = 'holiday-planner-persons'
 
+const isValidDate = (date: any): date is Date => {
+  return date instanceof Date && !isNaN(date.getTime());
+};
+
 export const usePersonStorage = () => {
   const savePersons = (persons: PersonInfo) => {
-    Cookies.set(PERSON_STORAGE_KEY, JSON.stringify(persons), { expires: 30 }) // 30 Tage
+    const dataToSave = {
+      ...persons,
+      person2: persons.person2 ? {
+        ...persons.person2,
+        vacationPlans: persons.person2.vacationPlans || []
+      } : null
+    };
+    
+    Cookies.set(PERSON_STORAGE_KEY, JSON.stringify(dataToSave), { expires: 30 })
   }
 
   const loadPersons = (): PersonInfo | null => {
@@ -14,38 +27,65 @@ export const usePersonStorage = () => {
 
     try {
       const persons = JSON.parse(stored) as PersonInfo
-      // Konvertiere Datums-Strings zurück zu Date Objekten
+      
+      // Convert date strings back to Date objects and ensure efficiency is calculated
       if (persons.person1.vacationPlans) {
-        persons.person1.vacationPlans = persons.person1.vacationPlans.map(plan => ({
-          ...plan,
-          start: new Date(plan.start),
-          end: new Date(plan.end),
-          efficiency: plan.efficiency ? {
-            ...plan.efficiency,
-            bridgeDayBenefit: plan.efficiency.bridgeDayBenefit ? {
-              ...plan.efficiency.bridgeDayBenefit,
-              dates: plan.efficiency.bridgeDayBenefit.dates.map(d => new Date(d))
-            } : undefined
-          } : undefined
-        }))
+        persons.person1.vacationPlans = persons.person1.vacationPlans
+          .map(plan => {
+            try {
+              const start = new Date(plan.start);
+              const end = new Date(plan.end);
+              
+              // Validate the dates
+              if (!isValidDate(start) || !isValidDate(end)) {
+                console.error('Invalid dates in vacation plan:', { plan });
+                return null;
+              }
+              
+              const planWithDates = {
+                ...plan,
+                start,
+                end
+              };
+              
+              return calculateVacationEfficiency(planWithDates);
+            } catch (error) {
+              console.error('Error processing vacation plan:', error, plan);
+              return null;
+            }
+          })
+          .filter((plan): plan is NonNullable<typeof plan> => plan !== null);
       }
       
       if (persons.person2?.vacationPlans) {
-        persons.person2.vacationPlans = persons.person2.vacationPlans.map(plan => ({
-          ...plan,
-          start: new Date(plan.start),
-          end: new Date(plan.end),
-          efficiency: plan.efficiency ? {
-            ...plan.efficiency,
-            bridgeDayBenefit: plan.efficiency.bridgeDayBenefit ? {
-              ...plan.efficiency.bridgeDayBenefit,
-              dates: plan.efficiency.bridgeDayBenefit.dates.map(d => new Date(d))
-            } : undefined
-          } : undefined
-        }))
+        persons.person2.vacationPlans = persons.person2.vacationPlans
+          .map(plan => {
+            try {
+              const start = new Date(plan.start);
+              const end = new Date(plan.end);
+              
+              // Validate the dates
+              if (!isValidDate(start) || !isValidDate(end)) {
+                console.error('Invalid dates in vacation plan:', { plan });
+                return null;
+              }
+              
+              const planWithDates = {
+                ...plan,
+                start,
+                end
+              };
+              
+              return calculateVacationEfficiency(planWithDates);
+            } catch (error) {
+              console.error('Error processing vacation plan:', error, plan);
+              return null;
+            }
+          })
+          .filter((plan): plan is NonNullable<typeof plan> => plan !== null);
       }
       
-      return persons
+      return persons;
     } catch (error) {
       console.error('Error parsing stored persons:', error)
       return null

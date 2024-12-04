@@ -2,6 +2,7 @@ import React from 'react';
 import { format, isWeekend, isSameDay, isWithinInterval, isBefore, startOfDay } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Holiday } from '../../types/holiday';
+import { parseDateString } from '../../utils/dateUtils';
 
 interface DateRange {
   start: Date;
@@ -59,6 +60,22 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
     });
   };
 
+  const getHolidayType = (date: Date, holidays: Holiday[], bridgeDays: Date[]) => {
+    const holiday = holidays.find(h => {
+      if (h.endDate) {
+        return isWithinInterval(date, { start: h.date, end: h.endDate });
+      }
+      return isSameDay(h.date, date);
+    });
+    
+    const isBridgeDay = bridgeDays.some(d => isSameDay(d, date));
+    
+    return {
+      holiday,
+      type: isBridgeDay ? 'bridge' : holiday?.type || null
+    };
+  };
+
   const getDayClasses = (date: Date) => {
     const baseClasses = 'w-8 h-8 flex items-center justify-center rounded-full text-sm transition-all';
     const classes = [baseClasses];
@@ -67,8 +84,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
     const isStart = startDate && isSameDay(date, startDate);
     const isEnd = endDate && isSameDay(date, endDate);
     const isInRange = isDateInRange(date);
-    const isHoliday = holidays.some(h => isSameDay(new Date(h.date), date));
-    const isBridgeDay = bridgeDays.some(d => isSameDay(date, d));
+    const { holiday, type } = getHolidayType(date, holidays, bridgeDays);
     const isWeekendDay = isWeekend(date);
     const isBooked = disabledDates.some(range => 
       isWithinInterval(date, { start: range.start, end: range.end })
@@ -85,10 +101,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
         classes.push('bg-emerald-500 text-white');
       } else if (isInRange) {
         classes.push('bg-emerald-100');
-      } else if (isHoliday) {
-        classes.push('bg-red-100');
-      } else if (isBridgeDay) {
-        classes.push('bg-orange-100');
+      } else if (holiday) {
+        classes.push(type === 'bridge' ? 'bg-orange-100' : 'bg-red-100');
       } else if (isWeekendDay) {
         classes.push('text-gray-500');
       }

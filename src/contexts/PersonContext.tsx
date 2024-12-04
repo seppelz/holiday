@@ -4,6 +4,7 @@ import { Person, PersonInfo } from '../types/person';
 import { VacationPlan } from '../types/vacationPlan';
 import { usePersonStorage } from '../hooks/usePersonStorage';
 import { useNotification } from './NotificationContext';
+import { calculateVacationEfficiency } from '../utils/vacationEfficiency';
 
 interface PersonContextType {
   persons: PersonInfo;
@@ -11,6 +12,7 @@ interface PersonContextType {
   addVacationPlan: (personId: 1 | 2, plan: Omit<VacationPlan, 'id' | 'personId'>) => void;
   updateVacationPlan: (personId: 1 | 2, planId: string, updates: Partial<Omit<VacationPlan, 'id' | 'personId'>>) => void;
   deleteVacationPlan: (personId: 1 | 2, planId: string) => void;
+  clearPersons: () => void;
 }
 
 export const PersonContext = createContext<PersonContextType | null>(null);
@@ -24,7 +26,7 @@ export const usePersonContext = () => {
 };
 
 export const PersonProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { savePersons, loadPersons } = usePersonStorage();
+  const { savePersons, loadPersons, clearPersons } = usePersonStorage();
   const { showNotification } = useNotification();
   const [persons, setPersons] = useState<PersonInfo>(() => {
     const savedPersons = loadPersons();
@@ -105,11 +107,11 @@ export const PersonProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (overlappingPlan) {
         showNotification('Überlappende Urlaubstage werden automatisch zusammengeführt.', 'info');
         // Merge the vacations by extending the date range
-        const mergedPlan = {
+        const mergedPlan = calculateVacationEfficiency({
           ...overlappingPlan,
           start: new Date(Math.min(plan.start.getTime(), overlappingPlan.start.getTime())),
           end: new Date(Math.max(plan.end.getTime(), overlappingPlan.end.getTime()))
-        };
+        });
 
         // Replace the overlapping plan with the merged one
         const updatedPlans = existingPlans
@@ -133,11 +135,11 @@ export const PersonProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
 
       // No overlap, add as new vacation
-      const newPlan = {
+      const newPlan = calculateVacationEfficiency({
         ...plan,
         id: Math.random().toString(36).substr(2, 9),
         personId
-      };
+      });
       
       // Add new plan and sort all plans by start date
       const sortedPlans = [...existingPlans, newPlan].sort((a, b) => 
@@ -167,7 +169,7 @@ export const PersonProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       
       if (!currentPlan) return prev;
 
-      const updatedPlan = { ...currentPlan, ...updates };
+      const updatedPlan = calculateVacationEfficiency({ ...currentPlan, ...updates });
 
       // Check if the updated vacation would be completely inside another existing one
       const isInsideExisting = existingPlans.some(existingPlan =>
@@ -186,11 +188,11 @@ export const PersonProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (overlappingPlan) {
         showNotification('Überlappende Urlaubstage werden automatisch zusammengeführt.', 'info');
         // Merge the vacations by extending the date range
-        const mergedPlan = {
+        const mergedPlan = calculateVacationEfficiency({
           ...overlappingPlan,
           start: new Date(Math.min(updatedPlan.start.getTime(), overlappingPlan.start.getTime())),
           end: new Date(Math.max(updatedPlan.end.getTime(), overlappingPlan.end.getTime()))
-        };
+        });
 
         // Remove both plans and add the merged one
         const updatedPlans = existingPlans
@@ -256,7 +258,8 @@ export const PersonProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         updatePerson,
         addVacationPlan,
         updateVacationPlan,
-        deleteVacationPlan
+        deleteVacationPlan,
+        clearPersons
       }}
     >
       {children}

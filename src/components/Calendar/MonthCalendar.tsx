@@ -3,7 +3,7 @@ import { format, isWeekend, isSameDay, isWithinInterval } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Holiday } from '../../types/holiday';
 import { VacationPlan } from '../../types/vacationPlan';
-import { holidayColors } from '../../constants/colors';
+import { holidayColors, gradientColors } from '../../constants/colors';
 
 interface MonthCalendarProps {
   month: Date;
@@ -19,8 +19,6 @@ interface MonthCalendarProps {
 
 export const MonthCalendar: React.FC<MonthCalendarProps> = ({
   month,
-  state,
-  secondState,
   holidays,
   secondStateHolidays,
   bridgeDays,
@@ -28,7 +26,6 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
   vacationPlans,
   secondStateVacationPlans
 }) => {
-  // Helper function to get the days of a month
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -53,7 +50,7 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
       if (holiday.type === 'regional' && holiday.endDate) {
         const holidayStart = new Date(holiday.date);
         const holidayEnd = new Date(holiday.endDate);
-        return date >= holidayStart && date <= holidayEnd;
+        return isWithinInterval(date, { start: holidayStart, end: holidayEnd });
       }
       return false;
     });
@@ -77,7 +74,7 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
 
     // Holiday colors
     if (isFirstStateHoliday && isSecondStateHoliday) {
-      classes.push('bg-gradient-to-br from-red-500 to-purple-500 text-white');
+      classes.push(gradientColors.shared.holiday + ' text-white');
     } else if (isFirstStateHoliday) {
       classes.push(holidayColors.person1.holiday + ' text-white');
     } else if (isSecondStateHoliday) {
@@ -86,16 +83,16 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
 
     // Bridge day colors
     if (isFirstStateBridgeDay && isSecondStateBridgeDay) {
-      classes.push('bg-gradient-to-br from-orange-400 to-teal-400');
+      classes.push(gradientColors.shared.bridge + ' text-white');
     } else if (isFirstStateBridgeDay) {
       classes.push(holidayColors.person1.bridge);
     } else if (isSecondStateBridgeDay) {
       classes.push(holidayColors.person2.bridge);
     }
 
-    // School holiday colors
+    // School holiday colors - Apply person-specific colors
     if (isFirstStateSchoolHoliday && isSecondStateSchoolHoliday) {
-      classes.push('bg-gradient-to-br from-indigo-500 to-emerald-500 text-white');
+      classes.push(gradientColors.shared.school + ' text-white');
     } else if (isFirstStateSchoolHoliday) {
       classes.push(holidayColors.person1.school + ' text-white');
     } else if (isSecondStateSchoolHoliday) {
@@ -104,7 +101,7 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
 
     // Vacation colors
     if (isFirstStateVacation && isSecondStateVacation) {
-      classes.push('bg-gradient-to-br from-green-500 to-blue-500 text-white');
+      classes.push(gradientColors.shared.vacation + ' text-white');
     } else if (isFirstStateVacation) {
       classes.push(holidayColors.person1.vacation);
     } else if (isSecondStateVacation) {

@@ -1,382 +1,423 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useDrag } from '@use-gesture/react';
-import { useSpring, animated } from '@react-spring/web';
+import React, { useState, useEffect, useMemo } from 'react';
 import { usePersonContext } from '../contexts/PersonContext';
-import { VacationPicker } from '../components/VacationPicker';
-import { GermanState, stateNames } from '../types/GermanState';
-import { useBridgeDays } from '../hooks/useBridgeDays';
-import { VacationPlan } from '../types/vacationPlan';
 import { VacationList } from '../components/VacationList';
+import { GermanState, stateNames } from '../types/GermanState';
+import { VacationDaysInput } from '../components/VacationDaysInput';
+import { HomePage } from '../pages/HomePage';
+import { KeyboardShortcutsHelper } from '../components/KeyboardShortcutsHelper';
+import { useBridgeDays } from '../hooks/useBridgeDays';
+import { eachDayOfInterval, isSameDay, isWithinInterval, isWeekend } from 'date-fns';
+import { Holiday } from '../types/holiday';
+import { VacationPlan } from '../types/vacationPlan';
+import { VacationEfficiencyInsights } from '../components/VacationEfficiencyInsights';
 
-export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { persons, updatePerson, addVacationPlan, updateVacationPlan, deleteVacationPlan } = usePersonContext();
-  const [isSelectingVacation, setIsSelectingVacation] = useState<{ personId: 1 | 2 } | null>(null);
-  const [isLegendOpen, setIsLegendOpen] = useState(false);
-  const [isPersonControlsOpen, setIsPersonControlsOpen] = useState(true);
-  const legendSheetRef = useRef<HTMLDivElement>(null);
-  const { holidays: person1Holidays, bridgeDays: person1BridgeDays } = useBridgeDays(persons.person1.selectedState);
-  const { holidays: person2Holidays, bridgeDays: person2BridgeDays } = useBridgeDays(persons.person2?.selectedState || null);
+const StateSelector: React.FC<{
+  value: string;
+  onChange: (value: GermanState) => void;
+  label: string;
+  personId: 1 | 2;
+  ref?: React.RefObject<HTMLSelectElement>;
+}> = React.forwardRef(({ value, onChange, label, personId }, ref) => (
+  <div className="flex items-center gap-2">
+    <span className="text-sm font-medium text-gray-900">{label}</span>
+    <select
+      ref={ref}
+      value={value}
+      onChange={(e) => onChange(e.target.value as GermanState)}
+      className={`px-2 py-1 bg-white/80 border-0 rounded-full text-sm text-gray-900
+        shadow-sm hover:bg-white/90 transition-all cursor-pointer
+        focus:ring-4 focus:ring-offset-2 focus:outline-none
+        appearance-none bg-no-repeat bg-right pr-8 ${
+          personId === 1 
+            ? 'focus:ring-emerald-500/50' 
+            : 'focus:ring-cyan-500/50'
+        }`}
+    >
+      <option value="">Bundesland wählen</option>
+      {Object.entries(GermanState).map(([key, value]) => (
+        <option key={key} value={value}>{stateNames[value as GermanState]}</option>
+      ))}
+    </select>
+  </div>
+));
 
-  // Handle legend swipe
-  const bindLegend = useDrag(
-    ({ movement: [, my], last, cancel }) => {
-      if (my < -50) {
-        setIsLegendOpen(true);
-        if (navigator.vibrate) {
-          navigator.vibrate(10);
-        }
-        cancel();
-      } else if (my > 50) {
-        setIsLegendOpen(false);
-        if (navigator.vibrate) {
-          navigator.vibrate(10);
-        }
-        cancel();
-      }
-      if (last) {
-        setIsLegendOpen(false);
-      }
-    },
-    { axis: 'y', bounds: { top: 0, bottom: 300 } }
-  );
+export const MainLayout: React.FC = () => {
+  const [isSelectingVacation, setIsSelectingVacation] = useState(false);
+  const [selectedPersonId, setSelectedPersonId] = useState<1 | 2 | undefined>(undefined);
+  const [showSecondPerson, setShowSecondPerson] = useState(false);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const { persons, updatePerson } = usePersonContext();
+  
+  // Add refs for focusing elements
+  const person2StateRef = React.useRef<HTMLSelectElement>(null);
+  const calendarRef = React.useRef<HTMLDivElement>(null);
+  const vacationListRef = React.useRef<HTMLDivElement>(null);
 
-  // Handle controls toggle
-  const [controlsSpring, controlsApi] = useSpring(() => ({
-    height: isPersonControlsOpen ? 'auto' : 0,
-    config: { tension: 200, friction: 20 }
-  }));
+  // Move hook calls outside of conditional rendering
+  const person1BridgeDays = useBridgeDays(persons.person1?.selectedState || null);
+  const person2BridgeDays = useBridgeDays(persons.person2?.selectedState || null);
 
+  // Add keyboard event handler
   useEffect(() => {
-    controlsApi.start({
-      height: isPersonControlsOpen ? 'auto' : 0,
-      immediate: false
-    });
-  }, [isPersonControlsOpen]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't handle shortcuts if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
 
-  const handleVacationSelect = (plan: Omit<VacationPlan, 'id' | 'personId'>) => {
-    if (!isSelectingVacation) return;
+      switch (e.key) {
+        case '?':
+          e.preventDefault();
+          setShowKeyboardShortcuts(prev => !prev);
+          break;
+        case 'p':
+          e.preventDefault();
+          setShowSecondPerson(prev => {
+            // Focus state selection after a short delay to allow for DOM update
+            if (!prev) {
+              setTimeout(() => {
+                person2StateRef.current?.focus();
+              }, 100);
+            }
+            return !prev;
+          });
+          break;
+        case 'n':
+          e.preventDefault();
+          if (!isSelectingVacation) {
+            setSelectedPersonId(1);
+            setIsSelectingVacation(true);
+            // Focus January 1st after a short delay
+            setTimeout(() => {
+              const jan1Button = calendarRef.current?.querySelector('[data-date="2025-01-01"]') as HTMLButtonElement;
+              if (jan1Button) {
+                jan1Button.focus();
+              }
+            }, 100);
+          }
+          break;
+        case 'm':
+          e.preventDefault();
+          if (!isSelectingVacation) {
+            setShowSecondPerson(true); // Ensure Person 2 is visible
+            setSelectedPersonId(2);
+            setIsSelectingVacation(true);
+            // Focus January 1st after a short delay
+            setTimeout(() => {
+              const jan1Button = calendarRef.current?.querySelector('[data-date="2025-01-01"]') as HTMLButtonElement;
+              if (jan1Button) {
+                jan1Button.focus();
+              }
+            }, 100);
+          }
+          break;
+        case 'q':
+        case 'w':
+          e.preventDefault();
+          const personId = e.key === 'q' ? 1 : 2;
+          if (personId === 2 && !showSecondPerson) {
+            setShowSecondPerson(true);
+          }
+          // Focus the first recommendation in the vacation list
+          setTimeout(() => {
+            const sidebarSection = vacationListRef.current?.querySelector(`[data-person="${personId}"]`);
+            const firstRecommendation = sidebarSection?.querySelector('.recommendation-item') as HTMLElement;
+            if (firstRecommendation) {
+              firstRecommendation.focus();
+            }
+          }, 100);
+          break;
+        case 'Escape':
+          e.preventDefault();
+          // Close keyboard shortcuts if open
+          if (showKeyboardShortcuts) {
+            setShowKeyboardShortcuts(false);
+          }
+          // Cancel vacation selection if active
+          if (isSelectingVacation) {
+            setIsSelectingVacation(false);
+            setSelectedPersonId(undefined);
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showKeyboardShortcuts, isSelectingVacation, selectedPersonId]);
+
+  // Memoize holiday data to prevent unnecessary re-renders
+  const holidayData = useMemo(() => {
+    return {
+      person1: {
+        holidays: person1BridgeDays.holidays || [],
+        bridgeDays: person1BridgeDays.bridgeDays || []
+      },
+      person2: {
+        holidays: person2BridgeDays.holidays || [],
+        bridgeDays: person2BridgeDays.bridgeDays || []
+      }
+    };
+  }, [person1BridgeDays, person2BridgeDays]);
+
+  const renderPersonConfig = (personId: 1 | 2) => {
+    const person = personId === 1 ? persons.person1 : persons.person2;
     
-    addVacationPlan(isSelectingVacation.personId, {
-      ...plan,
-      isVisible: true
-    });
-    setIsSelectingVacation(null);
+    if (personId === 2 && !showSecondPerson) return null;
+
+    return (
+      <div className="flex items-center justify-between gap-4 p-2">
+        {/* State Selection */}
+        <div className="flex items-center gap-2">
+          <StateSelector
+            value={person?.selectedState || ''}
+            onChange={(value) => updatePerson(personId, { selectedState: value })}
+            label={`Person ${personId}`}
+            personId={personId}
+            ref={personId === 2 ? person2StateRef : undefined}
+          />
+        </div>
+
+        {/* Vacation Days Input and Add Button */}
+        {person?.selectedState && (
+          <>
+            <div className="flex items-center gap-4">
+              <div className={`text-sm font-medium ${
+                personId === 1 ? 'text-emerald-600' : 'text-cyan-600'
+              }`}>
+                <VacationDaysInput
+                  value={person.availableVacationDays}
+                  onChange={(days) => updatePerson(personId, { availableVacationDays: days })}
+                  personId={personId}
+                />
+                Urlaubstage
+              </div>
+            </div>
+
+            {/* Add Vacation Button */}
+            <button
+              onClick={() => {
+                setSelectedPersonId(personId);
+                setIsSelectingVacation(true);
+                // Focus January 1st after a short delay when clicking the button
+                setTimeout(() => {
+                  const jan1Button = calendarRef.current?.querySelector('[data-date="2025-01-01"]') as HTMLButtonElement;
+                  if (jan1Button) {
+                    jan1Button.focus();
+                  }
+                }, 100);
+              }}
+              className={`px-3 py-1 text-sm font-medium text-white rounded-full transition-colors ${
+                personId === 1
+                  ? 'bg-emerald-500 hover:bg-emerald-600'
+                  : 'bg-cyan-500 hover:bg-cyan-600'
+              }`}
+            >
+              + Urlaub planen
+            </button>
+          </>
+        )}
+      </div>
+    );
   };
 
-  const handleToggleVacationVisibility = (personId: 1 | 2, planId: string) => {
-    const person = personId === 1 ? persons.person1 : persons.person2;
-    const plan = person?.vacationPlans.find(p => p.id === planId);
-    if (plan) {
-      updateVacationPlan(personId, planId, { ...plan, isVisible: !plan.isVisible });
+  const handleStartVacationSelection = (personId: 1 | 2) => {
+    if (personId === 2 && !showSecondPerson) {
+      setShowSecondPerson(true);
+      // If person2 doesn't exist yet, initialize it
+      if (!persons.person2) {
+        updatePerson(2, {
+          selectedState: persons.person1.selectedState,
+          availableVacationDays: 30,
+        });
+      }
+    }
+    setIsSelectingVacation(true);
+    setSelectedPersonId(personId);
+  };
+
+  const handleVacationSelectComplete = () => {
+    setIsSelectingVacation(false);
+    setSelectedPersonId(undefined);
+  };
+
+  const toggleSecondPerson = () => {
+    if (showSecondPerson) {
+      updatePerson(2, { selectedState: undefined });
+      setShowSecondPerson(false);
+    } else {
+      setShowSecondPerson(true);
     }
   };
 
+  const renderLegend = (personId: 1 | 2) => {
+    const colors = {
+      holiday: personId === 1 ? '#EF4444' : '#A855F7',     // red-500 : purple-500
+      bridge: personId === 1 ? '#FB923C' : '#EC4899',      // orange-400 : pink-400
+      school: personId === 1 ? '#6366F1' : '#EAB308',      // indigo-500 : yellow-500
+      vacation: personId === 1 ? '#22C55E' : '#3B82F6'     // green-500 : blue-500
+    };
+
+    return (
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <div className="w-2.5 h-2.5 rounded" style={{ backgroundColor: colors.holiday }} />
+          <div className="w-2.5 h-2.5 rounded" style={{ backgroundColor: colors.bridge }} />
+          <span className="text-xs text-gray-600">Feiertage & Brücken</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2.5 h-2.5 rounded" style={{ backgroundColor: colors.school }} />
+          <div className="w-2.5 h-2.5 rounded" style={{ backgroundColor: colors.vacation }} />
+          <span className="text-xs text-gray-600">Schule & Urlaub</span>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSidebarContent = (personId: 1 | 2) => {
+    const person = personId === 1 ? persons.person1 : persons.person2;
+    const { holidays: sidebarHolidays, bridgeDays } = personId === 1 ? person1BridgeDays : person2BridgeDays;
+    
+    if (personId === 2 && !showSecondPerson) return null;
+
+    return (
+      <div className="space-y-3" data-person={personId}>
+        {/* Person Header with Legend */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h3 className="font-medium text-gray-900">{personId === 1 ? 'Ich' : 'Person 2'}</h3>
+            {renderLegend(personId)}
+          </div>
+        </div>
+
+        {/* Selection Info */}
+        {isSelectingVacation && selectedPersonId === personId && (
+          <div className={`${
+            personId === 1 ? 'bg-green-50 text-green-800' : 'bg-blue-50 text-blue-800'
+          } p-2 rounded-lg text-xs`}>
+            Bitte wählen Sie das Startdatum Ihres Urlaubs
+          </div>
+        )}
+
+        {/* Vacation List with Recommendations */}
+        <div ref={vacationListRef} data-person={personId} className="focus-within:outline-none">
+          <VacationList
+            vacations={person?.vacationPlans || []}
+            otherPersonVacations={personId === 1 ? persons.person2?.vacationPlans : persons.person1?.vacationPlans}
+            holidays={[...(sidebarHolidays || []), ...(bridgeDays || [])]}
+            bridgeDays={bridgeDays || []}
+            onToggleVisibility={(id) => {
+              const updatedPlans = person?.vacationPlans.map(plan =>
+                plan.id === id ? { ...plan, isVisible: !plan.isVisible } : plan
+              );
+              if (updatedPlans) {
+                updatePerson(personId, { vacationPlans: updatedPlans });
+              }
+            }}
+            onRemove={(id) => {
+              const updatedPlans = person?.vacationPlans.filter(plan => plan.id !== id);
+              if (updatedPlans) {
+                updatePerson(personId, { vacationPlans: updatedPlans });
+              }
+            }}
+            personId={personId}
+            availableVacationDays={person?.availableVacationDays || 30}
+            onAddVacation={(start, end) => {
+              handleStartVacationSelection(personId);
+              setTimeout(() => {
+                if (person?.vacationPlans) {
+                  updatePerson(personId, {
+                    vacationPlans: [
+                      ...person.vacationPlans,
+                      {
+                        id: Math.random().toString(36).substr(2, 9),
+                        start,
+                        end,
+                        isVisible: true,
+                        personId
+                      }
+                    ]
+                  });
+                }
+                setIsSelectingVacation(false);
+                setSelectedPersonId(undefined);
+              }, 100);
+            }}
+            state={person?.selectedState || ''}
+          />
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 to-emerald-50">
-      <nav className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-teal-100">
-        <div className="max-w-full mx-2">
-          {/* Header */}
-          <div className="flex items-center gap-4 h-12">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7">
-                <img src="/favicon.svg" alt="Logo" className="w-full h-full" />
-              </div>
-              <span className="text-lg font-medium text-teal-950">Ferienplaner</span>
+    <div className="h-screen bg-gray-50 flex flex-col">
+      <KeyboardShortcutsHelper
+        isOpen={showKeyboardShortcuts}
+        onClose={() => setShowKeyboardShortcuts(false)}
+      />
+      
+      {/* Header */}
+      <nav className="bg-white/80 backdrop-blur-sm shadow-sm border-b z-50">
+        <div className="max-w-full mx-4 h-12 flex items-center gap-8">
+          {/* Logo */}
+          <div className="flex items-center gap-2 min-w-[80px]">
+            <div className="w-7 h-7">
+              <img src="/favicon.svg" alt="Logo" className="w-full h-full" />
             </div>
-
-            {/* Person 1 Controls */}
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-gray-500">1.</span>
-              <div className="flex items-center gap-2">
-                <select
-                  value={persons.person1.selectedState}
-                  onChange={(e) => {
-                    updatePerson(1, { selectedState: e.target.value as GermanState });
-                  }}
-                  className="px-2 py-1 bg-white/80 border-0 rounded-full text-sm text-gray-900
-                    shadow-sm hover:bg-white/90 transition-all cursor-pointer
-                    focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-0 focus:outline-none
-                    appearance-none bg-no-repeat bg-right pr-8"
-                  style={{ backgroundSize: '1.5rem 1.5rem' }}
-                >
-                  {Object.entries(GermanState).map(([key, value]) => (
-                    <option key={key} value={value}>
-                      {stateNames[value as GermanState]}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  value={persons.person1.availableVacationDays}
-                  onChange={(e) => updatePerson(1, { availableVacationDays: parseInt(e.target.value) || 0 })}
-                  className="w-14 px-1 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  min="0"
-                  max="365"
-                />
-                <span className="text-sm text-gray-600">Urlaubstage</span>
-                <span className="text-gray-400">|</span>
-                <span className="text-sm text-gray-600">Verbleibend:</span>
-                <span className="font-medium text-emerald-600">
-                  {persons.person1.availableVacationDays -
-                    persons.person1.vacationPlans.reduce((total, plan) => {
-                      const days = Math.ceil((plan.end.getTime() - plan.start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-                      return total + days;
-                    }, 0)}
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setIsSelectingVacation({ personId: 1 })}
-                    className="px-3 py-1 text-sm text-white rounded-full bg-emerald-500 hover:bg-emerald-600"
-                    disabled={isSelectingVacation !== null}
-                  >
-                    {isSelectingVacation?.personId === 1 ? 'Urlaubsauswahl läuft...' : '+ Urlaub planen'}
-                  </button>
-                  <VacationList
-                    vacations={persons.person1.vacationPlans}
-                    onToggleVisibility={(id) => handleToggleVacationVisibility(1, id)}
-                    onRemove={(id) => deleteVacationPlan(1, id)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Add Person 2 Button or Person 2 Controls */}
-            {!persons.person2 ? (
-              <button
-                onClick={() => updatePerson(2, { selectedState: persons.person1.selectedState })}
-                className="px-2 py-1 text-sm text-white bg-cyan-500 hover:bg-cyan-600 rounded-full transition-colors"
-                title="Zweite Person hinzufügen"
-              >
-                2.
-              </button>
-            ) : (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <select
-                    value={persons.person2.selectedState}
-                    onChange={(e) => {
-                      updatePerson(2, { selectedState: e.target.value as GermanState });
-                    }}
-                    className="px-2 py-1 bg-white/80 border-0 rounded-full text-sm text-gray-900
-                      shadow-sm hover:bg-white/90 transition-all cursor-pointer
-                      focus:ring-2 focus:ring-cyan-500/50 focus:ring-offset-0 focus:outline-none
-                      appearance-none bg-no-repeat bg-right pr-8"
-                    style={{ backgroundSize: '1.5rem 1.5rem' }}
-                  >
-                    {Object.entries(GermanState).map(([key, value]) => (
-                      <option key={key} value={value}>
-                        {stateNames[value as GermanState]}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    value={persons.person2.availableVacationDays}
-                    onChange={(e) => updatePerson(2, { availableVacationDays: parseInt(e.target.value) || 0 })}
-                    className="w-14 px-1 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                    min="0"
-                    max="365"
-                  />
-                  <span className="text-sm text-gray-600">Urlaubstage</span>
-                  <span className="text-gray-400">|</span>
-                  <span className="text-sm text-gray-600">Verbleibend:</span>
-                  <span className="font-medium text-cyan-600">
-                    {persons.person2.availableVacationDays -
-                      persons.person2.vacationPlans.reduce((total, plan) => {
-                        const days = Math.ceil((plan.end.getTime() - plan.start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-                        return total + days;
-                      }, 0)}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setIsSelectingVacation({ personId: 2 })}
-                      className="px-3 py-1 text-sm text-white rounded-full bg-cyan-500 hover:bg-cyan-600"
-                      disabled={isSelectingVacation !== null}
-                    >
-                      {isSelectingVacation?.personId === 2 ? 'Urlaubsauswahl läuft...' : '+ Urlaub planen'}
-                    </button>
-                    <VacationList
-                      vacations={persons.person2.vacationPlans}
-                      onToggleVisibility={(id) => handleToggleVacationVisibility(2, id)}
-                      onRemove={(id) => deleteVacationPlan(2, id)}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Legend */}
-            <div className="hidden md:flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-500 border border-gray-200 rounded" />
-                <span>Feiertage</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-orange-400 border border-gray-200 rounded" />
-                <span>Brückentage</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-indigo-500 border border-gray-200 rounded" />
-                <span>Schulferien</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-emerald-500 border border-gray-200 rounded" />
-                <span>Urlaub</span>
-              </div>
-            </div>
-
-            {/* Mobile Controls */}
-            <div className="flex items-center gap-2 ml-auto">
-              <button
-                onClick={() => setIsLegendOpen(!isLegendOpen)}
-                className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-full"
-                aria-label="Toggle Legend"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-              <button
-                onClick={() => setIsPersonControlsOpen(!isPersonControlsOpen)}
-                className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-full"
-                aria-label="Toggle Controls"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            </div>
+            <span className="text-lg font-medium text-gray-900">Urlaub</span>
           </div>
 
-          {/* Person Controls - Only for Person 2 */}
-          <animated.div className="overflow-hidden" style={controlsSpring} data-testid="animated-div">
-            {persons.person2 && (
-              <div className="py-2">
-                <div className="flex flex-col md:flex-row gap-4 md:items-center">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-500">2.</span>
-                    <select
-                      value={persons.person2.selectedState}
-                      onChange={(e) => {
-                        updatePerson(2, { selectedState: e.target.value as GermanState });
-                      }}
-                      className="px-3 py-1.5 bg-white/80 border-0 rounded-full text-sm text-gray-900
-                        shadow-sm hover:bg-white/90 transition-all cursor-pointer
-                        focus:ring-2 focus:ring-cyan-500/50 focus:ring-offset-0 focus:outline-none
-                        appearance-none bg-no-repeat bg-right pr-8"
-                      style={{ backgroundSize: '1.5rem 1.5rem' }}
-                    >
-                      {Object.entries(GermanState).map(([key, value]) => (
-                        <option key={key} value={value}>
-                          {stateNames[value as GermanState]}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="number"
-                      value={persons.person2.availableVacationDays}
-                      onChange={(e) => updatePerson(2, { availableVacationDays: parseInt(e.target.value) || 0 })}
-                      className="w-16 px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                      min="0"
-                      max="365"
-                    />
-                    <span className="text-sm text-gray-600">Urlaubstage</span>
-                    <span className="text-gray-400">|</span>
-                    <span className="text-sm text-gray-600">Verbleibend:</span>
-                    <span className="font-medium text-cyan-600">
-                      {persons.person2.availableVacationDays -
-                        persons.person2.vacationPlans.reduce((total, plan) => {
-                          const days = Math.ceil((plan.end.getTime() - plan.start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-                          return total + days;
-                        }, 0)}
-                    </span>
-                    <button
-                      onClick={() => setIsSelectingVacation({ personId: 2 })}
-                      className="px-3 py-1 text-sm text-white rounded-full bg-cyan-500 hover:bg-cyan-600"
-                      disabled={isSelectingVacation !== null}
-                    >
-                      {isSelectingVacation?.personId === 2 ? 'Urlaubsauswahl läuft...' : '+ Urlaub planen'}
-                    </button>
-                    <VacationList
-                      vacations={persons.person2.vacationPlans}
-                      onToggleVisibility={(id) => handleToggleVacationVisibility(2, id)}
-                      onRemove={(id) => deleteVacationPlan(2, id)}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </animated.div>
+          {/* Person 1 Config */}
+          {renderPersonConfig(1)}
+
+          {/* Year */}
+          <div className="text-sm font-medium text-gray-600">2025</div>
+
+          {/* Two Person Toggle */}
+          <button
+            onClick={toggleSecondPerson}
+            className={`px-3 py-1 text-sm font-medium rounded-full transition-colors border ${
+              showSecondPerson
+                ? 'bg-blue-500 text-white hover:bg-blue-600 border-transparent'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+            }`}
+            title={showSecondPerson ? "Zweite Person deaktivieren" : "Zweite Person aktivieren"}
+          >
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                  d={showSecondPerson 
+                    ? "M20 12H4" 
+                    : "M12 4v16m8-8H4"} 
+                />
+              </svg>
+              <span>Person 2</span>
+            </div>
+          </button>
+
+          {/* Person 2 Config */}
+          {renderPersonConfig(2)}
         </div>
       </nav>
 
-      {/* Main content */}
-      <main className="container mx-auto p-4">
-        {children}
-      </main>
+      {/* Main Content */}
+      <main className="flex-1 max-w-full mx-4 py-2 flex gap-4 min-h-0">
+        {/* Left Sidebar */}
+        <aside className="w-80 space-y-2">
+          {renderSidebarContent(1)}
+          {showSecondPerson && renderSidebarContent(2)}
+        </aside>
 
-      {/* VacationPicker Modal */}
-      {isSelectingVacation && (
-        <VacationPicker
-          personId={isSelectingVacation.personId}
-          holidays={isSelectingVacation.personId === 1 ? person1Holidays : (person2Holidays || [])}
-          bridgeDays={isSelectingVacation.personId === 1 ? person1BridgeDays : (person2BridgeDays || [])}
-          onSubmit={handleVacationSelect}
-          onClose={() => setIsSelectingVacation(null)}
-          existingVacations={isSelectingVacation.personId === 1 ? persons.person1.vacationPlans : (persons.person2?.vacationPlans || [])}
-        />
-      )}
-
-      <animated.div
-        ref={legendSheetRef}
-        {...bindLegend()}
-        className="md:hidden bg-white shadow-lg rounded-t-xl"
-        style={{
-          position: 'fixed',
-          bottom: -300,
-          left: 0,
-          right: 0,
-          height: 300,
-          zIndex: 40
-        }}
-        data-testid="animated-div"
-        id="legend-handle"
-      >
-        <div className="h-1.5 w-12 bg-gray-300 rounded-full mx-auto my-2" />
-        <div className="p-4 space-y-4 overflow-y-auto max-h-[calc(100%-20px)]">
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-gray-700">Person 1 - {persons.person1.selectedState}</h3>
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-500 border border-gray-200 rounded" />
-                <span>Feiertage</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-orange-400 border border-gray-200 rounded" />
-                <span>Brückentage</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-indigo-500 border border-gray-200 rounded" />
-                <span>Schulferien</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 border border-gray-200 rounded" />
-                <span>Urlaub</span>
-              </div>
-            </div>
-          </div>
+        {/* Calendar */}
+        <div ref={calendarRef} className="flex-1 overflow-auto">
+          <HomePage
+            isSelectingVacation={isSelectingVacation}
+            selectedPersonId={selectedPersonId}
+            onVacationSelectComplete={handleVacationSelectComplete}
+          />
         </div>
-      </animated.div>
+      </main>
     </div>
   );
-};
-
-interface CalendarProps {
-  isSelectingVacation?: boolean;
-  onVacationSelect?: (start: Date, end: Date) => void;
-  personId?: 1 | 2;
-}
-
-export default MainLayout; 
+}; 

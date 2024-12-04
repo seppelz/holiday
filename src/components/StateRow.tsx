@@ -29,6 +29,12 @@ export const StateRow: React.FC<StateRowProps> = ({
   onVacationSubmit,
   isFirst = false,
 }) => {
+  console.log('StateRow render:', {
+    personId,
+    state,
+    showVacationForm
+  });
+
   return (
     <div className="flex flex-col">
       <div className="flex items-center h-16 gap-4">
@@ -69,7 +75,14 @@ export const StateRow: React.FC<StateRowProps> = ({
 
             {/* Add Vacation Button */}
             <button
-              onClick={onToggleVacationForm}
+              onClick={() => {
+                console.log('Vacation button clicked:', {
+                  personId,
+                  state,
+                  showVacationForm
+                });
+                onToggleVacationForm();
+              }}
               className={`px-3 py-1 text-sm text-white rounded-full transition-all shadow-sm hover:shadow 
                 active:shadow-inner active:translate-y-px ${
                   personId === 1

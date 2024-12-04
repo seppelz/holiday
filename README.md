@@ -2,6 +2,21 @@
 
 Ein modernes Tool zur Urlaubsplanung und Brückentag-Analyse.
 
+## 📚 Documentation & Project Management
+
+### Project Documentation
+- `README.md` - Overview and main documentation
+- `handover.md` - Current state, recent changes, and development context
+- `.github/CONTRIBUTING.md` - Contribution guidelines and project management workflows
+- `.github/ISSUE_TEMPLATE/` - Standardized templates for issues and features
+
+### Project Management
+- GitHub Project Board: [Holiday Planner Board](https://github.com/users/seppelz/projects/3)
+- Milestones: See CONTRIBUTING.md for current milestone structure
+- Issue Management: Follow templates in .github/ISSUE_TEMPLATE/
+
+For detailed information about project management, contribution guidelines, and development workflows, please refer to [CONTRIBUTING.md](.github/CONTRIBUTING.md).
+
 ## Features
 
 ### Implementiert ✅
@@ -9,20 +24,31 @@ Ein modernes Tool zur Urlaubsplanung und Brückentag-Analyse.
   - Berücksichtigung von Wochenenden
   - Optimale Verbindung von Feiertagen
   - Effizienzberechnung (Urlaubstage vs. freie Tage)
+  + Korrekte Berechnung für 2024-2026
+  + 365-Tage-Vorschau für bessere Planung
+  + Chronologische Sortierung der Empfehlungen
+  + Vollständige Zeiträume in Empfehlungen
 - 🌍 Unterstützung für alle Bundesländer
   - Bundesweite Feiertage
   - Länderspezifische Feiertage
-  - Schulferien-Integration
+  + Schulferien als optionale Information
+  + Öffentliche Feiertage für 2024-2026
 - 🎨 Modernes UI-Design
   - Responsive Layout für Desktop und Mobile
   - State-spezifische Themes
   - Glassmorphism Effekte
   - Kompakte Menüleiste mit erweiterbarer Ansicht
+  + Vereinfachte Urlaubstage-Anzeige
+  + Verbesserte Tooltip-Darstellung
+  + Optimierte Empfehlungsliste mit automatischer Aktualisierung
+  + Übersichtlichere Sidebar-Struktur
 - 🤝 Erweiterte Dual-State Unterstützung
   - Auswahl zweier Bundesländer
   - Kombinierte Kalenderansicht
   - Separate Urlaubsplanung pro Person
   - Urlaubstage-Tracking pro Person
+  + Gemeinsame Urlaubstage-Hervorhebung
+  + Verbesserte Empfehlungen pro Person
 - ⌨️ Umfangreiche Tastatursteuerung
   - Schnelle Navigation (Pfeiltasten, Tab)
   - Urlaubsplanung (n für Person 1, m für Person 2)
@@ -40,13 +66,13 @@ Ein modernes Tool zur Urlaubsplanung und Brückentag-Analyse.
 
 ### In Entwicklung 🚧
 - 📱 Aktuelle Prioritäten
-  1. Optimierung der Urlaubsauswahl
-     - Verbesserte farbliche Kennzeichnung der Auswahl
-     - Hover-Effekte für Datumsbereich
-     - Klarere visuelle Unterscheidung zwischen Start- und Enddatum
+  1. Person 2 Testing
+     ✅ Brückentag-Berechnung für beide Personen
+     ✅ Urlaubsüberlappungen
+     ✅ Gemeinsame Urlaubstage
   2. UX-Verbesserungen
-     - Besseres Feedback während der Auswahl
-     - Tooltips und Hilfestellungen
+     ✅ Besseres Feedback während der Auswahl
+     ✅ Tooltips und Hilfestellungen
      - Optimierte Mobile-Ansicht
 
 - 📱 Mobile Optimierung
@@ -76,13 +102,28 @@ Ein modernes Tool zur Urlaubsplanung und Brückentag-Analyse.
 ## Tastaturkürzel
 - `?` - Zeigt/Versteckt die Tastaturkürzel-Übersicht
 - `n` - Neuen Urlaub für Person 1 planen
-- `m` - Neuen Urlaub für Person 2 planen
-- `1-4` - Urlaub 1-4 von Person 1 löschen (4 löscht den letzten bei mehr als 4)
-- `5-8` - Urlaub 1-4 von Person 2 löschen (8 löscht den letzten bei mehr als 4)
+- `m` - Neuen Urlaub für Person 2 planen (aktiviert Person 2 automatisch)
+- `1-4` - Urlaub 1-4 von Person 1 löschen
+- `5-8` - Urlaub 1-4 von Person 2 löschen
 - `p` - Person 2 ein-/ausblenden
 - `←/→` - Vorheriger/Nächster Tag
 - `↑/↓` - Vorherige/Nächste Woche
 - `Enter` - Tag auswählen
+- `Esc` - Aktuelle Aktion abbrechen
+
+## Zwei-Personen Funktionalität
+- 🤝 Separate Urlaubsplanung
+  - Unabhängige Bundesland-Auswahl
+  - Getrennte Urlaubskontingente
+  - Individuelle Brückentag-Berechnung
+- 📊 Gemeinsame Übersicht
+  - Hervorhebung überlappender Urlaube
+  - Kombinierte Kalenderansicht
+  - Effiziente Urlaubsplanung für beide
+- ⚡ Schnelle Bedienung
+  - Tastaturkürzel für beide Personen
+  - Einfaches Umschalten (p-Taste)
+  - Automatische Person 2 Aktivierung bei Bedarf
 
 ## Tech Stack
 - ⚛️ React 18 mit TypeScript
@@ -90,6 +131,7 @@ Ein modernes Tool zur Urlaubsplanung und Brückentag-Analyse.
 - 📦 Zustand für State Management
 - 🏃 Vite als Build Tool
 - 🧪 Jest für Testing
+- Grundregel für die Zusammenarbeit: Du liest Dateien immer erst komplett und führst dann Optimierungen und Erweiterungen durch, damit wir keinen existierenden Code zerstören.Dies ist wichtig. Und bei Codeabschnitten immer informationen wie // ... rest of existing code.. hinzufügen oder voranstellen, damit kein Code verloren geht.
 
 ## Roadmap
 1. Q1 2024
@@ -100,6 +142,9 @@ Ein modernes Tool zur Urlaubsplanung und Brückentag-Analyse.
    - [x] Direkte Kalenderauswahl
    - [x] Tastatursteuerung
    - [x] Intelligente Urlaubsverwaltung
+   - [x] Verbesserte Brückentag-Berechnung
+   - [x] Person 2 Testing
+   - [x] Öffentliche Feiertage 2024-2026
 
 2. Q2 2024
    - [ ] Optimierte Urlaubsauswahl
@@ -142,7 +187,7 @@ src/
 ### Entwicklungsrichtlinien
 - 🌿 GitHub Flow für Branching
 - 📝 Conventional Commits
-- 📋 GitHub Projects für Projektmanagement
+- 📋 GitHub Projects für Projektmanagement: $ gh issue list
 - 🔄 GitHub Actions für CI/CD
 - 📱 Mobile-First Design Prinzipien
 

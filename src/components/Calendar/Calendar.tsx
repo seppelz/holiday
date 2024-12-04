@@ -4,7 +4,7 @@ import { DesktopCalendar } from '../Desktop/Calendar/DesktopCalendar';
 import { MobileCalendar } from '../Mobile/Calendar/MobileCalendar';
 import { BaseCalendarProps } from '../Shared/Calendar/BaseCalendar';
 import { GermanState } from '../../types/GermanState';
-import { Holiday } from '../../types/holiday';
+import { Holiday, BridgeDay } from '../../types/holiday';
 import { VacationPlan } from '../../types/vacationPlan';
 import { differenceInDays, isWithinInterval } from 'date-fns';
 
@@ -13,8 +13,8 @@ interface CalendarProps {
   secondState: GermanState | null;
   holidays: Holiday[];
   secondStateHolidays: Holiday[];
-  bridgeDays: Date[];
-  secondStateBridgeDays: Date[];
+  bridgeDays: BridgeDay[];
+  secondStateBridgeDays: BridgeDay[];
   vacationPlans: VacationPlan[];
   secondStateVacationPlans: VacationPlan[];
   onVacationSelect?: (start: Date, end: Date) => void;
@@ -24,62 +24,52 @@ interface CalendarProps {
   personId?: 1 | 2;
   isSelectingVacation?: boolean;
   onVacationSelectComplete?: () => void;
+  onShowRecommendations?: (personId: 1 | 2) => void;
 }
 
 export const Calendar: React.FC<CalendarProps> = (props) => {
-  const isMobile = useMediaQuery('(max-width: 768px)');
-  const [currentMonth] = useState<Date>(new Date(2025, 0, 1));
+  const [currentMonth] = useState(new Date(2025, 0));
   const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
   const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Function to check if a date has matching vacations
+  const handleDateSelect = (date: Date) => {
+    if (!selectedStartDate) {
+      setSelectedStartDate(date);
+    } else if (!selectedEndDate) {
+      const start = date < selectedStartDate ? date : selectedStartDate;
+      const end = date < selectedStartDate ? selectedStartDate : date;
+      
+      if (props.onAddVacation) {
+        props.onAddVacation({
+          start,
+          end,
+          isVisible: true
+        });
+      }
+
+      // Reset dates after selection
+      setTimeout(() => {
+        setSelectedStartDate(null);
+        setSelectedEndDate(null);
+      }, 100);
+    }
+  };
+
   const getDateVacationInfo = (date: Date) => {
-    const person1Vacation = props.vacationPlans.some(vp => 
-      vp.isVisible && isWithinInterval(date, { start: vp.start, end: vp.end })
+    const person1Vacation = props.vacationPlans.some(vacation =>
+      isWithinInterval(date, { start: vacation.start, end: vacation.end })
     );
-    const person2Vacation = props.secondStateVacationPlans.some(vp => 
-      vp.isVisible && isWithinInterval(date, { start: vp.start, end: vp.end })
+
+    const person2Vacation = props.secondStateVacationPlans.some(vacation =>
+      isWithinInterval(date, { start: vacation.start, end: vacation.end })
     );
-    
+
     return {
       person1Vacation,
       person2Vacation,
       isSharedVacation: person1Vacation && person2Vacation
     };
-  };
-
-  const handleDateSelect = (date: Date) => {
-    if (!props.isSelectingVacation) return;
-
-    if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
-      setSelectedStartDate(date);
-      setSelectedEndDate(null);
-    } else {
-      const start = selectedStartDate < date ? selectedStartDate : date;
-      const end = selectedStartDate < date ? date : selectedStartDate;
-      setSelectedEndDate(date);
-
-      if (props.onAddVacation) {
-        const days = differenceInDays(end, start) + 1;
-        if (days > 0) {
-          props.onAddVacation({
-            start,
-            end,
-            isVisible: true
-          });
-        }
-      } else if (props.onVacationSelect) {
-        props.onVacationSelect(start, end);
-      }
-
-      setTimeout(() => {
-        setSelectedStartDate(null);
-        setSelectedEndDate(null);
-        if (props.onVacationSelectComplete) {
-          props.onVacationSelectComplete();
-        }
-      }, 500);
-    }
   };
 
   const baseCalendarProps: BaseCalendarProps = {
@@ -89,14 +79,20 @@ export const Calendar: React.FC<CalendarProps> = (props) => {
     onDateSelect: handleDateSelect,
     holidays: props.holidays,
     secondStateHolidays: props.secondStateHolidays,
-    bridgeDays: props.bridgeDays,
-    secondStateBridgeDays: props.secondStateBridgeDays,
+    bridgeDays: props.bridgeDays.map(bd => bd.date),
+    secondStateBridgeDays: props.secondStateBridgeDays.map(bd => bd.date),
     getDateVacationInfo,
     activePersonId: props.personId,
     tabIndex: 0,
     isSelectingVacation: props.isSelectingVacation,
     onDeleteVacation: props.onDeleteVacation,
-    vacationCount: props.vacationCount
+    vacationCount: props.vacationCount,
+    onVacationSelectComplete: props.onVacationSelectComplete,
+    onShowRecommendations: props.onShowRecommendations,
+    recommendedDates: {
+      person1: props.holidays.map(h => ({ date: h.date, reason: h.name })),
+      person2: props.secondStateHolidays.map(h => ({ date: h.date, reason: h.name }))
+    }
   };
 
   return isMobile ? (

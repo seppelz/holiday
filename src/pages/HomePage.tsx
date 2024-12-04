@@ -6,17 +6,22 @@ import { useBridgeDays } from '../hooks/useBridgeDays';
 interface HomePageProps {
   isSelectingVacation?: boolean;
   onVacationSelectComplete?: () => void;
-  selectedPersonId?: 1 | 2 | null;
+  selectedPersonId?: 1 | 2;
+  onShowRecommendations?: (personId: 1 | 2) => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
   isSelectingVacation = false,
   onVacationSelectComplete,
-  selectedPersonId
+  selectedPersonId = 1,
+  onShowRecommendations
 }) => {
   const { persons, addVacationPlan, deleteVacationPlan } = usePersonContext();
-  const { holidays: person1Holidays, bridgeDays: person1BridgeDays, isLoading: isFirstStateLoading } = 
-    useBridgeDays(persons.person1.selectedState);
+  const { 
+    holidays: person1Holidays, 
+    bridgeDays: person1BridgeDays, 
+    isLoading: isFirstStateLoading 
+  } = useBridgeDays(persons.person1?.selectedState || null);
   const { 
     holidays: person2Holidays, 
     bridgeDays: person2BridgeDays, 
@@ -33,19 +38,27 @@ export const HomePage: React.FC<HomePageProps> = ({
     );
   }
 
+  if (!persons.person1?.selectedState) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-gray-600">Bitte wählen Sie ein Bundesland aus.</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto px-4">
+    <div className="container mx-auto px-4 py-6">
       <Calendar
         state={persons.person1.selectedState}
         secondState={persons.person2?.selectedState || null}
-        holidays={person1Holidays}
+        holidays={person1Holidays || []}
         secondStateHolidays={person2Holidays || []}
-        bridgeDays={person1BridgeDays}
+        bridgeDays={person1BridgeDays || []}
         secondStateBridgeDays={person2BridgeDays || []}
-        vacationPlans={persons.person1.vacationPlans}
+        vacationPlans={persons.person1.vacationPlans || []}
         secondStateVacationPlans={persons.person2?.vacationPlans || []}
         onAddVacation={(plan) => {
-          addVacationPlan(selectedPersonId || 1, plan);
+          addVacationPlan(selectedPersonId, plan);
           if (onVacationSelectComplete) {
             onVacationSelectComplete();
           }
@@ -61,9 +74,10 @@ export const HomePage: React.FC<HomePageProps> = ({
           person1: persons.person1.vacationPlans.length,
           person2: persons.person2?.vacationPlans.length || 0
         }}
-        personId={selectedPersonId || 1}
+        personId={selectedPersonId}
         isSelectingVacation={isSelectingVacation}
         onVacationSelectComplete={onVacationSelectComplete}
+        onShowRecommendations={onShowRecommendations}
       />
     </div>
   );

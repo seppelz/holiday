@@ -23,6 +23,12 @@ export interface BaseCalendarProps {
   onAddVacation?: (vacation: { start: Date; end: Date; isVisible: boolean }) => void;
   onDeleteVacation?: (personId: 1 | 2, index: number) => void;
   vacationCount?: { person1: number; person2: number };
+  onVacationSelectComplete?: () => void;
+  onShowRecommendations?: (personId: 1 | 2) => void;
+  recommendedDates?: {
+    person1: Array<{ date: Date; reason?: string }>;
+    person2: Array<{ date: Date; reason?: string }>;
+  };
 }
 
 export interface CalendarState {

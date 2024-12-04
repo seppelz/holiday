@@ -1,239 +1,84 @@
-import { Holiday } from '../types/holiday';
-import { GermanState } from '../types/GermanState';
-import { schoolHolidays2025 } from '../data/schoolHolidays2025';
+import { Holiday, SingleDayHoliday, MultiDayHoliday } from '../types/holiday';
+import { GermanState } from '../types/germanState';
+import { holidays } from '../data/holidays';
+import { parseDateString } from '../utils/dateUtils';
 
-// Static public holidays data for 2025
-const publicHolidays2025: Record<GermanState, Array<{ name: string; date: string }>> = {
-  BW: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Heilige Drei Könige', date: '2025-01-06' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Fronleichnam', date: '2025-06-19' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: 'Allerheiligen', date: '2025-11-01' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  BY: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Heilige Drei Könige', date: '2025-01-06' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Fronleichnam', date: '2025-06-19' },
-    { name: 'Mariä Himmelfahrt', date: '2025-08-15' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: 'Allerheiligen', date: '2025-11-01' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  BE: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Internationaler Frauentag', date: '2025-03-08' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  BB: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  HB: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: 'Reformationstag', date: '2025-10-31' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  HH: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  HE: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Fronleichnam', date: '2025-06-19' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  MV: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: 'Reformationstag', date: '2025-10-31' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  NI: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: 'Reformationstag', date: '2025-10-31' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  NW: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Fronleichnam', date: '2025-06-19' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: 'Allerheiligen', date: '2025-11-01' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  RP: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Fronleichnam', date: '2025-06-19' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: 'Allerheiligen', date: '2025-11-01' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  SL: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Fronleichnam', date: '2025-06-19' },
-    { name: 'Mariä Himmelfahrt', date: '2025-08-15' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: 'Allerheiligen', date: '2025-11-01' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  SN: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: 'Reformationstag', date: '2025-10-31' },
-    { name: 'Buß- und Bettag', date: '2025-11-19' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  ST: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Heilige Drei Könige', date: '2025-01-06' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: 'Reformationstag', date: '2025-10-31' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  SH: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ],
-  TH: [
-    { name: 'Neujahr', date: '2025-01-01' },
-    { name: 'Karfreitag', date: '2025-04-18' },
-    { name: 'Ostermontag', date: '2025-04-21' },
-    { name: 'Tag der Arbeit', date: '2025-05-01' },
-    { name: 'Christi Himmelfahrt', date: '2025-05-29' },
-    { name: 'Pfingstmontag', date: '2025-06-09' },
-    { name: 'Tag der Deutschen Einheit', date: '2025-10-03' },
-    { name: 'Reformationstag', date: '2025-10-31' },
-    { name: '1. Weihnachtstag', date: '2025-12-25' },
-    { name: '2. Weihnachtstag', date: '2025-12-26' }
-  ]
+const isValidDate = (date: any): date is Date => {
+  return date instanceof Date && !isNaN(date.getTime());
+};
+
+const getHolidaysForYear = (year: number, stateCode: GermanState) => {
+  const allHolidays = holidays.publicHolidays[year]?.ALL || [];
+  const stateHolidays = holidays.publicHolidays[year]?.[stateCode] || [];
+  
+  return {
+    school: holidays.schoolHolidays[year]?.[stateCode] || [],
+    public: [
+      ...allHolidays.map(h => ({ ...h, state: stateCode })),
+      ...stateHolidays.map(h => ({ ...h, state: stateCode }))
+    ]
+  };
 };
 
 export const holidayService = {
-  async getSchoolHolidays(stateCode: string): Promise<Holiday[]> {
+  async getSchoolHolidays(stateCode: GermanState | null): Promise<MultiDayHoliday[]> {
+    if (!stateCode) return [];
+    
     try {
-      const stateHolidays = schoolHolidays2025[stateCode as keyof typeof schoolHolidays2025] || [];
+      const holidays2025 = getHolidaysForYear(2025, stateCode).school;
       
-      return stateHolidays.map(holiday => ({
-        date: new Date(holiday.start),
-        endDate: new Date(holiday.end),
-        name: holiday.name,
-        type: 'regional' as const,
-        state: stateCode as GermanState
-      }));
+      return holidays2025
+        .map(holiday => {
+          const start = parseDateString(holiday.start);
+          const end = parseDateString(holiday.end);
+          
+          if (!isValidDate(start) || !isValidDate(end)) {
+            console.error('Invalid school holiday dates:', holiday);
+            return null;
+          }
+          
+          const holidayObj: MultiDayHoliday = {
+            ...holiday,
+            date: start,
+            endDate: end,
+            type: 'school',
+            state: stateCode
+          };
+          
+          return holidayObj;
+        })
+        .filter((h): h is MultiDayHoliday => h !== null);
     } catch (error) {
       console.error('Error getting school holidays:', error);
       return [];
     }
   },
 
-  async getPublicHolidays(state: GermanState): Promise<Holiday[]> {
+  async getPublicHolidays(stateCode: GermanState | null): Promise<SingleDayHoliday[]> {
+    if (!stateCode) return [];
+    
     try {
-      const stateHolidays = publicHolidays2025[state] || [];
+      const holidays2025 = getHolidaysForYear(2025, stateCode).public;
       
-      return stateHolidays.map(holiday => ({
-        date: new Date(holiday.date),
-        name: holiday.name,
-        type: 'public' as const,
-        state: state
-      }));
+      return holidays2025
+        .map(holiday => {
+          const date = parseDateString(holiday.start);
+          
+          if (!isValidDate(date)) {
+            console.error('Invalid public holiday date:', holiday);
+            return null;
+          }
+          
+          const holidayObj: SingleDayHoliday = {
+            ...holiday,
+            date,
+            type: 'public',
+            state: stateCode
+          };
+          
+          return holidayObj;
+        })
+        .filter((h): h is SingleDayHoliday => h !== null);
     } catch (error) {
       console.error('Error getting public holidays:', error);
       return [];

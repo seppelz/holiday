@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import './App.css';
 import App from './App';
+import Cookies from 'js-cookie';
+
+// Clear the cookie on startup
+Cookies.remove('holiday-planner-persons');
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

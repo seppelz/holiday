@@ -110,4 +110,40 @@ describe('usePersonStorage', () => {
     expect(loaded?.person2?.vacationPlans[0].start).toBeInstanceOf(Date)
     expect(loaded?.person2?.selectedState).toBe(GermanState.HH)
   })
+
+  it('should handle person2 initialization correctly', () => {
+    const { result } = renderHook(() => usePersonStorage())
+    
+    const initialData: PersonInfo = {
+      person1: {
+        id: 1,
+        selectedState: GermanState.BE,
+        availableVacationDays: 30,
+        vacationPlans: []
+      },
+      person2: null
+    }
+    
+    // First save with person2 as null
+    result.current.savePersons(initialData)
+    
+    // Then add person2
+    const withPerson2: PersonInfo = {
+      ...initialData,
+      person2: {
+        id: 2,
+        selectedState: GermanState.HH,
+        availableVacationDays: 25,
+        vacationPlans: []
+      }
+    }
+    
+    result.current.savePersons(withPerson2)
+    
+    expect(mockSet).toHaveBeenLastCalledWith(
+      'holiday-planner-persons',
+      JSON.stringify(withPerson2),
+      { expires: 30 }
+    )
+  })
 }) 

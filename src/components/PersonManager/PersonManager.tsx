@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react'
 import { usePersonStorage } from '../../hooks/usePersonStorage'
 import { PersonInfo } from '../../types/person'
 import { GermanState, stateNames } from '../../types/GermanState'
+import { usePersonContext } from '../../contexts/PersonContext'
 
 export const PersonManager: React.FC = () => {
   const { savePersons, loadPersons } = usePersonStorage()
+  const { clearPersons } = usePersonContext()
   const [persons, setPersons] = useState<PersonInfo>({
     person1: {
       id: 1,
@@ -95,6 +97,17 @@ export const PersonManager: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => {
+            clearPersons();
+            window.location.reload(); // Reload the page to reset all state
+          }}
+          className="px-4 py-2 text-sm text-red-600 hover:text-red-800 border border-red-600 hover:border-red-800 rounded"
+        >
+          Alle Daten zurücksetzen
+        </button>
+      </div>
       {/* Person 1 */}
       <div className="p-4 bg-white rounded-lg shadow">
         <h3 className="text-lg font-semibold mb-2">Person 1</h3>
