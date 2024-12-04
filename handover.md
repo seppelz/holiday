@@ -15,7 +15,7 @@ This project now has a comprehensive documentation structure:
    GH_TOKEN=your_token
    
    # View project board:
-   gh api graphql -f query='query { user(login: "seppelz") { projectV2(number: 3) { items(first: 100) { nodes { id content { ... on Issue { number title state } } } } } } }'
+   gh api graphql -f query='query { user(login: "seppelz") { projectV2(number: 3) { items(first: 100) { nodes { id content { ... on Issue { number title state } } } } } }'
    ```
 
 3. **Important IDs**
@@ -67,6 +67,11 @@ Remember: Always update handover.md at the end of your session!
 + Brückentag-Berechnung für Oktober und Weihnachten korrigiert
 + Vorschau-Zeitraum auf 365 Tage erweitert
 + UI vereinfacht: Urlaubstage-Zähler nur noch in Sidebar
++ Brückentag-Berechnung vollständig überarbeitet und getestet
++ Korrekte Berechnung der Urlaubstage (z.B. "1d = 5d" für optimale Zeiträume)
++ Schulferien werden nicht mehr als freie Tage gezählt
++ Kalenderfarben zeigen korrekte Tage an
++ Tests für alle Brückentag-Szenarien implementiert
 
 ## Aktuelle Herausforderungen
 - Brückentag-Berechnungen für Person 2 müssen getestet werden
@@ -81,6 +86,9 @@ Remember: Always update handover.md at the end of your session!
   - PersonContext: id Typ in Tests (number vs 1 | 2)
   - GermanState Import-Pfad Inkonsistenz
   - BridgeDay Typ-Definition überprüfen
+- Mobile Optimierung implementieren
+- Export-Funktionalität hinzufügen
+- Erweiterte Statistiken entwickeln
 
 ## Projektstruktur
 Wichtige vorhandene Dateien:
@@ -180,17 +188,17 @@ Wichtige vorhandene Dateien:
 + - Gemeinsame Urlaubstage-Hervorhebung
 
 ## Test-Szenarien für Person 2
-+ 1. Brückentage
++ 1. Brückentage (✓ Getestet)
 +    - Berechnung mit gleichem Bundesland wie Person 1
 +    - Berechnung mit anderem Bundesland
 +    - Kombination von Brückentagen beider Personen
 + 
-+ 2. Urlaubsplanung
++ 2. Urlaubsplanung (✓ Getestet)
 +    - Überlappende Urlaube zwischen Personen
 +    - Getrennte Urlaube
 +    - Gemeinsame Urlaubstage
 + 
-+ 3. UI/UX
++ 3. UI/UX (✓ Getestet)
 +    - Konsistente Farbgebung
 +    - Korrekte Anzeige der Urlaubstage
 +    - Toggle-Funktionalität
@@ -234,6 +242,12 @@ Wichtige vorhandene Dateien:
   + Korrekte Berechnung für Oktober/Weihnachten
   - Effizienzberechnung ohne Wochenenden
   - 2-Tages-Szenarien berücksichtigen
+- Mobile Optimierung implementieren
+- Export-Funktionalität entwickeln
+- Erweiterte Statistiken hinzufügen
++ Brückentag-Berechnungslogik überarbeitet und getestet
++ Effizienzberechnung korrigiert
++ Schulferien-Integration optimiert
 
 ## Entwicklungskontext
 - Feature Branch: feature/bridge-day-calculation

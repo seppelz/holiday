@@ -6,7 +6,7 @@ import { BaseCalendarProps } from '../Shared/Calendar/BaseCalendar';
 import { GermanState } from '../../types/GermanState';
 import { Holiday, BridgeDay } from '../../types/holiday';
 import { VacationPlan } from '../../types/vacationPlan';
-import { differenceInDays, isWithinInterval } from 'date-fns';
+import { differenceInDays, isWithinInterval, isSameDay } from 'date-fns';
 
 interface CalendarProps {
   state: GermanState;
@@ -58,10 +58,12 @@ export const Calendar: React.FC<CalendarProps> = (props) => {
 
   const getDateVacationInfo = (date: Date) => {
     const person1Vacation = props.vacationPlans.some(vacation =>
+      isSameDay(date, vacation.start) || isSameDay(date, vacation.end) ||
       isWithinInterval(date, { start: vacation.start, end: vacation.end })
     );
 
     const person2Vacation = props.secondStateVacationPlans.some(vacation =>
+      isSameDay(date, vacation.start) || isSameDay(date, vacation.end) ||
       isWithinInterval(date, { start: vacation.start, end: vacation.end })
     );
 

@@ -1,7 +1,6 @@
 import { Holiday, BridgeDay } from '../types/holiday';
-import { addDays, isWeekend, isSameDay, isWithinInterval, subDays, getDay } from 'date-fns';
+import { addDays, isWeekend, isSameDay, isWithinInterval, subDays, getDay, differenceInDays, eachDayOfInterval } from 'date-fns';
 import { GermanState } from '../types/germanState';
-import { parseDateString } from '../utils/dateUtils';
 
 type CombinationPattern = {
   pattern: string;
@@ -12,12 +11,12 @@ type CombinationPattern = {
 const COMBINATION_PATTERNS: CombinationPattern[] = [
   {
     pattern: 'HOLIDAY_BRIDGE_WEEKEND',
-    weight: 4.0,
+    weight: 3.0,
     description: 'Brückentag verbindet Feiertag mit Wochenende'
   },
   {
     pattern: 'HOLIDAY_BRIDGE_HOLIDAY',
-    weight: 3.5,
+    weight: 4.0,
     description: 'Brückentag zwischen zwei Feiertagen'
   },
   {
@@ -35,24 +34,88 @@ const COMBINATION_PATTERNS: CombinationPattern[] = [
 const SEASONAL_FACTORS = {
   SUMMER_PEAK: {
     months: [7, 8],
-    factor: 0.8,
+    factor: 0.7,
     description: 'Hauptsaison'
   },
   WINTER_HOLIDAYS: {
-    months: [12],
-    factor: 0.9,
+    months: [12, 1],
+    factor: 0.8,
     description: 'Winterferien'
   },
   SHOULDER_SEASON: {
     months: [5, 6, 9],
-    factor: 1.2,
+    factor: 1.3,
     description: 'Optimale Reisezeit'
   },
   OFF_PEAK: {
-    months: [1, 2, 3, 4, 10, 11],
-    factor: 1.1,
+    months: [2, 3, 4, 10, 11],
+    factor: 1.2,
     description: 'Nebensaison'
   }
+};
+
+// Helper function to find a holiday on a specific date
+const findHolidayOnDate = (date: Date, holidays: Holiday[]): Holiday | undefined => {
+  return holidays.find(h => h.type === 'public' && isSameDay(h.date, date));
+};
+
+// Helper function to find connected free days
+const findConnectedFreeDays = (
+  date: Date,
+  direction: 'forward' | 'backward',
+  holidays: Holiday[]
+): { dates: Date[]; holidays: Holiday[] } => {
+  const dates: Date[] = [];
+  const connectedHolidays: Holiday[] = [];
+  let currentDate = date;
+
+  for (let i = 0; i < 5; i++) {
+    currentDate = direction === 'forward' ? addDays(currentDate, 1) : subDays(currentDate, 1);
+    
+    // Check if it's a weekend
+    if (isWeekend(currentDate)) {
+      dates.push(currentDate);
+      continue;
+    }
+
+    // Check if it's a holiday
+    const holiday = holidays.find(h => isSameDay(h.date, currentDate));
+    if (holiday) {
+      dates.push(currentDate);
+      connectedHolidays.push(holiday);
+      continue;
+    }
+
+    // If we hit a regular workday, stop looking
+    break;
+  }
+
+  return {
+    dates: direction === 'forward' ? dates : dates.reverse(),
+    holidays: connectedHolidays
+  };
+};
+
+// Calculate workdays needed between two dates
+const calculateWorkdays = (startDate: Date, endDate: Date, holidays: Holiday[]): number => {
+  const days = eachDayOfInterval({ start: startDate, end: endDate });
+  return days.filter(day => {
+    if (isWeekend(day)) return false;
+    if (holidays.some(h => isSameDay(h.date, day))) return false;
+    return true;
+  }).length;
+};
+
+// Helper function to get seasonal factor
+const getSeasonalFactor = (date: Date): number => {
+  const month = date.getMonth() + 1; // JavaScript months are 0-based
+  
+  for (const season of Object.values(SEASONAL_FACTORS)) {
+    if (season.months.includes(month)) {
+      return season.factor;
+    }
+  }
+  return 1.0; // Default factor if no season matches
 };
 
 export const bridgeDayService = {
@@ -70,142 +133,119 @@ export const bridgeDayService = {
       date: new Date(h.date)
     }));
 
-    // Helper function to check if a date is a public holiday
-    const isPublicHoliday = (date: Date) => {
-      return publicHolidays.some(holiday => isSameDay(date, holiday.date));
-    };
-
-    // Helper function to get the holiday object for a date
-    const getHoliday = (date: Date): Holiday | undefined => {
-      return publicHolidays.find(holiday => isSameDay(date, holiday.date));
-    };
-
-    // Helper function to determine pattern and calculate efficiency
-    const analyzeBridgeDay = (
-      beforeDate: Date,
-      bridgeDate: Date,
-      afterDate: Date,
-      publicHolidays: Holiday[]
-    ): { pattern: CombinationPattern; totalDaysOff: number; connectedHolidays: Holiday[] } | null => {
-      const beforeHoliday = getHoliday(beforeDate);
-      const afterHoliday = getHoliday(afterDate);
-      const isBeforeWeekend = isWeekend(beforeDate);
-      const isAfterWeekend = isWeekend(afterDate);
-      const isBeforeHoliday = !!beforeHoliday;
-      const isAfterHoliday = !!afterHoliday;
-      
-      let pattern: CombinationPattern | undefined;
-      const connectedHolidays: Holiday[] = [];
-      let totalDaysOff = 1; // Bridge day itself
-
-      // HOLIDAY_BRIDGE_WEEKEND: Holiday -> Bridge -> Weekend
-      if (isBeforeHoliday && isAfterWeekend) {
-        pattern = COMBINATION_PATTERNS.find(p => p.pattern === 'HOLIDAY_BRIDGE_WEEKEND');
-        if (beforeHoliday) connectedHolidays.push(beforeHoliday);
-        totalDaysOff = 4; // Holiday + Bridge + Weekend
-      }
-      // WEEKEND_BRIDGE_HOLIDAY: Weekend -> Bridge -> Holiday
-      else if (isBeforeWeekend && isAfterHoliday) {
-        pattern = COMBINATION_PATTERNS.find(p => p.pattern === 'WEEKEND_BRIDGE_HOLIDAY');
-        if (afterHoliday) connectedHolidays.push(afterHoliday);
-        totalDaysOff = 4; // Weekend + Bridge + Holiday
-      }
-      // HOLIDAY_BRIDGE_HOLIDAY: Holiday -> Bridge -> Holiday
-      else if (isBeforeHoliday && isAfterHoliday) {
-        pattern = COMBINATION_PATTERNS.find(p => p.pattern === 'HOLIDAY_BRIDGE_HOLIDAY');
-        if (beforeHoliday) connectedHolidays.push(beforeHoliday);
-        if (afterHoliday) connectedHolidays.push(afterHoliday);
-        totalDaysOff = 3; // Holiday + Bridge + Holiday
-      }
-      // HOLIDAY_BRIDGE_NORMAL: Single bridge day next to a holiday
-      else if (isBeforeHoliday || isAfterHoliday) {
-        pattern = COMBINATION_PATTERNS.find(p => p.pattern === 'HOLIDAY_BRIDGE_NORMAL');
-        if (beforeHoliday) connectedHolidays.push(beforeHoliday);
-        if (afterHoliday) connectedHolidays.push(afterHoliday);
-        totalDaysOff = 2; // Holiday + Bridge
-      }
-
-      return pattern ? { pattern, totalDaysOff, connectedHolidays } : null;
-    };
-
-    // Helper function to get seasonal factor
-    const getSeasonalFactor = (date: Date): number => {
-      const month = date.getMonth() + 1; // JavaScript months are 0-based
-      
-      for (const season of Object.values(SEASONAL_FACTORS)) {
-        if (season.months.includes(month)) {
-          return season.factor;
-        }
-      }
-      return 1.0; // Default factor if no season matches
-    };
-
-    // Process each public holiday
-    for (const holiday of publicHolidays) {
-      const holidayDate = holiday.date;
-      const possibleBridgeDays: {
-        date: Date;
-        analysis: { pattern: CombinationPattern; totalDaysOff: number; connectedHolidays: Holiday[] };
-        efficiency: number;
-      }[] = [];
-
-      // Check days before holiday (up to 2 days)
+    // Process each public holiday that's not on a weekend
+    for (const holiday of publicHolidays.filter(h => !isWeekend(h.date))) {
+      // Check days before holiday
       for (let i = 1; i <= 2; i++) {
-        const prevDay = subDays(holidayDate, i);
-        const dayBeforePrev = subDays(prevDay, 1);
+        const bridgeDate = subDays(holiday.date, i);
+        if (isWeekend(bridgeDate) || findHolidayOnDate(bridgeDate, publicHolidays)) continue;
 
-        if (!isWeekend(prevDay) && !isPublicHoliday(prevDay)) {
-          const analysis = analyzeBridgeDay(dayBeforePrev, prevDay, holidayDate, publicHolidays);
-          if (analysis) {
-            const seasonalFactor = getSeasonalFactor(prevDay);
-            const efficiency = (analysis.totalDaysOff / i) * analysis.pattern.weight * seasonalFactor;
-            possibleBridgeDays.push({ date: prevDay, analysis, efficiency });
-          }
+        // Find connected free days
+        const before = findConnectedFreeDays(bridgeDate, 'backward', publicHolidays);
+        const after = findConnectedFreeDays(bridgeDate, 'forward', publicHolidays);
+
+        // Calculate period
+        const allDates = [...before.dates, bridgeDate, ...after.dates];
+        const allHolidays = [...before.holidays, ...after.holidays];
+        
+        const periodStart = before.dates.length > 0 ? before.dates[before.dates.length - 1] : bridgeDate;
+        const periodEnd = after.dates.length > 0 ? after.dates[after.dates.length - 1] : holiday.date;
+
+        // Calculate workdays needed
+        const requiredDays = i;
+        const totalDaysOff = differenceInDays(periodEnd, periodStart) + 1;
+
+        // Determine pattern
+        let pattern = COMBINATION_PATTERNS.find(p => p.pattern === 'HOLIDAY_BRIDGE_NORMAL');
+        if (before.holidays.length > 0 && after.holidays.length > 0) {
+          pattern = COMBINATION_PATTERNS.find(p => p.pattern === 'HOLIDAY_BRIDGE_HOLIDAY');
+        } else if (before.dates.some(isWeekend) && after.holidays.length > 0) {
+          pattern = COMBINATION_PATTERNS.find(p => p.pattern === 'WEEKEND_BRIDGE_HOLIDAY');
+        } else if (before.holidays.length > 0 && after.dates.some(isWeekend)) {
+          pattern = COMBINATION_PATTERNS.find(p => p.pattern === 'HOLIDAY_BRIDGE_WEEKEND');
+        }
+
+        if (pattern) {
+          const seasonalFactor = getSeasonalFactor(bridgeDate);
+          const efficiency = (totalDaysOff / requiredDays) * pattern.weight * seasonalFactor;
+
+          bridgeDays.push({
+            date: bridgeDate,
+            name: pattern.description,
+            type: 'bridge',
+            state,
+            connectedHolidays: allHolidays,
+            requiredVacationDays: requiredDays,
+            totalDaysOff,
+            efficiency,
+            pattern: pattern.pattern,
+            periodStart,
+            periodEnd
+          });
         }
       }
 
-      // Check days after holiday (up to 2 days)
+      // Check days after holiday (similar logic)
       for (let i = 1; i <= 2; i++) {
-        const nextDay = addDays(holidayDate, i);
-        const dayAfterNext = addDays(nextDay, 1);
+        const bridgeDate = addDays(holiday.date, i);
+        if (isWeekend(bridgeDate) || findHolidayOnDate(bridgeDate, publicHolidays)) continue;
 
-        if (!isWeekend(nextDay) && !isPublicHoliday(nextDay)) {
-          const analysis = analyzeBridgeDay(holidayDate, nextDay, dayAfterNext, publicHolidays);
-          if (analysis) {
-            const seasonalFactor = getSeasonalFactor(nextDay);
-            const efficiency = (analysis.totalDaysOff / i) * analysis.pattern.weight * seasonalFactor;
-            possibleBridgeDays.push({ date: nextDay, analysis, efficiency });
-          }
+        const before = findConnectedFreeDays(bridgeDate, 'backward', publicHolidays);
+        const after = findConnectedFreeDays(bridgeDate, 'forward', publicHolidays);
+
+        const allDates = [...before.dates, bridgeDate, ...after.dates];
+        const allHolidays = [...before.holidays, ...after.holidays];
+        
+        const periodStart = holiday.date;
+        const periodEnd = after.dates.length > 0 ? after.dates[after.dates.length - 1] : bridgeDate;
+
+        const requiredDays = i;
+        const totalDaysOff = differenceInDays(periodEnd, periodStart) + 1;
+
+        let pattern = COMBINATION_PATTERNS.find(p => p.pattern === 'HOLIDAY_BRIDGE_NORMAL');
+        if (before.holidays.length > 0 && after.holidays.length > 0) {
+          pattern = COMBINATION_PATTERNS.find(p => p.pattern === 'HOLIDAY_BRIDGE_HOLIDAY');
+        } else if (before.dates.some(isWeekend) && after.holidays.length > 0) {
+          pattern = COMBINATION_PATTERNS.find(p => p.pattern === 'WEEKEND_BRIDGE_HOLIDAY');
+        } else if (before.holidays.length > 0 && after.dates.some(isWeekend)) {
+          pattern = COMBINATION_PATTERNS.find(p => p.pattern === 'HOLIDAY_BRIDGE_WEEKEND');
+        }
+
+        if (pattern) {
+          const seasonalFactor = getSeasonalFactor(bridgeDate);
+          const efficiency = (totalDaysOff / requiredDays) * pattern.weight * seasonalFactor;
+
+          bridgeDays.push({
+            date: bridgeDate,
+            name: pattern.description,
+            type: 'bridge',
+            state,
+            connectedHolidays: allHolidays,
+            requiredVacationDays: requiredDays,
+            totalDaysOff,
+            efficiency,
+            pattern: pattern.pattern,
+            periodStart,
+            periodEnd
+          });
         }
       }
-
-      // Add all valid bridge days for this holiday
-      possibleBridgeDays.forEach(bridgeDay => {
-        bridgeDays.push({
-          date: bridgeDay.date,
-          name: bridgeDay.analysis.pattern.description,
-          type: 'bridge',
-          state,
-          connectedHolidays: bridgeDay.analysis.connectedHolidays,
-          requiredVacationDays: 1,
-          totalDaysOff: bridgeDay.analysis.totalDaysOff,
-          efficiency: bridgeDay.efficiency,
-          pattern: bridgeDay.analysis.pattern.pattern
-        });
-      });
     }
 
-    // Sort by date first, then by efficiency, and remove duplicates
+    // Sort by date and remove duplicates
     return bridgeDays
       .sort((a, b) => {
-        const dateA = a.date;
-        const dateB = b.date;
-        const dateDiff = dateA.getTime() - dateB.getTime();
-        if (dateDiff !== 0) return dateDiff;
+        const dateCompare = a.date.getTime() - b.date.getTime();
+        if (dateCompare !== 0) return dateCompare;
+        // If same date, prefer the one with better efficiency
         return b.efficiency - a.efficiency;
       })
       .filter((bridgeDay, index, self) => 
-        index === self.findIndex(bd => isSameDay(bd.date, bridgeDay.date))
+        index === self.findIndex(bd => 
+          isSameDay(bd.date, bridgeDay.date) &&
+          isSameDay(bd.periodStart, bridgeDay.periodStart) &&
+          isSameDay(bd.periodEnd, bridgeDay.periodEnd)
+        )
       );
   }
 }; 

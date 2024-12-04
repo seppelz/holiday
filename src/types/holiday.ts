@@ -42,6 +42,8 @@ export interface BridgeDay extends SingleDayHoliday {
   totalDaysOff: number;
   efficiency: number;
   pattern: string;
+  periodStart: Date;
+  periodEnd: Date;
 }
 
 export interface VacationPeriod {

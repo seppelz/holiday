@@ -2,11 +2,13 @@ import { VacationPlan, BridgeDayRecommendation } from '../types/vacationPlan';
 import { Holiday } from '../types/holiday';
 import { 
   addDays, 
-  differenceInBusinessDays, 
+  differenceInBusinessDays,
+  differenceInDays,
   eachDayOfInterval, 
   isWeekend,
   isSameDay,
-  subDays
+  subDays,
+  isWithinInterval
 } from 'date-fns';
 
 export interface VacationAnalysis {
@@ -29,44 +31,100 @@ export function findBridgeDayOpportunities(
   endDate: Date = new Date(2025, 11, 31)
 ): BridgeDayRecommendation[] {
   const opportunities: BridgeDayRecommendation[] = [];
+  
+  // Filter out school holidays
+  const publicHolidays = holidays.filter(h => !h.name.toLowerCase().includes('ferien'));
+  const schoolHolidays = holidays.filter(h => h.name.toLowerCase().includes('ferien'));
 
-  // Look at each holiday
-  holidays.forEach(holiday => {
+  // Create intervals for school holidays to check overlaps
+  const schoolHolidayIntervals = schoolHolidays.map(h => ({
+    start: new Date(h.date),
+    end: new Date(h.date)
+  }));
+
+  // Sort holidays chronologically
+  const sortedHolidays = publicHolidays.sort((a, b) => 
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
+  // Helper function to check if a date is a holiday or school holiday
+  const isHolidayOrSchoolHoliday = (date: Date) => {
+    return publicHolidays.some(h => isSameDay(new Date(h.date), date)) ||
+           schoolHolidayIntervals.some(interval => isWithinInterval(date, interval));
+  };
+
+  // Look for bridge day opportunities
+  for (let i = 0; i < sortedHolidays.length; i++) {
+    const holiday = sortedHolidays[i];
     const holidayDate = new Date(holiday.date);
-    if (holidayDate < startDate || holidayDate > endDate) return;
+    
+    if (holidayDate < startDate || holidayDate > endDate) continue;
 
-    // Check days before and after the holiday
-    [-1, 1].forEach(offset => {
-      const bridgeDate = offset === 1 ? addDays(holidayDate, 1) : subDays(holidayDate, 1);
+    // Look ahead up to 7 days to find connected holidays
+    let connectedDays = [holidayDate];
+    let nextDate = holidayDate;
+    let j = i + 1;
+
+    while (j < sortedHolidays.length) {
+      const nextHoliday = sortedHolidays[j];
+      const nextHolidayDate = new Date(nextHoliday.date);
+      const daysBetween = differenceInBusinessDays(nextHolidayDate, nextDate);
+
+      if (daysBetween > 5) break;
+
+      connectedDays.push(nextHolidayDate);
+      nextDate = nextHolidayDate;
+      j++;
+    }
+
+    // For each connected period, look for bridge opportunities
+    if (connectedDays.length > 0) {
+      const start = connectedDays[0];
+      const end = connectedDays[connectedDays.length - 1];
       
-      // Skip if it's a weekend or another holiday
-      if (isWeekend(bridgeDate) || 
-          holidays.some(h => isSameDay(new Date(h.date), bridgeDate)) ||
-          existingVacations.some(v => 
-            isSameDay(v.start, bridgeDate) || isSameDay(v.end, bridgeDate)
-          )) {
-        return;
+      // Get all days in the interval
+      const allDays = eachDayOfInterval({ start, end });
+      
+      // Find required bridge days (workdays that aren't holidays or school holidays)
+      const bridgeDates = allDays.filter(date => 
+        !isWeekend(date) && 
+        !isHolidayOrSchoolHoliday(date)
+      );
+
+      if (bridgeDates.length > 0) {
+        // Calculate total gained days (including weekends and holidays)
+        const gainedDays = differenceInDays(end, start) + 1;
+        
+        // Only count workdays as required days
+        const requiredDays = bridgeDates.length;
+        
+        // Calculate efficiency percentage
+        const efficiency = ((gainedDays - requiredDays) / requiredDays) * 100;
+
+        opportunities.push({
+          dates: bridgeDates,
+          requiredVacationDays: requiredDays,
+          gainedFreeDays: gainedDays,
+          efficiency,
+          description: `${bridgeDates[0].toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })} - ${end.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })} (${requiredDays}d = ${gainedDays}d, +${Math.round(efficiency)}%) (${bridgeDates.map(d => d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })).join(' + ')})`,
+          isOptimal: efficiency >= 200
+        });
       }
+    }
 
-      // Calculate efficiency
-      const requiredDays = 1; // Bridge day
-      const gainedDays = offset === 1 
-        ? isWeekend(addDays(bridgeDate, 1)) ? 3 : 1  // Include weekend after
-        : isWeekend(subDays(bridgeDate, 1)) ? 3 : 1; // Include weekend before
+    // Skip the holidays we've already processed in this chain
+    i = j - 1;
+  }
 
-      opportunities.push({
-        dates: [bridgeDate],
-        requiredVacationDays: requiredDays,
-        gainedFreeDays: gainedDays,
-        efficiency: gainedDays / requiredDays,
-        description: `Brückentag ${offset === 1 ? 'nach' : 'vor'} ${holiday.name}`,
-        isOptimal: gainedDays >= 3
-      });
-    });
-  });
-
-  // Sort by efficiency and mark best options
-  return opportunities.sort((a, b) => b.efficiency - a.efficiency);
+  // Sort by efficiency and remove duplicates
+  return opportunities
+    .sort((a, b) => b.efficiency - a.efficiency)
+    .filter((opp, index, self) => 
+      index === self.findIndex(o => 
+        o.dates.length === opp.dates.length &&
+        o.dates.every((d, i) => isSameDay(d, opp.dates[i]))
+      )
+    );
 }
 
 export function analyzeSchoolHolidayOverlap(
@@ -104,22 +162,38 @@ export function analyzeVacationEfficiency(
   const schoolOverlap = analyzeSchoolHolidayOverlap(vacations, schoolHolidays);
   
   // Calculate overall efficiency
-  const totalRequiredDays = vacations.reduce((sum, v) => sum + (v.efficiency?.requiredDays || 0), 0);
-  const totalGainedDays = vacations.reduce((sum, v) => sum + (v.efficiency?.gainedDays || 0), 0);
-  const efficiencyScore = totalRequiredDays > 0 ? totalGainedDays / totalRequiredDays : 0;
+  let totalRequiredDays = 0;
+  let totalGainedDays = 0;
+  
+  vacations.forEach(vacation => {
+    const days = eachDayOfInterval({ start: vacation.start, end: vacation.end });
+    const requiredDays = days.filter(d => !isWeekend(d)).length;
+    const gainedDays = days.length;
+    
+    totalRequiredDays += requiredDays;
+    totalGainedDays += gainedDays;
+  });
+
+  const efficiencyScore = totalRequiredDays > 0 ? 
+    (totalGainedDays - totalRequiredDays) / totalRequiredDays : 0;
 
   // Generate recommendations
   const recommendations: string[] = [];
   
   if (bridgeDayOpportunities.length > 0) {
-    recommendations.push(`${bridgeDayOpportunities.length} Brückentag-Möglichkeiten gefunden`);
+    const optimalOpportunities = bridgeDayOpportunities.filter(o => o.isOptimal);
+    if (optimalOpportunities.length > 0) {
+      recommendations.push(`${optimalOpportunities.length} besonders effiziente Brückentag-Möglichkeiten gefunden`);
+    } else {
+      recommendations.push(`${bridgeDayOpportunities.length} Brückentag-Möglichkeiten gefunden`);
+    }
   }
   
-  if (efficiencyScore < 0.4) {
-    recommendations.push('Versuche mehr Wochenenden in deine Urlaubsplanung einzubeziehen');
+  if (efficiencyScore < 1) {
+    recommendations.push('Versuche mehr Feiertage und Wochenenden in deine Urlaubsplanung einzubeziehen');
   }
 
-  if (schoolOverlap.percentage < 30) {
+  if (schoolOverlap.percentage < 30 && schoolHolidays.length > 0) {
     recommendations.push('Prüfe Schulferien für familienfreundliche Urlaubszeiten');
   }
 

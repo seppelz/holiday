@@ -244,4 +244,98 @@ describe('bridgeDayService', () => {
       expect(christmasBridgeDay?.efficiency).toBeGreaterThan(3.0); // 4 days off (Wed-Sat) for 1 vacation day
     });
   });
+
+  describe('weekend holiday handling', () => {
+    it('should not suggest bridge days for holidays falling on weekends', () => {
+      const holidays: Holiday[] = [{
+        date: new Date('2025-03-08'), // Saturday (Internationaler Frauentag)
+        name: 'Internationaler Frauentag',
+        type: 'public',
+        state
+      }];
+
+      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays, state);
+      expect(bridgeDays).toHaveLength(0);
+    });
+
+    it('should not count weekends in efficiency calculation', () => {
+      const holidays: Holiday[] = [{
+        date: new Date('2025-05-01'), // Thursday (Tag der Arbeit)
+        name: 'Tag der Arbeit',
+        type: 'public',
+        state
+      }];
+
+      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays, state);
+      expect(bridgeDays).toHaveLength(1);
+      
+      // Friday bridge day should not count Saturday-Sunday in efficiency
+      const bridgeDay = bridgeDays[0];
+      expect(bridgeDay.date).toEqual(new Date('2025-05-02')); // Friday
+      expect(bridgeDay.requiredVacationDays).toBe(1);
+      expect(bridgeDay.totalDaysOff).toBe(4); // Thu-Sun, but efficiency should only count Thu-Fri
+    });
+  });
+
+  describe('multi-day bridge opportunities', () => {
+    it('should identify two-day bridge opportunities', () => {
+      const holidays: Holiday[] = [{
+        date: new Date('2025-05-29'), // Thursday (Christi Himmelfahrt)
+        name: 'Christi Himmelfahrt',
+        type: 'public',
+        state
+      }];
+
+      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays, state);
+      
+      // Should suggest Friday as a bridge day
+      const fridayBridge = bridgeDays.find(bd => 
+        bd.date.getTime() === new Date('2025-05-30').getTime()
+      );
+      expect(fridayBridge).toBeDefined();
+      expect(fridayBridge?.requiredVacationDays).toBe(1);
+      
+      // Should also suggest Wednesday-Friday combination
+      const wednesdayBridge = bridgeDays.find(bd =>
+        bd.date.getTime() === new Date('2025-05-28').getTime()
+      );
+      expect(wednesdayBridge).toBeDefined();
+      expect(wednesdayBridge?.requiredVacationDays).toBe(2);
+    });
+
+    it('should calculate correct efficiency for multi-day bridges', () => {
+      const holidays: Holiday[] = [
+        {
+          date: new Date('2025-12-25'), // Thursday (1. Weihnachtstag)
+          name: '1. Weihnachtstag',
+          type: 'public',
+          state
+        },
+        {
+          date: new Date('2025-12-26'), // Friday (2. Weihnachtstag)
+          name: '2. Weihnachtstag',
+          type: 'public',
+          state
+        }
+      ];
+
+      const bridgeDays = bridgeDayService.calculateBridgeDays(holidays, state);
+      
+      // Should suggest Monday-Tuesday before Christmas
+      const mondayBridge = bridgeDays.find(bd =>
+        bd.date.getTime() === new Date('2025-12-22').getTime()
+      );
+      const tuesdayBridge = bridgeDays.find(bd =>
+        bd.date.getTime() === new Date('2025-12-23').getTime()
+      );
+
+      expect(mondayBridge).toBeDefined();
+      expect(tuesdayBridge).toBeDefined();
+      expect(mondayBridge?.requiredVacationDays).toBe(2);
+      expect(tuesdayBridge?.requiredVacationDays).toBe(2);
+      
+      // Should have high efficiency (9 days off for 2 vacation days)
+      expect(mondayBridge?.efficiency).toBeGreaterThan(4.0);
+    });
+  });
 }); 

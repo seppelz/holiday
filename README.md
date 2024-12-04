@@ -21,13 +21,14 @@ For detailed information about project management, contribution guidelines, and 
 
 ### Implementiert ✅
 - 🗓 Intelligente Berechnung von Brückentagen
-  - Berücksichtigung von Wochenenden
+  - Berücksichtigung von Wochenenden und Feiertagen
   - Optimale Verbindung von Feiertagen
-  - Effizienzberechnung (Urlaubstage vs. freie Tage)
+  - Präzise Effizienzberechnung (z.B. "1d = 5d")
   + Korrekte Berechnung für 2024-2026
   + 365-Tage-Vorschau für bessere Planung
   + Chronologische Sortierung der Empfehlungen
   + Vollständige Zeiträume in Empfehlungen
+  + Schulferien als reine Information (nicht als freie Tage)
 - 🌍 Unterstützung für alle Bundesländer
   - Bundesweite Feiertage
   - Länderspezifische Feiertage
@@ -66,14 +67,18 @@ For detailed information about project management, contribution guidelines, and 
 
 ### In Entwicklung 🚧
 - 📱 Aktuelle Prioritäten
-  1. Person 2 Testing
+  1. ✅ Person 2 Testing abgeschlossen
      ✅ Brückentag-Berechnung für beide Personen
      ✅ Urlaubsüberlappungen
      ✅ Gemeinsame Urlaubstage
-  2. UX-Verbesserungen
+  2. ✅ UX-Verbesserungen
      ✅ Besseres Feedback während der Auswahl
      ✅ Tooltips und Hilfestellungen
-     - Optimierte Mobile-Ansicht
+     ✅ Korrekte Zeitraumdarstellung
+  3. Nächste Schritte
+     - Mobile Optimierung
+     - Export-Funktionalität
+     - Erweiterte Statistiken
 
 - 📱 Mobile Optimierung
   - Separate Komponenten für Mobile/Desktop
@@ -145,6 +150,8 @@ For detailed information about project management, contribution guidelines, and 
    - [x] Verbesserte Brückentag-Berechnung
    - [x] Person 2 Testing
    - [x] Öffentliche Feiertage 2024-2026
+   - [x] Korrekte Effizienzberechnung
+   - [x] Schulferien-Integration
 
 2. Q2 2024
    - [ ] Optimierte Urlaubsauswahl
