@@ -76,6 +76,11 @@ Remember: Always update handover.md at the end of your session!
 - Brückentage zeigen manchmal 0 Urlaubstage oder unendliche Effizienz
 + Brückentag-Empfehlungen zeigen jetzt korrekte Zeiträume
 + Empfehlungsliste aktualisiert sich korrekt nach Auswahl
++ TypeScript Typ-Probleme beheben:
+  - StateSelector Komponente: RefObject vs LegacyRef Konflikt
+  - PersonContext: id Typ in Tests (number vs 1 | 2)
+  - GermanState Import-Pfad Inkonsistenz
+  - BridgeDay Typ-Definition überprüfen
 
 ## Projektstruktur
 Wichtige vorhandene Dateien:
