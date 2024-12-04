@@ -6,7 +6,7 @@ import { Holiday } from '../types/holiday';
 import { GermanState } from '../types/germanState';
 
 describe('VacationList', () => {
-  const state = 'BE' as GermanState;
+  const state: GermanState = 'BE';
   const mockVacations: VacationPlan[] = [];
   const mockHolidays: Holiday[] = [
     {
@@ -40,6 +40,7 @@ describe('VacationList', () => {
         onToggleVisibility={() => {}}
         onRemove={() => {}}
         onAddVacation={() => {}}
+        state={state}
       />
     );
 
@@ -73,6 +74,7 @@ describe('VacationList', () => {
         onToggleVisibility={() => {}}
         onRemove={() => {}}
         onAddVacation={() => {}}
+        state={state}
       />
     );
 
@@ -89,6 +91,7 @@ describe('VacationList', () => {
         onToggleVisibility={() => {}}
         onRemove={() => {}}
         onAddVacation={() => {}}
+        state={state}
       />
     );
 
@@ -107,7 +110,8 @@ describe('VacationList', () => {
         onToggleVisibility={() => {}}
         onRemove={() => {}}
         onAddVacation={() => {}}
-        availableVacationDays={1} // Only 1 day available
+        availableVacationDays={1}
+        state={state}
       />
     );
 
