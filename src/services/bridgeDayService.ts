@@ -1,6 +1,6 @@
 import { Holiday, BridgeDay } from '../types/holiday';
 import { addDays, isWeekend, isSameDay, isWithinInterval, subDays, getDay, differenceInDays, eachDayOfInterval } from 'date-fns';
-import { GermanState } from '../types/germanState';
+import { GermanState } from '../types/GermanState';
 
 type CombinationPattern = {
   pattern: string;

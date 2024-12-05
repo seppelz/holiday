@@ -1,5 +1,5 @@
 // This file is auto-generated. Do not edit manually.
-import { GermanState } from '../types/germanState';
+import { GermanState } from '../types/GermanState';
 import { HolidayData } from '../types/holiday';
 
 export const holidays: HolidayData = {

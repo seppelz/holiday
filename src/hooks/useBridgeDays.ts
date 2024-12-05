@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Holiday, BridgeDay } from '../types/holiday';
-import { GermanState } from '../types/germanState';
+import { GermanState } from '../types/GermanState';
 import { bridgeDayService } from '../services/bridgeDayService';
 import { holidayService } from '../services/holidayService';
 import { isSameDay } from 'date-fns';

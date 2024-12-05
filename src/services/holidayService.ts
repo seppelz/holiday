@@ -1,5 +1,5 @@
 import { Holiday, SingleDayHoliday, MultiDayHoliday } from '../types/holiday';
-import { GermanState } from '../types/germanState';
+import { GermanState } from '../types/GermanState';
 import { holidays } from '../data/holidays';
 import { parseDateString } from '../utils/dateUtils';
 

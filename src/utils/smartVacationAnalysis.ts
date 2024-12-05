@@ -1,6 +1,6 @@
 import { addDays, eachDayOfInterval, format, isWeekend, isSameDay, isSameMonth, isSameYear, differenceInDays, subDays, startOfDay } from 'date-fns';
 import { Holiday, BridgeDay } from '../types/holiday';
-import { GermanState } from '../types/germanState';
+import { GermanState } from '../types/GermanState';
 import { bridgeDayService } from '../services/bridgeDayService';
 
 export interface VacationRecommendation {

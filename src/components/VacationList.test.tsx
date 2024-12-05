@@ -1,9 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { VacationList } from './VacationList';
-import { VacationPlan } from '../types/vacationPlan';
-import { Holiday } from '../types/holiday';
-import { GermanState } from '../types/germanState';
+import VacationList from './VacationList';
+import { VacationPlan } from '../types/holiday';
+import { GermanState } from '../types/GermanState';
 
 describe('VacationList', () => {
   const state: GermanState = 'BE';

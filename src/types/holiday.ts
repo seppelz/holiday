@@ -1,4 +1,4 @@
-import { GermanState } from './germanState';
+import { GermanState } from './GermanState';
 
 export type HolidayType = 'public' | 'regional' | 'bridge' | 'school';
 

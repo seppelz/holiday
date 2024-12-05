@@ -1,6 +1,6 @@
 import { bridgeDayService } from '../bridgeDayService';
 import { Holiday } from '../../types/holiday';
-import { GermanState } from '../../types/germanState';
+import { GermanState } from '../../types/GermanState';
 
 describe('bridgeDayService', () => {
   const state = 'BE' as GermanState;

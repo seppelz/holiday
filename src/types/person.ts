@@ -1,4 +1,4 @@
-import { GermanState } from './germanState';
+import { GermanState } from './GermanState';
 import { VacationPlan } from './vacationPlan';
 
 export interface Person {

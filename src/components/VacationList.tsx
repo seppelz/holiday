@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
 import { format, eachDayOfInterval, isWeekend, isWithinInterval, isSameDay, addDays, subDays, differenceInDays } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { VacationPlan } from '../types/vacationPlan';
+import { VacationPlan } from '../types/holiday';
+import { GermanState } from '../types/GermanState';
 import { Holiday } from '../types/holiday';
 import { holidayColors, gradientColors } from '../constants/colors';
 import { analyzeVacationOpportunities, VacationRecommendation } from '../utils/smartVacationAnalysis';
-import { GermanState } from '../types/germanState';
 
 interface VacationListProps {
   vacations: VacationPlan[];

@@ -1,9 +1,11 @@
 import React from 'react';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
 import { VacationPlan } from '../types/vacationPlan';
 import { holidayColors } from '../constants/colors';
 import { Holiday } from '../types/holiday';
 import { findVacationCombinationOpportunities, VacationCombination } from '../utils/smartVacationAnalysis';
-import { GermanState } from '../types/germanState';
+import { GermanState } from '../types/GermanState';
 
 interface VacationEfficiencyInsightsProps {
   vacations: VacationPlan[];

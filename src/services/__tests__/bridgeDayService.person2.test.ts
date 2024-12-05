@@ -1,6 +1,6 @@
 import { bridgeDayService } from '../bridgeDayService';
 import { Holiday } from '../../types/holiday';
-import { GermanState } from '../../types/germanState';
+import { GermanState } from '../../types/GermanState';
 
 describe('bridgeDayService - Person 2 Scenarios', () => {
   describe('different states calculations', () => {
