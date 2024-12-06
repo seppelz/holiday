@@ -1,5 +1,31 @@
 # Übergabeprotokoll - Holiday Planner
 
+Das Wichtigste zuerst: We talked about a crucial point about maintaining code quality and preventing regressions while making updates. Here's how I propose we work together to ensure we don't lose functionality:
+Full File Reading Before Editing
+Before making any changes to a file, I will ALWAYS read its entire contents first
+This helps me understand all dependencies, imports, and existing functionality
+I'll use the read_file tool with should_read_entire_file: true to get the complete context
+Incremental Changes
+Instead of replacing entire files, I'll make targeted changes to specific sections
+I'll preserve existing imports, types, and functions unless explicitly discussed
+I'll use clear comments in my edits to show what's being changed and why
+Dependency Analysis
+Before modifying shared types or utilities, I'll search for their usage across the codebase
+I'll use codebase_search and grep_search to find all references
+This helps prevent breaking changes in dependent components
+Documentation of Changes
+I'll clearly explain what changes I'm making and why
+I'll highlight any potential impact on other parts of the codebase
+I'll ask for your confirmation before making significant structural changes
+Here's my proposed workflow for each edit:
+
+1. Read the complete file(s) to be modified
+2. Search for dependencies and usages
+3. Present the planned changes to you
+4. Make incremental edits while preserving existing functionality
+5. Verify no unintended side effects
+
+
 ## 📚 Documentation Structure
 This project now has a comprehensive documentation structure:
 
@@ -128,9 +154,7 @@ Wichtige vorhandene Dateien:
 + Brückentag-Empfehlungen zeigen jetzt den kompletten Zeitraum (z.B. 1.5. - 4.5.25 statt nur 2.5.25)
 + Empfehlungen werden chronologisch statt nach Effizienz sortiert
 + Empfehlungen verschwinden automatisch nach Auswahl aus der Liste
-+ Rechte Sidebar mit doppelten Empfehlungen entfernt
-+ UI vereinfacht und übersichtlicher gestaltet
-
++
 ## Tastaturkürzel
 - `?` - Tastaturkürzel-Übersicht anzeigen/verstecken
 - `n` - Urlaub für Person 1 planen
@@ -164,10 +188,6 @@ Wichtige vorhandene Dateien:
 
 ## Nächste Schritte
 1. Priorität Hoch:
-   + Person 2 Funktionalität vollständig testen
-   + Brückentag-Berechnung für beide Personen validieren
-   - Visuelle Klarheit der Urlaubsliste verbessern
-   - Datumsverarbeitung über Komponenten hinweg validieren
    - Mobile Optimierung (#54)
    - Export-Funktionalität (PDF, iCal) (#55)
    - Erweiterte Statistiken (#56)

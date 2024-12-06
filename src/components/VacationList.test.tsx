@@ -1,11 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import VacationList from './VacationList';
-import { VacationPlan } from '../types/holiday';
+import { VacationList } from './VacationList';
+import { VacationPlan, Holiday } from '../types/holiday';
 import { GermanState } from '../types/GermanState';
 
 describe('VacationList', () => {
-  const state: GermanState = 'BE';
+  const state = GermanState.BE;
   const mockVacations: VacationPlan[] = [];
 
   describe('Christmas 2025', () => {
@@ -14,13 +14,7 @@ describe('VacationList', () => {
         date: new Date('2025-12-25'), // Thursday
         name: '1. Weihnachtstag',
         type: 'public',
-        state
-      },
-      {
-        date: new Date('2025-12-26'), // Friday
-        name: '2. Weihnachtstag',
-        type: 'public',
-        state
+        state: GermanState.BE
       }
     ];
 

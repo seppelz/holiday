@@ -1,11 +1,18 @@
 import React from 'react';
-import { format, isWeekend, isSameDay, isWithinInterval, isBefore, startOfDay } from 'date-fns';
+import { format, isWeekend, isSameDay, isWithinInterval, isBefore, startOfDay, addMonths } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { BaseCalendarProps, useCalendar } from '../../Shared/Calendar/BaseCalendar';
 import { holidayColors } from '../../../constants/colors';
 import { Holiday } from '../../../types/holiday';
+import { useSpring, animated } from '@react-spring/web';
+import { useDrag } from '@use-gesture/react';
 
-export const MobileCalendar: React.FC<BaseCalendarProps> = (props) => {
+interface MobileCalendarProps extends BaseCalendarProps {
+  personId: 1 | 2;
+  onMonthChange?: (direction: 1 | -1) => void;
+}
+
+export const MobileCalendar: React.FC<MobileCalendarProps> = (props) => {
   const {
     state,
     handleDateHover,
@@ -14,6 +21,27 @@ export const MobileCalendar: React.FC<BaseCalendarProps> = (props) => {
   } = useCalendar(props);
 
   const today = startOfDay(new Date());
+
+  // Animation for swipe gestures
+  const [{ x }, api] = useSpring(() => ({ x: 0 }));
+
+  // Handle month swipe
+  const bind = useDrag(
+    ({ movement: [mx], last, cancel, direction: [xDir] }) => {
+      if (last) {
+        if (Math.abs(mx) > 50) {
+          props.onMonthChange?.(xDir > 0 ? -1 : 1);
+          if (navigator.vibrate) {
+            navigator.vibrate(10);
+          }
+        }
+        api.start({ x: 0 });
+      } else {
+        api.start({ x: mx, immediate: true });
+      }
+    },
+    { axis: 'x', bounds: { left: -100, right: 100 } }
+  );
 
   const isDateDisabled = (date: Date) => {
     if (isBefore(date, today)) return true;
@@ -55,18 +83,20 @@ export const MobileCalendar: React.FC<BaseCalendarProps> = (props) => {
   const getDateClasses = (date: Date) => {
     const isDisabled = isDateDisabled(date);
     const isSelected = isDateInRange(date);
-    const { type } = getHolidayType(date);
+    const { type, holiday } = getHolidayType(date);
     const isWeekendDay = isWeekend(date);
+    const isToday = isSameDay(date, today);
 
-    const baseClasses = "flex items-center justify-center w-10 h-10 rounded-full text-sm transition-colors";
-    const cursorClasses = props.isSelectingVacation && !isDisabled ? "cursor-pointer" : "cursor-default";
+    const baseClasses = "flex flex-col items-center justify-center w-12 h-14 text-sm transition-colors touch-manipulation";
+    const cursorClasses = props.isSelectingVacation && !isDisabled ? "cursor-pointer active:bg-gray-50" : "cursor-default";
     
     if (isDisabled) {
       return `${baseClasses} text-gray-300 ${cursorClasses}`;
     }
 
     if (isSelected) {
-      return `${baseClasses} bg-emerald-500 text-white hover:bg-emerald-600 ${cursorClasses}`;
+      const personColor = props.personId === 1 ? 'emerald' : 'cyan';
+      return `${baseClasses} bg-${personColor}-500 text-white active:bg-${personColor}-600 ${cursorClasses}`;
     }
 
     if (type === 'public') {
@@ -82,10 +112,10 @@ export const MobileCalendar: React.FC<BaseCalendarProps> = (props) => {
     }
 
     if (isWeekendDay) {
-      return `${baseClasses} text-gray-500 hover:bg-gray-100 ${cursorClasses}`;
+      return `${baseClasses} text-gray-500 active:bg-gray-100 ${cursorClasses}`;
     }
 
-    return `${baseClasses} text-gray-900 hover:bg-gray-100 ${cursorClasses}`;
+    return `${baseClasses} text-gray-900 active:bg-gray-100 ${cursorClasses}`;
   };
 
   // Generate calendar grid
@@ -129,48 +159,92 @@ export const MobileCalendar: React.FC<BaseCalendarProps> = (props) => {
 
   return (
     <div className="select-none">
-      <div className="mb-4">
-        <div className="text-sm font-medium text-gray-900">
+      {/* Month Navigation */}
+      <div className="flex items-center justify-between mb-4 px-4">
+        <button
+          onClick={() => props.onMonthChange?.(-1)}
+          className="p-2 -ml-2 text-gray-600 active:bg-gray-100 rounded-full touch-manipulation"
+          aria-label="Vorheriger Monat"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <div className="text-lg font-medium text-gray-900">
           {format(props.month, 'MMMM yyyy', { locale: de })}
         </div>
-      </div>
-      <div className="grid grid-cols-7 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden">
-        {/* Weekday headers */}
-        {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((day) => (
-          <div
-            key={day}
-            className="bg-white p-2 text-xs font-medium text-gray-500 text-center"
-          >
-            {day}
-          </div>
-        ))}
-        
-        {/* Calendar grid */}
-        {weeks.map((week, weekIndex) => (
-          <React.Fragment key={weekIndex}>
-            {week.map((date, dayIndex) => {
-              const isDisabled = isDateDisabled(date);
-              const { holiday } = getHolidayType(date);
 
-              return (
-                <div
-                  key={dayIndex}
-                  className="relative bg-white"
-                  onMouseEnter={() => !isDisabled && handleDateHover(date)}
-                  onClick={() => !isDisabled && handleDateSelect(date)}
-                  tabIndex={props.tabIndex}
-                  role="button"
-                  aria-disabled={isDisabled}
-                  title={holiday?.name}
-                >
-                  <div className={getDateClasses(date)}>
-                    {format(date, 'd')}
+        <button
+          onClick={() => props.onMonthChange?.(1)}
+          className="p-2 -mr-2 text-gray-600 active:bg-gray-100 rounded-full touch-manipulation"
+          aria-label="Nächster Monat"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Calendar Grid */}
+      <animated.div
+        {...bind()}
+        style={{ x }}
+        className="touch-pan-x"
+      >
+        <div className="grid grid-cols-7 bg-gray-100 rounded-lg overflow-hidden">
+          {/* Weekday headers */}
+          {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((day) => (
+            <div
+              key={day}
+              className="bg-white py-2 text-xs font-medium text-gray-500 text-center border-b"
+            >
+              {day}
+            </div>
+          ))}
+          
+          {/* Calendar grid */}
+          {weeks.map((week, weekIndex) => (
+            <React.Fragment key={weekIndex}>
+              {week.map((date, dayIndex) => {
+                const isDisabled = isDateDisabled(date);
+                const { holiday } = getHolidayType(date);
+                const isToday = isSameDay(date, today);
+
+                return (
+                  <div
+                    key={dayIndex}
+                    className="relative bg-white border-b border-r last:border-r-0"
+                    onTouchStart={() => !isDisabled && handleDateHover(date)}
+                    onClick={() => !isDisabled && handleDateSelect(date)}
+                    role="button"
+                    aria-disabled={isDisabled}
+                    title={holiday?.name}
+                  >
+                    <div className={getDateClasses(date)}>
+                      <span className={`
+                        ${isToday ? 'font-bold' : ''}
+                        ${!isSameDay(date, props.month) ? 'text-gray-400' : ''}
+                      `}>
+                        {format(date, 'd')}
+                      </span>
+                      {holiday && (
+                        <span className="text-[10px] text-gray-500 truncate max-w-[40px]">
+                          {holiday.name}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </React.Fragment>
-        ))}
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </div>
+      </animated.div>
+
+      {/* Swipe Hint */}
+      <div className="text-center text-sm text-gray-500 mt-4">
+        ← Wischen zum Monatswechsel →
       </div>
     </div>
   );

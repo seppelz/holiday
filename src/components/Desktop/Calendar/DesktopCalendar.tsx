@@ -6,6 +6,16 @@ import { holidayColors, gradientColors } from '../../../constants/colors';
 import { Holiday } from '../../../types/holiday';
 import { parseDateString } from '../../../utils/dateUtils';
 
+interface HolidayType {
+  type: 'public' | 'regional' | 'bridge' | 'school' | null;
+  holiday?: Holiday;
+}
+
+interface HolidayTypes {
+  firstState: HolidayType;
+  secondState: HolidayType;
+}
+
 export interface ExtendedBaseCalendarProps extends BaseCalendarProps {
   onVacationSelectComplete?: () => void;
   onDeleteVacation?: (personId: 1 | 2, index: number) => void;
@@ -21,7 +31,7 @@ export interface ExtendedBaseCalendarProps extends BaseCalendarProps {
 
 interface DateTooltipProps {
   date: Date;
-  holidayTypes: ReturnType<typeof getHolidayType>;
+  holidayTypes: HolidayTypes;
   vacationInfo: {
     person1Vacation: boolean;
     person2Vacation: boolean;
@@ -111,8 +121,14 @@ export const DesktopCalendar: React.FC<ExtendedBaseCalendarProps> = (props) => {
     handleDateSelect,
     handleDateHover,
     handleMouseLeave,
-    handleDateFocus
+    handleDateFocus: baseHandleDateFocus
   } = useCalendar(props);
+
+  const handleDateFocus = (date: Date | null) => {
+    if (date) {
+      baseHandleDateFocus(date);
+    }
+  };
 
   const calendarRef = React.useRef<HTMLDivElement>(null);
   const focusedDateRef = React.useRef<Date>(startOfDay(new Date(props.month.getFullYear(), 0, 1)));
@@ -702,10 +718,10 @@ export const DesktopCalendar: React.FC<ExtendedBaseCalendarProps> = (props) => {
   return (
     <div 
       ref={calendarRef}
-      role="application"
-      aria-label="Jahreskalender"
-      aria-live={props.isSelectingVacation ? "polite" : "off"}
-      className="h-[calc(100vh-7rem)] py-2"
+      className="relative"
+      onMouseLeave={handleMouseLeave}
+      role="grid"
+      aria-label="Kalender"
     >
       <div 
         role="region" 

@@ -1,9 +1,12 @@
+import { GermanState } from './GermanState';
+
 export interface VacationPlan {
   id: string;
   personId: 1 | 2;
   start: Date;
   end: Date;
   isVisible: boolean;
+  state: GermanState;
   efficiency?: {
     requiredDays: number;
     gainedDays: number;

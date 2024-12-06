@@ -1,8 +1,8 @@
 import React from 'react';
 import { format, isWeekend, isSameDay, isWithinInterval } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { Holiday } from '../../types/holiday';
-import { VacationPlan } from '../../types/vacationPlan';
+import { Holiday, MultiDayHoliday } from '../../types/holiday';
+import { VacationPlan } from '../../types/holiday';
 import { holidayColors, gradientColors } from '../../constants/colors';
 
 interface MonthCalendarProps {
@@ -47,10 +47,12 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
 
   const isInSchoolHolidays = (date: Date, holidayList: Holiday[]) => {
     return holidayList.some(holiday => {
-      if (holiday.type === 'regional' && holiday.endDate) {
-        const holidayStart = new Date(holiday.date);
-        const holidayEnd = new Date(holiday.endDate);
-        return isWithinInterval(date, { start: holidayStart, end: holidayEnd });
+      if (holiday.type === 'school') {
+        const schoolHoliday = holiday as MultiDayHoliday;
+        return isWithinInterval(date, { 
+          start: schoolHoliday.date, 
+          end: schoolHoliday.endDate 
+        });
       }
       return false;
     });

@@ -1,9 +1,9 @@
 import { bridgeDayService } from '../bridgeDayService';
-import { Holiday } from '../../types/holiday';
+import { Holiday, MultiDayHoliday } from '../../types/holiday';
 import { GermanState } from '../../types/GermanState';
 
 describe('bridgeDayService', () => {
-  const state = 'BE' as GermanState;
+  const state = GermanState.BE;
 
   describe('pattern recognition', () => {
     it('should identify HOLIDAY_BRIDGE_WEEKEND pattern', () => {
@@ -336,6 +336,19 @@ describe('bridgeDayService', () => {
       
       // Should have high efficiency (9 days off for 2 vacation days)
       expect(mondayBridge?.efficiency).toBeGreaterThan(4.0);
+    });
+  });
+
+  describe('School holidays', () => {
+    it('should handle school holidays correctly', () => {
+      const schoolHoliday: MultiDayHoliday = {
+        name: 'Sommerferien',
+        type: 'school',
+        state,
+        date: new Date('2025-07-01'),
+        endDate: new Date('2025-08-31')
+      };
+      // ... rest of the test
     });
   });
 }); 

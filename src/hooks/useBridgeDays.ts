@@ -27,15 +27,7 @@ export function useBridgeDays(state: GermanState | null) {
         ]);
         
         // Combine holidays, ensuring no duplicates by date and name
-        const allHolidays = [...publicHolidays];
-        schoolHolidays.forEach(schoolHoliday => {
-          const existingHoliday = allHolidays.find(h => 
-            isSameDay(h.date, schoolHoliday.date) && h.name === schoolHoliday.name
-          );
-          if (!existingHoliday) {
-            allHolidays.push(schoolHoliday);
-          }
-        });
+        const allHolidays: Holiday[] = [...publicHolidays, ...schoolHolidays];
 
         setHolidays(allHolidays);
         

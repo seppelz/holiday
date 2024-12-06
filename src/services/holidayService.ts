@@ -30,7 +30,7 @@ export const holidayService = {
       return holidays2025
         .map(holiday => {
           const start = parseDateString(holiday.start);
-          const end = parseDateString(holiday.end);
+          const end = holiday.end ? parseDateString(holiday.end) : start;
           
           if (!isValidDate(start) || !isValidDate(end)) {
             console.error('Invalid school holiday dates:', holiday);

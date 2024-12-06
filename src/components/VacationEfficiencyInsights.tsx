@@ -1,10 +1,10 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { VacationPlan } from '../types/vacationPlan';
+import { VacationPlan } from '../types/holiday';
 import { holidayColors } from '../constants/colors';
 import { Holiday } from '../types/holiday';
-import { findVacationCombinationOpportunities, VacationCombination } from '../utils/smartVacationAnalysis';
+import { analyzeVacationOpportunities, VacationRecommendation } from '../utils/smartVacationAnalysis';
 import { GermanState } from '../types/GermanState';
 
 interface VacationEfficiencyInsightsProps {
@@ -31,14 +31,14 @@ export const VacationEfficiencyInsights: React.FC<VacationEfficiencyInsightsProp
   const remainingDays = availableVacationDays - usedDays;
   
   // Find bridge day opportunities
-  const combinations = findVacationCombinationOpportunities(
+  const combinations = analyzeVacationOpportunities(
     vacations, 
     holidays,
     state
   );
   const bestCombinations = combinations
-    .filter((c: VacationCombination) => c.requiredDays <= remainingDays)
-    .sort((a: VacationCombination, b: VacationCombination) => 
+    .filter((c: VacationRecommendation) => c.requiredDays <= remainingDays)
+    .sort((a: VacationRecommendation, b: VacationRecommendation) => 
       (b.gainedDays / b.requiredDays) - (a.gainedDays / a.requiredDays))
     .slice(0, 5);
 
@@ -61,7 +61,7 @@ export const VacationEfficiencyInsights: React.FC<VacationEfficiencyInsightsProp
             Brückentag-Möglichkeiten
           </h3>
           <div className="space-y-1">
-            {bestCombinations.map((combo: VacationCombination, index: number) => (
+            {bestCombinations.map((combo: VacationRecommendation, index: number) => (
               <div
                 key={index}
                 className={`px-2 py-1.5 cursor-pointer transition-colors
