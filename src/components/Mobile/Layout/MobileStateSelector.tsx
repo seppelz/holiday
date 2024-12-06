@@ -13,8 +13,10 @@ export const MobileStateSelector: React.FC<MobileStateSelectorProps> = ({
   accentColor
 }) => {
   return (
-    <div className="px-4 py-2 border-t border-gray-200">
+    <div className="px-4 py-2 border-t border-gray-200" role="region" aria-label="Bundesland-Auswahl">
+      <label htmlFor="state-select" className="sr-only">Bundesland auswählen</label>
       <select
+        id="state-select"
         value={value}
         onChange={(e) => onChange(e.target.value as GermanState)}
         className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900
@@ -27,8 +29,9 @@ export const MobileStateSelector: React.FC<MobileStateSelectorProps> = ({
           paddingRight: '2.5rem',
           '--tw-ring-color': accentColor + '4D' // 30% opacity
         } as React.CSSProperties}
+        aria-label="Bundesland auswählen"
       >
-        <option value="">Bundesland wählen</option>
+        <option value="" disabled>Bundesland wählen</option>
         {Object.entries(GermanState).map(([key, value]) => (
           <option key={key} value={value}>{stateNames[value as GermanState]}</option>
         ))}

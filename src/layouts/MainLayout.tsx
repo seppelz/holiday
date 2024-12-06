@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { usePersonContext } from '../contexts/PersonContext';
 import { VacationList } from '../components/VacationList';
 import { GermanState, stateNames } from '../types/GermanState';
@@ -160,6 +160,55 @@ export const MainLayout: React.FC = () => {
       }
     };
   }, [person1BridgeDays, person2BridgeDays]);
+
+  // Memoize vacation calculation functions
+  const calculateRequiredDays = useCallback((start: Date, end: Date, holidays: Holiday[]) => {
+    const allDays = eachDayOfInterval({ start, end });
+    return allDays.reduce((count, d) => {
+      if (isWeekend(d)) return count;
+      const isPublicHoliday = holidays.some(h => 
+        h.type === 'public' && isSameDay(new Date(h.date), d)
+      );
+      return isPublicHoliday ? count : count + 1;
+    }, 0);
+  }, []);
+
+  const findConnectedFreeDays = useCallback((
+    date: Date,
+    direction: 'forward' | 'backward',
+    holidays: Holiday[]
+  ): Date => {
+    let currentDay = direction === 'forward' ? addDays(date, 1) : subDays(date, 1);
+    let lastFreeDay = date;
+
+    while (isWeekend(currentDay) || holidays.some(h => 
+      h.type === 'public' && isSameDay(new Date(h.date), currentDay)
+    )) {
+      lastFreeDay = currentDay;
+      currentDay = direction === 'forward' ? addDays(currentDay, 1) : subDays(currentDay, 1);
+    }
+
+    return lastFreeDay;
+  }, []);
+
+  const calculateVacationEfficiency = useCallback((
+    start: Date,
+    end: Date,
+    holidays: Holiday[]
+  ) => {
+    const requiredDays = calculateRequiredDays(start, end, holidays);
+    const displayStart = findConnectedFreeDays(start, 'backward', holidays);
+    const displayEnd = findConnectedFreeDays(end, 'forward', holidays);
+    const gainedDays = differenceInDays(displayEnd, displayStart) + 1;
+
+    return {
+      requiredDays,
+      gainedDays,
+      displayStart,
+      displayEnd,
+      efficiency: gainedDays / requiredDays
+    };
+  }, [calculateRequiredDays, findConnectedFreeDays]);
 
   const renderPersonConfig = (personId: 1 | 2) => {
     const person = personId === 1 ? persons.person1 : persons.person2;
@@ -358,6 +407,33 @@ export const MainLayout: React.FC = () => {
     );
   };
 
+  const handleAddVacation = useCallback((start: Date, end: Date) => {
+    const person = selectedPersonId === 2 ? persons.person2 : persons.person1;
+    if (!person) return;
+
+    const holidays = holidayData[selectedPersonId === 2 ? 'person2' : 'person1'].holidays;
+    const { requiredDays, gainedDays, displayStart, displayEnd, efficiency } = 
+      calculateVacationEfficiency(start, end, holidays);
+
+    const newVacation: VacationPlan = {
+      id: Math.random().toString(36).substr(2, 9),
+      start,
+      end,
+      isVisible: true,
+      personId: selectedPersonId || 1,
+      state: person.selectedState,
+      efficiency: {
+        requiredDays,
+        gainedDays,
+        score: efficiency
+      }
+    };
+
+    updatePerson(selectedPersonId || 1, {
+      vacationPlans: [...(person.vacationPlans || []), newVacation]
+    });
+  }, [selectedPersonId, persons, holidayData, calculateVacationEfficiency, updatePerson]);
+
   return (
     <AppWrapper
       mobileProps={persons.person1?.selectedState ? {
@@ -367,62 +443,7 @@ export const MainLayout: React.FC = () => {
         holidays: selectedPersonId === 2 ? holidayData.person2.holidays : holidayData.person1.holidays,
         bridgeDays: selectedPersonId === 2 ? holidayData.person2.bridgeDays : holidayData.person1.bridgeDays,
         vacationPlans: (selectedPersonId === 2 ? persons.person2?.vacationPlans : persons.person1.vacationPlans) || [],
-        onAddVacation: (start: Date, end: Date) => {
-          const person = selectedPersonId === 2 ? persons.person2 : persons.person1;
-          if (!person) return;
-
-          // Calculate vacation efficiency
-          const allDays = eachDayOfInterval({ start, end });
-          const requiredDays = allDays.reduce((count, d) => {
-            if (isWeekend(d)) return count;
-            const isPublicHoliday = holidayData[selectedPersonId === 2 ? 'person2' : 'person1'].holidays.some(h => 
-              h.type === 'public' && isSameDay(new Date(h.date), d)
-            );
-            return isPublicHoliday ? count : count + 1;
-          }, 0);
-
-          // Calculate gained days including surrounding weekends/holidays
-          let displayStart = start;
-          let displayEnd = end;
-
-          // Look backwards for connected free days
-          let currentDay = subDays(start, 1);
-          while (isWeekend(currentDay) || holidayData[selectedPersonId === 2 ? 'person2' : 'person1'].holidays.some(h => 
-            h.type === 'public' && isSameDay(new Date(h.date), currentDay)
-          )) {
-            displayStart = currentDay;
-            currentDay = subDays(currentDay, 1);
-          }
-
-          // Look forwards for connected free days
-          currentDay = addDays(end, 1);
-          while (isWeekend(currentDay) || holidayData[selectedPersonId === 2 ? 'person2' : 'person1'].holidays.some(h => 
-            h.type === 'public' && isSameDay(new Date(h.date), currentDay)
-          )) {
-            displayEnd = currentDay;
-            currentDay = addDays(currentDay, 1);
-          }
-
-          const gainedDays = differenceInDays(displayEnd, displayStart) + 1;
-
-          const newVacation: VacationPlan = {
-            id: Math.random().toString(36).substr(2, 9),
-            start,
-            end,
-            isVisible: true,
-            personId: selectedPersonId || 1,
-            state: person.selectedState,
-            efficiency: {
-              requiredDays,
-              gainedDays,
-              score: gainedDays / requiredDays
-            }
-          };
-
-          updatePerson(selectedPersonId || 1, {
-            vacationPlans: [...(person.vacationPlans || []), newVacation]
-          });
-        },
+        onAddVacation: handleAddVacation,
         onRemoveVacation: (id) => {
           const person = selectedPersonId === 2 ? persons.person2 : persons.person1;
           const updatedPlans = person?.vacationPlans.filter(plan => plan.id !== id);

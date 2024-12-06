@@ -10,6 +10,23 @@ Ein modernes Tool zur Urlaubsplanung und Brückentag-Analyse.
 - `.github/CONTRIBUTING.md` - Contribution guidelines and project management workflows
 - `.github/ISSUE_TEMPLATE/` - Standardized templates for issues and features
 
+### AI Collaboration
+- 🤖 **Automated Assistance**
+  - Code analysis and suggestions
+  - Documentation maintenance
+  - Issue management
+  - Quality assurance
+- 🔄 **Workflow Integration**
+  - Automated project board updates
+  - Smart dependency analysis
+  - Proactive issue identification
+  - Real-time documentation updates
+- 🛡️ **Quality Standards**
+  - Complete file reading before edits
+  - Dependency preservation
+  - Test maintenance
+  - Mobile-first approach
+
 ### Project Management
 - GitHub Project Board: [Holiday Planner Board](https://github.com/users/seppelz/projects/3)
 - Milestones: See CONTRIBUTING.md for current milestone structure

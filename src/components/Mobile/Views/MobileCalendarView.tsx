@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { MobileCalendar } from '../Calendar/MobileCalendar';
 import { Holiday, BridgeDay } from '../../../types/holiday';
 import { VacationPlan } from '../../../types/vacationPlan';
@@ -37,29 +37,50 @@ export const MobileCalendarView: React.FC<MobileCalendarViewProps> = ({
     }
   }, [initialDate]);
 
-  const isDateRangeFullyContained = (start: Date, end: Date) => {
+  // Memoize expensive date operations
+  const isDateRangeFullyContained = useCallback((start: Date, end: Date) => {
     return vacationPlans.some(vacation =>
       vacation.isVisible && 
       isWithinInterval(start, { start: vacation.start, end: vacation.end }) &&
       isWithinInterval(end, { start: vacation.start, end: vacation.end })
     );
-  };
+  }, [vacationPlans]);
 
-  const findOverlappingVacations = (start: Date, end: Date) => {
+  const findOverlappingVacations = useCallback((start: Date, end: Date) => {
     return vacationPlans.filter(vacation =>
       vacation.isVisible && (
         isWithinInterval(start, { start: vacation.start, end: vacation.end }) ||
         isWithinInterval(end, { start: vacation.start, end: vacation.end }) ||
         isWithinInterval(vacation.start, { start, end }) ||
         isWithinInterval(vacation.end, { start, end }) ||
-        // Check if dates are adjacent (including weekends)
         differenceInDays(vacation.start, end) <= 2 ||
         differenceInDays(start, vacation.end) <= 2
       )
     );
-  };
+  }, [vacationPlans]);
 
-  const handleDateSelect = (date: Date) => {
+  const getDateVacationInfo = useCallback((date: Date) => {
+    const person1Vacation = personId === 1 && vacationPlans.some(vacation =>
+      vacation.isVisible && isWithinInterval(date, { start: vacation.start, end: vacation.end })
+    );
+    const person2Vacation = personId === 2 && vacationPlans.some(vacation =>
+      vacation.isVisible && isWithinInterval(date, { start: vacation.start, end: vacation.end })
+    );
+    const isSharedVacation = otherPersonVacations.some(otherVacation =>
+      isWithinInterval(date, { start: otherVacation.start, end: otherVacation.end }) &&
+      vacationPlans.some(vacation =>
+        vacation.isVisible && isWithinInterval(date, { start: vacation.start, end: vacation.end })
+      )
+    );
+
+    return {
+      person1Vacation,
+      person2Vacation,
+      isSharedVacation
+    };
+  }, [personId, vacationPlans, otherPersonVacations]);
+
+  const handleDateSelect = useCallback((date: Date) => {
     if (!startDate) {
       setStartDate(date);
       setFeedbackMessage(null);
@@ -110,73 +131,38 @@ export const MobileCalendarView: React.FC<MobileCalendarViewProps> = ({
       setEndDate(null);
       setFeedbackMessage(null);
     }
-  };
+  }, [startDate, endDate, isDateRangeFullyContained, findOverlappingVacations, onRemoveVacation, onAddVacation]);
 
-  const handleMonthChange = (direction: 1 | -1) => {
+  const handleMonthChange = useCallback((direction: 1 | -1) => {
     setMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + direction, 1));
-  };
-
-  const getDateVacationInfo = (date: Date) => {
-    const person1Vacation = personId === 1 && vacationPlans.some(vacation =>
-      vacation.isVisible && isWithinInterval(date, { start: vacation.start, end: vacation.end })
-    );
-    const person2Vacation = personId === 2 && vacationPlans.some(vacation =>
-      vacation.isVisible && isWithinInterval(date, { start: vacation.start, end: vacation.end })
-    );
-    const isSharedVacation = otherPersonVacations.some(otherVacation =>
-      isWithinInterval(date, { start: otherVacation.start, end: otherVacation.end }) &&
-      vacationPlans.some(vacation =>
-        vacation.isVisible && isWithinInterval(date, { start: vacation.start, end: vacation.end })
-      )
-    );
-
-    return {
-      person1Vacation,
-      person2Vacation,
-      isSharedVacation
-    };
-  };
+  }, []);
 
   return (
     <div className="flex-1 overflow-auto bg-gray-50">
-      <div className="max-w-lg mx-auto p-4">
-        <MobileCalendar
-          month={month}
-          holidays={holidays}
-          bridgeDays={bridgeDays}
-          startDate={startDate}
-          endDate={endDate}
-          onDateSelect={handleDateSelect}
-          disabledDates={[]}
-          personId={personId}
-          onMonthChange={handleMonthChange}
-          isSelectingVacation={true}
-          getDateVacationInfo={getDateVacationInfo}
-          tabIndex={0}
-          recommendedDates={{
-            person1: [],
-            person2: []
-          }}
-          vacationPlans={vacationPlans}
-          initialDate={initialDate}
-        />
-
-        {/* Selection Hint */}
-        <div className="text-center text-sm mt-4">
-          {feedbackMessage ? (
-            <div className="text-blue-600 bg-blue-50 px-4 py-2 rounded-lg">
-              {feedbackMessage}
-            </div>
-          ) : (
-            <div className="text-gray-500">
-              {!startDate 
-                ? 'Tippe auf ein Datum um den Urlaub zu beginnen'
-                : !endDate
-                  ? 'Wähle das Ende des Urlaubs'
-                  : 'Urlaub ausgewählt'
-              }
-            </div>
-          )}
+      <div className="max-w-lg mx-auto p-4 flex flex-col h-full">
+        <div className="flex-1 min-h-0 overflow-auto">
+          <div className="max-h-[calc(100dvh-16rem)]">
+            <MobileCalendar
+              month={month}
+              holidays={holidays}
+              bridgeDays={bridgeDays}
+              startDate={startDate}
+              endDate={endDate}
+              onDateSelect={handleDateSelect}
+              disabledDates={[]}
+              personId={personId}
+              onMonthChange={handleMonthChange}
+              isSelectingVacation={true}
+              getDateVacationInfo={getDateVacationInfo}
+              tabIndex={0}
+              recommendedDates={{
+                person1: [],
+                person2: []
+              }}
+              vacationPlans={vacationPlans}
+              initialDate={initialDate}
+            />
+          </div>
         </div>
       </div>
     </div>

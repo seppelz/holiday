@@ -19,23 +19,56 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
 }) => {
   return (
     <div className="h-screen flex flex-col">
-      {/* Fixed Header */}
-      <div className="flex-none">
+      {/* Skip Link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-white focus:text-blue-600"
+      >
+        Zum Hauptinhalt springen
+      </a>
+
+      {/* Fixed Header Section */}
+      <div 
+        className="flex-none"
+        role="banner"
+      >
         {header}
-        {stateSelector}
-        {vacationCounter}
+        <div role="region" aria-label="Einstellungen">
+          {stateSelector}
+          {vacationCounter}
+        </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-hidden">
+      <main 
+        id="main-content"
+        className="flex-1 overflow-hidden"
+        role="main"
+        aria-label="Hauptinhalt"
+      >
         {children}
-      </div>
+      </main>
 
       {/* Fixed Footer */}
-      <div className="flex-none">
+      <div 
+        className="flex-none"
+        role="contentinfo"
+      >
+        {/* Navigation */}
         {viewTabs}
+        {/* Action Bar */}
         {actionBar}
       </div>
+
+      {/* Landmark navigation for screen readers */}
+      <nav className="sr-only" aria-label="Seitenstruktur">
+        <ul>
+          <li><a href="#main-content">Hauptinhalt</a></li>
+          <li><a href="#settings">Einstellungen</a></li>
+          <li><a href="#navigation">Navigation</a></li>
+          <li><a href="#actions">Aktionen</a></li>
+        </ul>
+      </nav>
     </div>
   );
 }; 

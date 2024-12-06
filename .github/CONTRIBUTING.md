@@ -182,6 +182,31 @@ gh api graphql -f query='query {
 - Document complex calculations
 - Add comprehensive tests for new features
 
+### AI Collaboration Workflow
+1. **Code Analysis**
+   - Complete file reading before changes
+   - Semantic code search for context
+   - Dependency analysis
+   - Type safety verification
+
+2. **Development Process**
+   - Automated issue management
+   - Smart code suggestions
+   - Real-time documentation updates
+   - Quality assurance checks
+
+3. **Communication**
+   - Clear technical discussions
+   - Proactive issue identification
+   - Solution-focused approach
+   - Regular progress updates
+
+4. **Quality Standards**
+   - Test preservation
+   - Mobile-first development
+   - Dependency maintenance
+   - Documentation accuracy
+
 ### Git Workflow
 1. Create feature branch from main
 2. Use conventional commits

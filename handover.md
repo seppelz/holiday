@@ -1,6 +1,38 @@
 # Übergabeprotokoll - Holiday Planner
 
 Das Wichtigste zuerst: We talked about a crucial point about maintaining code quality and preventing regressions while making updates. Here's how I propose we work together to ensure we don't lose functionality:
+
+## 🤖 AI Collaboration Guidelines
+1. **Code Reading Protocol**
+   - AI will always read complete files before making changes
+   - Uses semantic search to understand code context
+   - Analyzes dependencies before modifications
+   - Preserves existing functionality
+
+2. **Communication Style**
+   - Clear, concise explanations of changes
+   - Proactive issue identification
+   - Direct technical discussions
+   - Focus on solutions over apologies
+
+3. **Quality Assurance**
+   - Thorough dependency analysis
+   - Preservation of existing tests
+   - Consistent error handling
+   - Mobile-first considerations
+
+4. **Documentation Updates**
+   - Real-time documentation updates
+   - Clear change explanations
+   - Cross-referencing of related issues
+   - Maintenance of type safety
+
+5. **Workflow Integration**
+   - Automatic project board updates
+   - Issue-driven development
+   - Consistent commit messages
+   - Regular milestone tracking
+
 Full File Reading Before Editing
 Before making any changes to a file, I will ALWAYS read its entire contents first
 This helps me understand all dependencies, imports, and existing functionality
@@ -175,7 +207,7 @@ Wichtige vorhandene Dateien:
       - Access via repository: Projects tab in repository
 
    2. GitHub CLI:
-      - List items: `gh api graphql -f query='query { user(login: "seppelz") { projectV2(number: 3) { items(first: 100) { nodes { id content { ... on Issue { number title state } } } } } } }'`
+      - List items: `gh api graphql -f query='query { user(login: "seppelz") { projectV2(number: 3) { items(first: 100) { nodes { id content { ... on Issue { number title state } } } } } }'`
       - Add item: `gh api graphql -f query='mutation { addProjectV2ItemById(input: { projectId: "PVT_kwHOAEVDoc4AtXxZ" contentId: "$ISSUE_ID" }) { item { id } } }'`
       - Update status: `gh api graphql -f query='mutation { updateProjectV2ItemFieldValue(input: { projectId: "PVT_kwHOAEVDoc4AtXxZ" itemId: "$ITEM_ID" fieldId: "PVTSSF_lAHOAEVDoc4AtXxZzgkJLUk" value: { singleSelectOptionId: "98236657" } }) { projectV2Item { id } } }'`
 
