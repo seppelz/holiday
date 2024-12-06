@@ -1,17 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MobileLayout } from '../Layout/MobileLayout';
 import { MobileHeader } from '../Layout/MobileHeader';
 import { MobileActionBar } from '../ActionBar/MobileActionBar';
 import { MobileViewTabs } from '../Navigation/MobileViewTabs';
 import { MobileStateSelector } from '../Layout/MobileStateSelector';
+import { MobileVacationDaysCounter } from '../Layout/MobileVacationDaysCounter';
 import { MobileHolidaysView } from '../Views/MobileHolidaysView';
+import { MobileSchoolHolidaysView } from '../Views/MobileSchoolHolidaysView';
 import { MobilePlanningView } from '../Views/MobilePlanningView';
 import { MobileCalendarView } from '../Views/MobileCalendarView';
+import { MobileBridgeDaysView } from '../Views/MobileBridgeDaysView';
 import { Holiday, BridgeDay } from '../../../types/holiday';
 import { GermanState } from '../../../types/GermanState';
-import { VacationPlan } from '../../../types/vacation';
+import { VacationPlan } from '../../../types/vacationPlan';
 
-type ViewType = 'holidays' | 'planning' | 'calendar';
+type ViewType = 'holidays' | 'school' | 'bridge' | 'planning' | 'calendar';
 
 interface MobileContainerProps {
   personId: 1 | 2;
@@ -24,6 +27,8 @@ interface MobileContainerProps {
   onRemoveVacation: (id: string) => void;
   onPersonSwitch: () => void;
   availableVacationDays: number;
+  onAvailableDaysChange: (days: number) => void;
+  otherPersonVacations: VacationPlan[];
 }
 
 export const MobileContainer: React.FC<MobileContainerProps> = ({
@@ -36,137 +41,149 @@ export const MobileContainer: React.FC<MobileContainerProps> = ({
   onAddVacation,
   onRemoveVacation,
   onPersonSwitch,
-  availableVacationDays
+  availableVacationDays,
+  onAvailableDaysChange,
+  otherPersonVacations
 }) => {
-  const [activeView, setActiveView] = React.useState<ViewType>('calendar');
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+  const [activeView, setActiveView] = useState<ViewType>('calendar');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Get accent color based on person
   const accentColor = personId === 1 ? '#10b981' : '#06b6d4';
-
+  
   // Handle view changes
   const handleViewChange = (view: ViewType) => {
     setActiveView(view);
   };
+
+  // Handle holiday selection
+  const handleHolidaySelect = (date: Date) => {
+    setSelectedDate(date);
+    setActiveView('calendar');
+  };
+
+  // Filter holidays by type for different views
+  const publicHolidays = holidays.filter(h => h.type === 'public');
+  const schoolHolidays = holidays.filter(h => h.type === 'school');
 
   // Render current view
   const renderCurrentView = () => {
     switch (activeView) {
       case 'holidays':
         return (
-          <MobileHolidaysView
-            holidays={holidays}
-            bridgeDays={bridgeDays}
-            onSelectBridgeDay={onAddVacation}
-            personId={personId}
-          />
+          <div className="h-full flex flex-col">
+            <div className="flex-1 overflow-y-auto">
+              <MobileHolidaysView
+                holidays={publicHolidays}
+                personId={personId}
+                onHolidaySelect={handleHolidaySelect}
+              />
+            </div>
+          </div>
+        );
+      case 'school':
+        return (
+          <div className="h-full flex flex-col">
+            <div className="flex-1 overflow-y-auto">
+              <MobileSchoolHolidaysView
+                schoolHolidays={schoolHolidays}
+                personId={personId}
+                onHolidaySelect={handleHolidaySelect}
+              />
+            </div>
+          </div>
+        );
+      case 'bridge':
+        return (
+          <div className="h-full flex flex-col">
+            <div className="flex-1 overflow-y-auto">
+              <MobileBridgeDaysView
+                holidays={holidays}
+                vacations={vacationPlans}
+                onSelectBridgeDay={onAddVacation}
+                personId={personId}
+                state={selectedState}
+                availableVacationDays={availableVacationDays}
+              />
+            </div>
+          </div>
         );
       case 'planning':
         return (
-          <MobilePlanningView
-            vacationPlans={vacationPlans}
-            onRemoveVacation={onRemoveVacation}
-            availableVacationDays={availableVacationDays}
-            personId={personId}
-          />
+          <div className="h-full flex flex-col">
+            <div className="flex-1 overflow-y-auto">
+              <MobilePlanningView
+                vacationPlans={vacationPlans}
+                onRemoveVacation={onRemoveVacation}
+                availableVacationDays={availableVacationDays}
+                personId={personId}
+                holidays={holidays}
+                otherPersonVacations={otherPersonVacations}
+              />
+            </div>
+          </div>
         );
       case 'calendar':
       default:
         return (
-          <MobileCalendarView
-            holidays={holidays}
-            bridgeDays={bridgeDays}
-            vacationPlans={vacationPlans}
-            onAddVacation={onAddVacation}
-            personId={personId}
-          />
+          <div className="h-full flex flex-col">
+            <div className="flex-1 overflow-y-auto">
+              <MobileCalendarView
+                holidays={holidays}
+                bridgeDays={bridgeDays}
+                vacationPlans={vacationPlans}
+                onAddVacation={onAddVacation}
+                onRemoveVacation={onRemoveVacation}
+                personId={personId}
+                otherPersonVacations={otherPersonVacations}
+                initialDate={selectedDate}
+              />
+            </div>
+          </div>
         );
     }
   };
 
-  // Action bar items
-  const actions = [
-    {
-      icon: (
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" 
-          />
-        </svg>
-      ),
-      label: 'Urlaub planen',
-      onClick: () => handleViewChange('calendar'),
-      color: accentColor
-    },
-    {
-      icon: (
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" 
-          />
-        </svg>
-      ),
-      label: 'Feiertage',
-      onClick: () => handleViewChange('holidays'),
-      color: accentColor
-    }
-  ];
-
-  // Add person switch action if needed
-  if (personId) {
-    actions.push({
-      icon: (
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" 
-          />
-        </svg>
-      ),
-      label: `Zu Person ${personId === 1 ? '2' : '1'} wechseln`,
-      onClick: onPersonSwitch,
-      color: accentColor
-    });
-  }
-
   return (
     <MobileLayout
       header={
-        <>
-          <MobileHeader
-            title="Holiday Planner"
-            rightAction={{
-              icon: (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" 
-                  />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              ),
-              onClick: () => setIsSidebarOpen(true),
-              label: "Einstellungen"
-            }}
-          />
-          <MobileViewTabs
-            activeView={activeView}
-            onChange={handleViewChange}
-          />
-        </>
+        <MobileHeader
+          title={`Holiday Planner ${personId === 2 ? "Person 2" : "Ich"}`}
+          onPersonSwitch={onPersonSwitch}
+          accentColor={accentColor}
+        />
       }
-      sidebar={
-        <div className="flex flex-col h-full">
-          <div className="p-4 border-b">
-            <h2 className="text-lg font-medium">Einstellungen</h2>
-          </div>
-          <MobileStateSelector
-            selectedState={selectedState}
-            onChange={onStateChange}
-          />
-        </div>
+      stateSelector={
+        <MobileStateSelector
+          value={selectedState}
+          onChange={onStateChange}
+          accentColor={accentColor}
+        />
       }
-      isSidebarOpen={isSidebarOpen}
-      onSidebarClose={() => setIsSidebarOpen(false)}
-      footer={<MobileActionBar actions={actions} />}
+      vacationCounter={
+        <MobileVacationDaysCounter
+          availableVacationDays={availableVacationDays}
+          onAvailableDaysChange={onAvailableDaysChange}
+          vacationPlans={vacationPlans}
+          accentColor={accentColor}
+          holidays={holidays}
+          otherPersonVacations={otherPersonVacations}
+        />
+      }
+      viewTabs={
+        <MobileViewTabs
+          activeView={activeView}
+          onViewChange={handleViewChange}
+          accentColor={accentColor}
+          vacationPlans={vacationPlans}
+        />
+      }
+      actionBar={
+        <MobileActionBar
+          onPersonSwitch={onPersonSwitch}
+          accentColor={accentColor}
+        />
+      }
     >
       {renderCurrentView()}
     </MobileLayout>

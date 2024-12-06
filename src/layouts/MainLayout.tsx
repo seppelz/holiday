@@ -6,7 +6,7 @@ import { VacationDaysInput } from '../components/VacationDaysInput';
 import { HomePage } from '../pages/HomePage';
 import { KeyboardShortcutsHelper } from '../components/KeyboardShortcutsHelper';
 import { useBridgeDays } from '../hooks/useBridgeDays';
-import { eachDayOfInterval, isSameDay, isWithinInterval, isWeekend } from 'date-fns';
+import { eachDayOfInterval, isSameDay, isWithinInterval, isWeekend, subDays, addDays, differenceInDays } from 'date-fns';
 import { Holiday } from '../types/holiday';
 import { VacationPlan } from '../types/vacationPlan';
 import { VacationEfficiencyInsights } from '../components/VacationEfficiencyInsights';
@@ -353,16 +353,6 @@ export const MainLayout: React.FC = () => {
             onAddVacation={handleVacationAdd}
             state={person?.selectedState || ''}
           />
-
-          {/* Bridge Day Insights */}
-          <VacationEfficiencyInsights
-            vacations={person?.vacationPlans || []}
-            personId={personId}
-            availableVacationDays={person?.availableVacationDays || 30}
-            holidays={[...(sidebarHolidays || []), ...(bridgeDays || [])]}
-            onSelectDates={(dates) => handleVacationAdd(dates[0], dates[1])}
-            state={person?.selectedState || ''}
-          />
         </div>
       </div>
     );
@@ -374,10 +364,65 @@ export const MainLayout: React.FC = () => {
         personId: selectedPersonId || 1,
         selectedState: persons.person1.selectedState,
         onStateChange: (value) => updatePerson(selectedPersonId || 1, { selectedState: value }),
-        holidays: holidayData.person1.holidays,
-        bridgeDays: holidayData.person1.bridgeDays,
-        vacationPlans: persons.person1.vacationPlans || [],
-        onAddVacation: (start: Date, end: Date) => handleVacationAdd([start, end]),
+        holidays: selectedPersonId === 2 ? holidayData.person2.holidays : holidayData.person1.holidays,
+        bridgeDays: selectedPersonId === 2 ? holidayData.person2.bridgeDays : holidayData.person1.bridgeDays,
+        vacationPlans: (selectedPersonId === 2 ? persons.person2?.vacationPlans : persons.person1.vacationPlans) || [],
+        onAddVacation: (start: Date, end: Date) => {
+          const person = selectedPersonId === 2 ? persons.person2 : persons.person1;
+          if (!person) return;
+
+          // Calculate vacation efficiency
+          const allDays = eachDayOfInterval({ start, end });
+          const requiredDays = allDays.reduce((count, d) => {
+            if (isWeekend(d)) return count;
+            const isPublicHoliday = holidayData[selectedPersonId === 2 ? 'person2' : 'person1'].holidays.some(h => 
+              h.type === 'public' && isSameDay(new Date(h.date), d)
+            );
+            return isPublicHoliday ? count : count + 1;
+          }, 0);
+
+          // Calculate gained days including surrounding weekends/holidays
+          let displayStart = start;
+          let displayEnd = end;
+
+          // Look backwards for connected free days
+          let currentDay = subDays(start, 1);
+          while (isWeekend(currentDay) || holidayData[selectedPersonId === 2 ? 'person2' : 'person1'].holidays.some(h => 
+            h.type === 'public' && isSameDay(new Date(h.date), currentDay)
+          )) {
+            displayStart = currentDay;
+            currentDay = subDays(currentDay, 1);
+          }
+
+          // Look forwards for connected free days
+          currentDay = addDays(end, 1);
+          while (isWeekend(currentDay) || holidayData[selectedPersonId === 2 ? 'person2' : 'person1'].holidays.some(h => 
+            h.type === 'public' && isSameDay(new Date(h.date), currentDay)
+          )) {
+            displayEnd = currentDay;
+            currentDay = addDays(currentDay, 1);
+          }
+
+          const gainedDays = differenceInDays(displayEnd, displayStart) + 1;
+
+          const newVacation: VacationPlan = {
+            id: Math.random().toString(36).substr(2, 9),
+            start,
+            end,
+            isVisible: true,
+            personId: selectedPersonId || 1,
+            state: person.selectedState,
+            efficiency: {
+              requiredDays,
+              gainedDays,
+              score: gainedDays / requiredDays
+            }
+          };
+
+          updatePerson(selectedPersonId || 1, {
+            vacationPlans: [...(person.vacationPlans || []), newVacation]
+          });
+        },
         onRemoveVacation: (id) => {
           const person = selectedPersonId === 2 ? persons.person2 : persons.person1;
           const updatedPlans = person?.vacationPlans.filter(plan => plan.id !== id);
@@ -387,9 +432,23 @@ export const MainLayout: React.FC = () => {
         },
         onPersonSwitch: () => {
           setShowSecondPerson(true);
-          setSelectedPersonId(selectedPersonId === 1 ? 2 : 1);
+          const nextPersonId = selectedPersonId === 1 ? 2 : 1;
+          setSelectedPersonId(nextPersonId);
+          
+          // Initialize person 2 if not already initialized
+          if (nextPersonId === 2 && !persons.person2?.selectedState) {
+            updatePerson(2, {
+              selectedState: persons.person1.selectedState,
+              availableVacationDays: 30,
+              vacationPlans: []
+            });
+          }
         },
-        availableVacationDays: persons.person1.availableVacationDays || 30
+        availableVacationDays: selectedPersonId === 2 ? persons.person2?.availableVacationDays || 30 : persons.person1.availableVacationDays || 30,
+        onAvailableDaysChange: (days: number) => {
+          updatePerson(selectedPersonId || 1, { availableVacationDays: days });
+        },
+        otherPersonVacations: selectedPersonId === 2 ? persons.person1?.vacationPlans || [] : persons.person2?.vacationPlans || []
       } : undefined}
     >
       <div className="h-screen bg-gray-50 flex flex-col">
@@ -406,7 +465,9 @@ export const MainLayout: React.FC = () => {
               <div className="w-7 h-7">
                 <img src="/favicon.svg" alt="Logo" className="w-full h-full" />
               </div>
-              <span className="text-lg font-medium text-gray-900">Urlaub</span>
+              <span className="text-lg font-medium text-gray-900">
+                Urlaub {selectedPersonId === 2 ? "Person 2" : "Ich"}
+              </span>
             </div>
 
             {/* Person 1 Config */}

@@ -1,15 +1,17 @@
 import React from 'react';
-import { format, isWeekend, isSameDay, isWithinInterval, isBefore, startOfDay, addMonths } from 'date-fns';
+import { format, isWeekend, isSameDay, isWithinInterval, isBefore, startOfDay } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { BaseCalendarProps, useCalendar } from '../../Shared/Calendar/BaseCalendar';
 import { holidayColors } from '../../../constants/colors';
 import { Holiday } from '../../../types/holiday';
 import { useSpring, animated } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
+import { VacationPlan } from '../../../types/vacationPlan';
 
 interface MobileCalendarProps extends BaseCalendarProps {
   personId: 1 | 2;
   onMonthChange?: (direction: 1 | -1) => void;
+  vacationPlans?: VacationPlan[];
 }
 
 export const MobileCalendar: React.FC<MobileCalendarProps> = (props) => {
@@ -59,22 +61,35 @@ export const MobileCalendar: React.FC<MobileCalendarProps> = (props) => {
     });
   };
 
-  const getHolidayType = (date: Date): { type: Holiday['type'] | null; holiday: Holiday | null } => {
-    // First check for bridge days as they should take precedence
-    const isBridgeDay = props.bridgeDays.some(d => isSameDay(new Date(d), date));
+  const isDateInVacation = (date: Date) => {
+    return props.vacationPlans?.some(vacation => 
+      vacation.isVisible && isWithinInterval(date, { start: vacation.start, end: vacation.end })
+    );
+  };
+
+  const getHolidayType = (date: Date): { type: Holiday['type'] | 'vacation' | null; holiday: Holiday | null } => {
+    // Check for vacations first
+    if (isDateInVacation(date)) {
+      return { type: 'vacation', holiday: null };
+    }
+
+    // Then check for bridge days
+    const isBridgeDay = props.bridgeDays?.some(bd => {
+      const bridgeDate = new Date(bd.date);
+      return isSameDay(bridgeDate, date);
+    });
     if (isBridgeDay) {
       return { type: 'bridge', holiday: null };
     }
 
     // Then check for holidays
-    const holiday = props.holidays.find(h => {
+    const holiday = props.holidays?.find(h => {
+      const holidayDate = new Date(h.date);
       if (h.endDate) {
-        return isWithinInterval(date, { 
-          start: new Date(h.date), 
-          end: new Date(h.endDate) 
-        });
+        const endDate = new Date(h.endDate);
+        return isWithinInterval(date, { start: holidayDate, end: endDate });
       }
-      return isSameDay(new Date(h.date), date);
+      return isSameDay(holidayDate, date);
     });
 
     return holiday ? { type: holiday.type, holiday } : { type: null, holiday: null };
@@ -86,36 +101,46 @@ export const MobileCalendar: React.FC<MobileCalendarProps> = (props) => {
     const { type, holiday } = getHolidayType(date);
     const isWeekendDay = isWeekend(date);
     const isToday = isSameDay(date, today);
+    const isCurrentMonth = date.getMonth() === props.month.getMonth();
+    const vacationInfo = props.getDateVacationInfo(date);
 
     const baseClasses = "flex flex-col items-center justify-center w-12 h-14 text-sm transition-colors touch-manipulation";
     const cursorClasses = props.isSelectingVacation && !isDisabled ? "cursor-pointer active:bg-gray-50" : "cursor-default";
+    const textColorClass = !isCurrentMonth ? "text-gray-400" : isDisabled ? "text-gray-300" : "text-gray-900";
     
     if (isDisabled) {
-      return `${baseClasses} text-gray-300 ${cursorClasses}`;
+      return `${baseClasses} ${textColorClass} ${cursorClasses}`;
     }
 
     if (isSelected) {
       const personColor = props.personId === 1 ? 'emerald' : 'cyan';
-      return `${baseClasses} bg-${personColor}-500 text-white active:bg-${personColor}-600 ${cursorClasses}`;
+      return `${baseClasses} bg-${personColor}-200 text-gray-900 active:bg-${personColor}-300 ${cursorClasses}`;
+    }
+
+    if (type === 'vacation') {
+      if (vacationInfo.isSharedVacation) {
+        return `${baseClasses} bg-gradient-to-br from-emerald-100 to-cyan-100 text-gray-900 ${cursorClasses}`;
+      }
+      return `${baseClasses} ${holidayColors[props.personId === 1 ? 'person1' : 'person2'].vacation} text-gray-900 ${cursorClasses}`;
     }
 
     if (type === 'public') {
-      return `${baseClasses} ${holidayColors[props.personId === 1 ? 'person1' : 'person2'].holiday} ${cursorClasses}`;
+      return `${baseClasses} ${holidayColors[props.personId === 1 ? 'person1' : 'person2'].holiday} text-white ${cursorClasses}`;
     }
 
     if (type === 'bridge') {
-      return `${baseClasses} ${holidayColors[props.personId === 1 ? 'person1' : 'person2'].bridge} ${cursorClasses}`;
+      return `${baseClasses} ${holidayColors[props.personId === 1 ? 'person1' : 'person2'].bridge} text-white ${cursorClasses}`;
     }
 
-    if (type === 'regional') {
-      return `${baseClasses} ${holidayColors[props.personId === 1 ? 'person1' : 'person2'].school} ${cursorClasses}`;
+    if (type === 'regional' || type === 'school') {
+      return `${baseClasses} ${holidayColors[props.personId === 1 ? 'person1' : 'person2'].school} text-white ${cursorClasses}`;
     }
 
     if (isWeekendDay) {
-      return `${baseClasses} text-gray-500 active:bg-gray-100 ${cursorClasses}`;
+      return `${baseClasses} ${textColorClass} active:bg-gray-100 ${cursorClasses}`;
     }
 
-    return `${baseClasses} text-gray-900 active:bg-gray-100 ${cursorClasses}`;
+    return `${baseClasses} ${textColorClass} active:bg-gray-100 ${cursorClasses}`;
   };
 
   // Generate calendar grid
@@ -124,9 +149,9 @@ export const MobileCalendar: React.FC<MobileCalendarProps> = (props) => {
   const lastDay = new Date(props.month.getFullYear(), props.month.getMonth() + 1, 0);
   
   // Fill in days from previous month
-  const firstDayOfWeek = firstDay.getDay();
+  const firstDayOfWeek = firstDay.getDay() || 7; // Convert Sunday (0) to 7
   const prevMonthDays = [];
-  for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+  for (let i = firstDayOfWeek - 1; i > 0; i--) {
     const date = new Date(firstDay);
     date.setDate(date.getDate() - i);
     prevMonthDays.push(date);
@@ -139,7 +164,7 @@ export const MobileCalendar: React.FC<MobileCalendarProps> = (props) => {
   }
   
   // Fill in days from next month
-  const remainingDays = 7 - (currentMonthDays.length + prevMonthDays.length) % 7;
+  const remainingDays = 7 - ((prevMonthDays.length + currentMonthDays.length) % 7);
   const nextMonthDays = [];
   if (remainingDays < 7) {
     const lastDate = new Date(lastDay);
@@ -210,6 +235,7 @@ export const MobileCalendar: React.FC<MobileCalendarProps> = (props) => {
                 const isDisabled = isDateDisabled(date);
                 const { holiday } = getHolidayType(date);
                 const isToday = isSameDay(date, today);
+                const vacationInfo = props.getDateVacationInfo(date);
 
                 return (
                   <div
@@ -228,10 +254,10 @@ export const MobileCalendar: React.FC<MobileCalendarProps> = (props) => {
                       `}>
                         {format(date, 'd')}
                       </span>
-                      {holiday && (
-                        <span className="text-[10px] text-gray-500 truncate max-w-[40px]">
-                          {holiday.name}
-                        </span>
+                      {vacationInfo.isSharedVacation && (
+                        <div className="absolute top-0.5 right-0.5 text-[10px] text-yellow-600">
+                          ❤️
+                        </div>
                       )}
                     </div>
                   </div>

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { format, eachDayOfInterval, isWeekend, isWithinInterval, isSameDay, addDays, subDays, differenceInDays } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { VacationPlan } from '../types/holiday';
+import { VacationPlan } from '../types/vacationPlan';
 import { GermanState } from '../types/GermanState';
 import { Holiday } from '../types/holiday';
 import { holidayColors, gradientColors } from '../constants/colors';
@@ -161,6 +161,12 @@ export const VacationList: React.FC<VacationListProps> = ({
     return matchingDays;
   };
 
+  const handleRecommendationClick = (rec: VacationRecommendation) => {
+    if (onAddVacation && rec.startDate && rec.endDate) {
+      onAddVacation(rec.startDate, rec.endDate);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Bridge Day Opportunities */}
@@ -182,7 +188,7 @@ export const VacationList: React.FC<VacationListProps> = ({
                   className={`recommendation-item w-full text-left py-1.5 px-2 cursor-pointer transition-colors
                     ${rec.includesBridgeDay ? 'bg-emerald-50' : 'hover:bg-gray-50'}
                     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500`}
-                  onClick={() => onAddVacation?.(rec.periodStart, rec.periodEnd)}
+                  onClick={() => handleRecommendationClick(rec)}
                   role="button"
                   aria-label={`Brückentag-Empfehlung: ${rec.displayRange}`}
                   tabIndex={0}

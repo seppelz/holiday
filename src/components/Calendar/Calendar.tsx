@@ -44,8 +44,11 @@ export const Calendar: React.FC<CalendarProps> = (props) => {
         props.onAddVacation({
           start,
           end,
-          isVisible: true
+          isVisible: true,
+          state: props.state
         });
+      } else if (props.onVacationSelect) {
+        props.onVacationSelect(start, end);
       }
 
       // Reset dates after selection

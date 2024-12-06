@@ -18,6 +18,8 @@ interface AppWrapperProps {
     onRemoveVacation: (id: string) => void;
     onPersonSwitch: () => void;
     availableVacationDays: number;
+    onAvailableDaysChange: (days: number) => void;
+    otherPersonVacations: VacationPlan[];
   };
 }
 
@@ -40,6 +42,8 @@ export const AppWrapper: React.FC<AppWrapperProps> = ({
         onRemoveVacation={mobileProps.onRemoveVacation}
         onPersonSwitch={mobileProps.onPersonSwitch}
         availableVacationDays={mobileProps.availableVacationDays}
+        onAvailableDaysChange={mobileProps.onAvailableDaysChange}
+        otherPersonVacations={mobileProps.otherPersonVacations}
       />
     );
   }
