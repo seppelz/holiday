@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React from 'react';
 import { VacationPlan } from '../../../types/vacationPlan';
 import { Holiday } from '../../../types/holiday';
-import { isWeekend, isSameDay, eachDayOfInterval } from 'date-fns';
+import { calculateVacationDays } from '../../../utils/vacationCalculator';
 
 interface MobileVacationDaysCounterProps {
   availableVacationDays: number;
@@ -20,151 +20,56 @@ export const MobileVacationDaysCounter: React.FC<MobileVacationDaysCounterProps>
   holidays,
   otherPersonVacations
 }) => {
-  const [announcement, setAnnouncement] = useState('');
-  const [inputValue, setInputValue] = useState(availableVacationDays.toString());
-
-  // Memoize vacation days calculation - only count workdays (excluding weekends and holidays)
-  const usedVacationDays = useMemo(() => {
-    return vacationPlans.reduce((total, vacation) => {
-      if (!vacation.isVisible) return total;
-      
-      // Get all days in the vacation period
-      const allDays = eachDayOfInterval({ start: vacation.start, end: vacation.end });
-      
-      // Count only workdays (excluding weekends and public holidays)
-      const requiredDays = allDays.reduce((count, d) => {
-        if (isWeekend(d)) return count;
-        const isPublicHoliday = holidays.some(h => 
-          h.type === 'public' && isSameDay(new Date(h.date), d)
-        );
-        return isPublicHoliday ? count : count + 1;
-      }, 0);
-
-      return total + requiredDays;
-    }, 0);
-  }, [vacationPlans, holidays]);
-
-  // Memoize input handlers
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
-    
-    const numValue = parseInt(value) || 0;
-    if (numValue >= 0 && numValue <= 365) {
-      onAvailableDaysChange(numValue);
-      setAnnouncement(`Verfügbare Urlaubstage auf ${numValue} gesetzt`);
-    }
-  }, [onAvailableDaysChange]);
-
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    const currentValue = parseInt(inputValue) || 0;
-    
-    switch (e.key) {
-      case 'ArrowUp':
-        e.preventDefault();
-        if (currentValue < 365) {
-          const newValue = currentValue + 1;
-          setInputValue(newValue.toString());
-          onAvailableDaysChange(newValue);
-          setAnnouncement(`Verfügbare Urlaubstage auf ${newValue} erhöht`);
-        }
-        break;
-      case 'ArrowDown':
-        e.preventDefault();
-        if (currentValue > 0) {
-          const newValue = currentValue - 1;
-          setInputValue(newValue.toString());
-          onAvailableDaysChange(newValue);
-          setAnnouncement(`Verfügbare Urlaubstage auf ${newValue} reduziert`);
-        }
-        break;
-      case 'Home':
-        e.preventDefault();
-        setInputValue('0');
-        onAvailableDaysChange(0);
-        setAnnouncement('Verfügbare Urlaubstage auf 0 gesetzt');
-        break;
-      case 'End':
-        e.preventDefault();
-        setInputValue('365');
-        onAvailableDaysChange(365);
-        setAnnouncement('Verfügbare Urlaubstage auf 365 gesetzt');
-        break;
-    }
-  }, [inputValue, onAvailableDaysChange]);
-
-  const handleBlur = useCallback(() => {
-    const numValue = parseInt(inputValue) || 0;
-    const validValue = Math.max(0, Math.min(365, numValue));
-    setInputValue(validValue.toString());
-    if (numValue !== validValue) {
-      onAvailableDaysChange(validValue);
-      setAnnouncement(`Verfügbare Urlaubstage auf ${validValue} angepasst`);
-    }
-  }, [inputValue, onAvailableDaysChange]);
-
-  // Clear announcements after they're read
-  useEffect(() => {
-    if (announcement) {
-      const timer = setTimeout(() => setAnnouncement(''), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [announcement]);
+  const { usedDays, gainedDays } = calculateVacationDays(vacationPlans, holidays);
+  const remainingDays = availableVacationDays - usedDays;
 
   return (
     <div 
-      className="bg-white border-b border-gray-200 px-4 py-3"
-      role="region"
-      aria-label="Urlaubstage-Zähler"
+      className="px-4 py-3 bg-white shadow-sm border-b border-gray-200"
+      role="region" 
+      aria-label="Urlaubstage Übersicht"
     >
-      {/* Screen reader announcements */}
-      <div 
-        className="sr-only" 
-        role="status" 
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        {announcement}
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div>
-          <div 
-            className="text-sm font-medium text-gray-900"
-            id="vacation-days-label"
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex-1">
+          <label 
+            htmlFor="vacation-days-input" 
+            className="block text-sm font-medium text-gray-700"
           >
-            Verfügbare Urlaubstage
-          </div>
-          <div 
-            className="text-sm text-gray-500"
-            role="status"
-            aria-live="polite"
-          >
-            {usedVacationDays} von {availableVacationDays} Tagen verwendet
-          </div>
-        </div>
-        <div className="relative">
+            Urlaubstage pro Jahr
+          </label>
           <input
+            id="vacation-days-input"
             type="number"
-            value={inputValue}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            onBlur={handleBlur}
-            className="w-16 px-2 py-1 text-right border border-gray-300 rounded-md
-              focus:outline-none focus:ring-2 focus:ring-offset-2"
-            style={{ '--tw-ring-color': accentColor + '4D' } as React.CSSProperties}
             min="0"
             max="365"
-            aria-labelledby="vacation-days-label"
-            aria-describedby="vacation-days-hint"
-            role="spinbutton"
-            aria-valuemin={0}
-            aria-valuemax={365}
-            aria-valuenow={parseInt(inputValue) || 0}
+            value={availableVacationDays}
+            onChange={(e) => onAvailableDaysChange(Math.max(0, parseInt(e.target.value) || 0))}
+            className="mt-1 w-20 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-0 transition-shadow"
+            style={{ '--tw-ring-color': accentColor + '4D' } as React.CSSProperties}
           />
-          <div id="vacation-days-hint" className="sr-only">
-            Benutze die Pfeiltasten nach oben und unten um die Anzahl der Urlaubstage anzupassen
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 mt-3">
+        <div className="text-center p-3 bg-gray-50 rounded-lg">
+          <div className="text-2xl font-semibold" style={{ color: accentColor }}>
+            {usedDays}
           </div>
+          <div className="text-xs text-gray-600 mt-1">Genommen</div>
+        </div>
+
+        <div className="text-center p-3 bg-gray-50 rounded-lg">
+          <div className="text-2xl font-semibold" style={{ color: accentColor }}>
+            {remainingDays}
+          </div>
+          <div className="text-xs text-gray-600 mt-1">Übrig</div>
+        </div>
+
+        <div className="text-center p-3 bg-gray-50 rounded-lg">
+          <div className="text-2xl font-semibold" style={{ color: accentColor }}>
+            {gainedDays}
+          </div>
+          <div className="text-xs text-gray-600 mt-1">Bonus Tage</div>
         </div>
       </div>
     </div>

@@ -254,86 +254,73 @@ export const MobileContainer: React.FC<MobileContainerProps> = ({
   };
 
   return (
-    <>
-      {/* Screen reader announcements */}
-      <div 
-        className="sr-only" 
-        role="status" 
-        aria-live="polite"
-        aria-atomic="true"
-      >
+    <div className="flex flex-col h-[100dvh] bg-gray-50">
+      {/* Status message for screen readers */}
+      <div className="sr-only" role="status" aria-live="polite">
+        {statusMessage}
+      </div>
+
+      {/* Announcement region for screen readers */}
+      <div className="sr-only" role="status" aria-live="assertive">
         {announcement}
       </div>
 
-      {/* Status messages with fade animation */}
-      <AnimatePresence>
-        {statusMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
-          >
-            <div className="bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg text-sm">
-              {statusMessage}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Loading state */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
+          <div className="text-lg text-gray-600">Lade Daten...</div>
+        </div>
+      )}
 
-      <MobileLayout
-        header={
-          <MobileHeader
-            title={`Holiday Planner ${personId === 2 ? "Person 2" : "Ich"}`}
-            onPersonSwitch={onPersonSwitch}
-            accentColor={accentColor}
-          />
-        }
-        stateSelector={
-          <MobileStateSelector
-            value={selectedState}
-            onChange={(state) => {
-              onStateChange(state);
-              setAnnouncement(`Bundesland geändert zu ${state}`);
-            }}
-            accentColor={accentColor}
-          />
-        }
-        vacationCounter={
-          <MobileVacationDaysCounter
-            availableVacationDays={availableVacationDays}
-            onAvailableDaysChange={(days) => {
-              onAvailableDaysChange(days);
-              setAnnouncement(`Verfügbare Urlaubstage auf ${days} aktualisiert`);
-            }}
-            vacationPlans={vacationPlans}
-            accentColor={accentColor}
-            holidays={holidays}
-            otherPersonVacations={otherPersonVacations}
-          />
-        }
-        viewTabs={
-          <MobileViewTabs
-            activeView={activeView}
-            onViewChange={handleViewChange}
-            accentColor={accentColor}
-            vacationPlans={vacationPlans}
-          />
-        }
-        actionBar={
-          <MobileActionBar
-            onPersonSwitch={() => {
-              onPersonSwitch();
-              setAnnouncement(`Gewechselt zu ${personId === 1 ? "Person 2" : "Person 1"}`);
-            }}
-            accentColor={accentColor}
-          />
-        }
-      >
-        <AnimatePresence mode="wait">
-          {renderCurrentView()}
-        </AnimatePresence>
-      </MobileLayout>
-    </>
+      {/* Error state */}
+      {error && (
+        <div className="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
+          <div className="text-lg text-red-600">{error.message}</div>
+        </div>
+      )}
+
+      {/* Main content */}
+      <MobileHeader
+        personId={personId}
+        onPersonSwitch={onPersonSwitch}
+      />
+
+      <MobileStateSelector
+        selectedState={selectedState}
+        onStateChange={onStateChange}
+        personId={personId}
+      />
+
+      <MobileViewTabs
+        activeView={activeView}
+        onViewChange={setActiveView}
+        personId={personId}
+        vacationPlans={vacationPlans}
+      />
+
+      <main className="flex-1 overflow-hidden">
+        {renderCurrentView()}
+      </main>
+
+      <MobileVacationDaysCounter
+        availableVacationDays={availableVacationDays}
+        onAvailableDaysChange={onAvailableDaysChange}
+        vacationPlans={vacationPlans}
+        accentColor={personId === 1 ? 'emerald' : 'cyan'}
+        holidays={holidays}
+        otherPersonVacations={otherPersonVacations}
+      />
+
+      <MobileActionBar
+        onAddVacation={() => {
+          setActiveView('calendar');
+          setAnnouncement('Urlaubsplanung geöffnet');
+        }}
+        personId={personId}
+        vacationPlans={vacationPlans}
+        holidays={holidays}
+        otherPersonHolidays={otherPersonVacations?.length ? holidays : undefined}
+      />
+    </div>
   );
 }; 

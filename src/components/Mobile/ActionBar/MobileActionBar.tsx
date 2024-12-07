@@ -1,32 +1,62 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ExportService } from '../../../services/exportService';
+import { VacationPlan } from '../../../types/vacationPlan';
+import { Holiday } from '../../../types/holiday';
+import { MobileExportModal } from '../Export/MobileExportModal';
 
 interface MobileActionBarProps {
-  onPersonSwitch: () => void;
-  accentColor: string;
+  onAddVacation: () => void;
+  personId: 1 | 2;
+  vacationPlans?: VacationPlan[];
+  holidays?: Holiday[];
+  otherPersonHolidays?: Holiday[];
 }
 
 export const MobileActionBar: React.FC<MobileActionBarProps> = ({
-  onPersonSwitch,
-  accentColor
+  onAddVacation,
+  personId,
+  vacationPlans = [],
+  holidays = [],
+  otherPersonHolidays
 }) => {
+  const [showExportModal, setShowExportModal] = useState(false);
+
+  const handleExport = (type: 'ics' | 'hr' | 'celebration') => {
+    ExportService.exportVacationPlan(vacationPlans, holidays, personId, type, otherPersonHolidays);
+    setShowExportModal(false);
+  };
+
   return (
-    <div 
-      className="bg-white border-t border-gray-200 py-2 px-4" 
-      role="complementary" 
-      aria-label="Aktionsleiste"
-    >
-      <button
-        onClick={onPersonSwitch}
-        className="w-full py-2 px-4 rounded-lg text-white text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
-        style={{ 
-          backgroundColor: accentColor,
-          '--tw-ring-color': accentColor
-        } as React.CSSProperties}
-        type="button"
-        aria-label="Zwischen Personen wechseln"
-      >
-        Person wechseln
-      </button>
-    </div>
+    <>
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex justify-around items-center z-40">
+        <button
+          onClick={onAddVacation}
+          className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-lg active:bg-blue-600 transition-colors"
+          aria-label="Urlaub hinzufügen"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Urlaub</span>
+        </button>
+
+        <button
+          onClick={() => setShowExportModal(true)}
+          className="flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg active:bg-gray-200 transition-colors"
+          aria-label="Exportieren"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          <span>Export</span>
+        </button>
+      </div>
+
+      <MobileExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        onExport={handleExport}
+      />
+    </>
   );
 }; 

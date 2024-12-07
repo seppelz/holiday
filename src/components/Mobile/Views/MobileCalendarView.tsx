@@ -52,9 +52,7 @@ export const MobileCalendarView: React.FC<MobileCalendarViewProps> = ({
         isWithinInterval(start, { start: vacation.start, end: vacation.end }) ||
         isWithinInterval(end, { start: vacation.start, end: vacation.end }) ||
         isWithinInterval(vacation.start, { start, end }) ||
-        isWithinInterval(vacation.end, { start, end }) ||
-        differenceInDays(vacation.start, end) <= 2 ||
-        differenceInDays(start, vacation.end) <= 2
+        isWithinInterval(vacation.end, { start, end })
       )
     );
   }, [vacationPlans]);

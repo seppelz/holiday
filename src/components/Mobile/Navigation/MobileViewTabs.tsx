@@ -1,21 +1,25 @@
 import React from 'react';
 import { VacationPlan } from '../../../types/vacationPlan';
+import { holidayColors } from '../../../constants/colors';
 
 type ViewType = 'holidays' | 'school' | 'bridge' | 'planning' | 'calendar';
 
 interface MobileViewTabsProps {
   activeView: ViewType;
   onViewChange: (view: ViewType) => void;
-  accentColor: string;
+  personId: 1 | 2;
   vacationPlans: VacationPlan[];
 }
 
 export const MobileViewTabs: React.FC<MobileViewTabsProps> = ({
   activeView,
   onViewChange,
-  accentColor,
+  personId,
   vacationPlans
 }) => {
+  const colors = personId === 1 ? holidayColors.person1.ui : holidayColors.person2.ui;
+  const accentColor = personId === 1 ? '#10B981' : '#06B6D4'; // emerald-500 for person1, cyan-500 for person2
+
   const topTabs: { id: ViewType; label: string; icon: JSX.Element }[] = [
     {
       id: 'holidays',

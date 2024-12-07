@@ -55,8 +55,7 @@ export const MobileRecommendations: React.FC<MobileRecommendationsProps> = ({
     setAnnouncement(
       `Empfehlung ${index + 1} von ${recommendations.length}: ` +
       `${format(rec.startDate, 'd. MMM', { locale: de })} bis ${format(rec.endDate, 'd. MMM yyyy', { locale: de })}. ` +
-      `${rec.vacationDays} Urlaubstage für ${rec.totalDays} Tage frei. ` +
-      `Effizienz ${rec.efficiency.toFixed(1)}x`
+      `${rec.vacationDays} ${rec.vacationDays === 1 ? 'Tag' : 'Tage'} Urlaub = ${rec.totalDays} ${rec.totalDays === 1 ? 'Tag' : 'Tage'} frei`
     );
   };
 
@@ -184,22 +183,10 @@ export const MobileRecommendations: React.FC<MobileRecommendationsProps> = ({
             role="list"
             aria-label="Details zur Empfehlung"
           >
-            <div className="text-center" role="listitem">
-              <div className="text-sm text-gray-500">Urlaubstage</div>
-              <div className="text-lg font-medium text-gray-900">
-                {recommendation.vacationDays}
-              </div>
-            </div>
-            <div className="text-center" role="listitem">
-              <div className="text-sm text-gray-500">Gesamttage</div>
-              <div className="text-lg font-medium text-gray-900">
-                {recommendation.totalDays}
-              </div>
-            </div>
-            <div className="text-center" role="listitem">
+            <div className="text-center col-span-3" role="listitem">
               <div className="text-sm text-gray-500">Effizienz</div>
-              <div className="text-lg font-medium text-gray-900">
-                {recommendation.efficiency.toFixed(1)}x
+              <div className="text-base font-medium text-gray-900">
+                {recommendation.vacationDays} {recommendation.vacationDays === 1 ? 'Tag' : 'Tage'} Urlaub = {recommendation.totalDays} {recommendation.totalDays === 1 ? 'Tag' : 'Tage'} frei
               </div>
             </div>
           </div>
