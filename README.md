@@ -29,8 +29,22 @@ Ein modernes Tool zur Urlaubsplanung und Brückentag-Analyse.
 
 ### Project Management
 - GitHub Project Board: [Holiday Planner Board](https://github.com/users/seppelz/projects/3)
+- Access options:
+  1. Direct URL: https://github.com/users/seppelz/projects/3
+  2. Via repository: `gh browse -R seppelz/holiday` then click "Projects" tab
 - Milestones: See CONTRIBUTING.md for current milestone structure
 - Issue Management: Follow templates in .github/ISSUE_TEMPLATE/
+
+#### Project Board Management via CLI
+To read the project board using GitHub CLI and GraphQL:
+
+# Create a query file
+echo 'query{user(login:"seppelz"){projectV2(number:3){items(first:100){nodes{fieldValues(first:10){nodes{...on ProjectV2ItemFieldSingleSelectValue{name}}}content{...on Issue{number title state}}}}}}' > query.graphql
+
+# Execute the query
+gh api graphql -F query=@query.graphql
+
+This will return all issues with their current status (Todo/Done) and state (OPEN/CLOSED).
 
 For detailed information about project management, contribution guidelines, and development workflows, please refer to [CONTRIBUTING.md](.github/CONTRIBUTING.md).
 

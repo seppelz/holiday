@@ -1,107 +1,90 @@
 import React, { useEffect, useState } from 'react'
-import { usePersonStorage } from '../../hooks/usePersonStorage'
-import { PersonInfo } from '../../types/person'
-import { GermanState, stateNames } from '../../types/GermanState'
 import { usePersonContext } from '../../contexts/PersonContext'
+import { GermanState, stateNames } from '../../types/GermanState'
 
 export const PersonManager: React.FC = () => {
-  const { savePersons, loadPersons } = usePersonStorage()
-  const { clearPersons } = usePersonContext()
-  const [persons, setPersons] = useState<PersonInfo>({
-    person1: {
-      id: 1,
-      selectedState: GermanState.BE,
-      availableVacationDays: 30,
-      vacationPlans: []
-    },
-    person2: null
-  })
+  const { 
+    persons, 
+    updatePerson, 
+    clearPersons,
+    isLoading,
+    error 
+  } = usePersonContext();
 
-  // Lade gespeicherte Daten beim Start
-  useEffect(() => {
-    const savedPersons = loadPersons()
-    if (savedPersons) {
-      setPersons(savedPersons)
-    }
-  }, [])
-
-  // Speichere Änderungen automatisch
-  useEffect(() => {
-    savePersons(persons)
-  }, [persons])
-
-  const addPerson2 = () => {
-    setPersons(prev => ({
-      ...prev,
-      person2: {
+  const addPerson2 = async () => {
+    try {
+      await updatePerson(2, {
         id: 2,
         selectedState: GermanState.BE,
         availableVacationDays: 30,
         vacationPlans: []
-      }
-    }))
+      });
+    } catch (error) {
+      console.error('Failed to add Person 2:', error);
+    }
+  };
+
+  const removePerson2 = async () => {
+    try {
+      await updatePerson(2, null as any);
+    } catch (error) {
+      console.error('Failed to remove Person 2:', error);
+    }
+  };
+
+  const updateVacationDays = async (personId: 1 | 2, days: number) => {
+    try {
+      await updatePerson(personId, { availableVacationDays: days });
+    } catch (error) {
+      console.error('Failed to update vacation days:', error);
+    }
+  };
+
+  const updateState = async (personId: 1 | 2, state: GermanState) => {
+    try {
+      await updatePerson(personId, { selectedState: state });
+    } catch (error) {
+      console.error('Failed to update state:', error);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div 
+          className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"
+          data-testid="loading-spinner"
+        />
+      </div>
+    );
   }
 
-  const removePerson2 = () => {
-    setPersons(prev => ({
-      ...prev,
-      person2: null
-    }))
-  }
-
-  const updateVacationDays = (personId: 1 | 2, days: number) => {
-    setPersons(prev => {
-      if (personId === 1) {
-        return {
-          ...prev,
-          person1: {
-            ...prev.person1,
-            availableVacationDays: days
-          }
-        }
-      } else if (prev.person2) {
-        return {
-          ...prev,
-          person2: {
-            ...prev.person2,
-            availableVacationDays: days
-          }
-        }
-      }
-      return prev
-    })
-  }
-
-  const updateState = (personId: 1 | 2, state: GermanState) => {
-    setPersons(prev => {
-      if (personId === 1) {
-        return {
-          ...prev,
-          person1: {
-            ...prev.person1,
-            selectedState: state
-          }
-        }
-      } else if (prev.person2) {
-        return {
-          ...prev,
-          person2: {
-            ...prev.person2,
-            selectedState: state
-          }
-        }
-      }
-      return prev
-    })
+  if (error) {
+    return (
+      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+        <h3 className="text-red-800 font-medium">Fehler beim Laden der Daten</h3>
+        <p className="text-red-600 text-sm mt-1">{error.message}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-2 px-4 py-2 text-sm text-red-600 hover:text-red-800 border border-red-600 hover:border-red-800 rounded"
+        >
+          Neu laden
+        </button>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4">
       <div className="flex justify-end mb-4">
         <button
-          onClick={() => {
-            clearPersons();
-            window.location.reload(); // Reload the page to reset all state
+          onClick={async () => {
+            try {
+              await clearPersons();
+              window.location.reload();
+            } catch (error) {
+              console.error('Failed to clear persons:', error);
+            }
           }}
           className="px-4 py-2 text-sm text-red-600 hover:text-red-800 border border-red-600 hover:border-red-800 rounded"
         >
@@ -199,7 +182,7 @@ export const PersonManager: React.FC = () => {
       ) : (
         <button
           onClick={addPerson2}
-          className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-800"
+          className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors"
         >
           Person 2 hinzufügen
         </button>

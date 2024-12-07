@@ -1,370 +1,231 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { PersonManager } from './PersonManager'
-import { usePersonStorage } from '../../hooks/usePersonStorage'
+import { PersonContext, PersonProvider } from '../../contexts/PersonContext'
 import { GermanState } from '../../types/GermanState'
 import { PersonInfo } from '../../types/person'
-import { useNotification } from '../../contexts/NotificationContext'
-import { PersonProvider } from '../../contexts/PersonContext'
 
-// Mock hooks
-jest.mock('../../hooks/usePersonStorage')
-jest.mock('../../contexts/NotificationContext')
-const mockUsePersonStorage = usePersonStorage as jest.MockedFunction<typeof usePersonStorage>
-const mockUseNotification = useNotification as jest.MockedFunction<typeof useNotification>
+// Mock the notification context
+jest.mock('../../contexts/NotificationContext', () => ({
+  useNotification: () => ({
+    showNotification: jest.fn()
+  }),
+  NotificationProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
+}))
 
-// Test wrapper component
-const renderWithProviders = (ui: React.ReactElement) => {
+type MockPersonContextType = {
+  persons: PersonInfo;
+  isLoading: boolean;
+  error: Error | null;
+  updatePerson: jest.Mock;
+  addVacationPlan: jest.Mock;
+  updateVacationPlan: jest.Mock;
+  deleteVacationPlan: jest.Mock;
+  clearPersons: jest.Mock;
+};
+
+const mockPersonContext: MockPersonContextType = {
+  persons: {
+    person1: {
+      id: 1,
+      selectedState: GermanState.BE,
+      availableVacationDays: 30,
+      vacationPlans: []
+    },
+    person2: null
+  } as PersonInfo,
+  isLoading: false,
+  error: null,
+  updatePerson: jest.fn(),
+  addVacationPlan: jest.fn(),
+  updateVacationPlan: jest.fn(),
+  deleteVacationPlan: jest.fn(),
+  clearPersons: jest.fn()
+};
+
+const renderWithContext = (ui: React.ReactElement, contextValue = mockPersonContext) => {
   return render(
-    <PersonProvider>
+    <PersonContext.Provider value={contextValue}>
       {ui}
-    </PersonProvider>
+    </PersonContext.Provider>
   )
 }
 
 describe('PersonManager', () => {
-  const mockSavePersons = jest.fn()
-  const mockLoadPersons = jest.fn()
-  const mockShowNotification = jest.fn()
-
   beforeEach(() => {
     jest.clearAllMocks()
-    mockUsePersonStorage.mockReturnValue({
-      savePersons: mockSavePersons,
-      loadPersons: mockLoadPersons,
-      clearPersons: jest.fn()
-    })
-    mockUseNotification.mockReturnValue({
-      showNotification: mockShowNotification
-    })
   })
 
-  it('should render initial state with Person 1', () => {
-    mockLoadPersons.mockReturnValue(null)
-    renderWithProviders(<PersonManager />)
+  it('renders loading state', () => {
+    renderWithContext(<PersonManager />, { ...mockPersonContext, isLoading: true })
+    const loadingSpinner = screen.getByTestId('loading-spinner')
+    expect(loadingSpinner).toBeInTheDocument()
+    expect(loadingSpinner).toHaveClass('animate-spin')
+  })
 
+  it('renders error state', () => {
+    const testError = new Error('Test error')
+    renderWithContext(<PersonManager />, { ...mockPersonContext, error: testError })
+    expect(screen.getByText('Fehler beim Laden der Daten')).toBeInTheDocument()
+    expect(screen.getByText('Test error')).toBeInTheDocument()
+  })
+
+  it('renders Person 1 by default', () => {
+    renderWithContext(<PersonManager />)
     expect(screen.getByText('Person 1')).toBeInTheDocument()
-    expect(screen.getByText('Person 2 hinzufügen')).toBeInTheDocument()
     expect(screen.getByLabelText('Bundesland')).toHaveValue('BE')
     expect(screen.getByLabelText('Urlaubstage')).toHaveValue(30)
   })
 
-  it('should load saved persons data', () => {
-    const savedData = {
-      person1: {
-        id: 1,
-        selectedState: GermanState.HH,
-        availableVacationDays: 25,
-        vacationPlans: []
-      },
-      person2: null
-    }
-    mockLoadPersons.mockReturnValue(savedData)
-    renderWithProviders(<PersonManager />)
+  it('handles adding Person 2', async () => {
+    const updatePerson = jest.fn()
+    renderWithContext(<PersonManager />, { ...mockPersonContext, updatePerson })
 
-    expect(screen.getByLabelText('Bundesland')).toHaveValue('HH')
-    expect(screen.getByLabelText('Urlaubstage')).toHaveValue(25)
-  })
-
-  it('should add Person 2 when clicking add button', async () => {
-    mockLoadPersons.mockReturnValue(null)
-    renderWithProviders(<PersonManager />)
-
-    fireEvent.click(screen.getByText('Person 2 hinzufügen'))
+    const addButton = screen.getByText('Person 2 hinzufügen')
+    fireEvent.click(addButton)
 
     await waitFor(() => {
-      expect(screen.getAllByText('Bundesland')).toHaveLength(2)
-      expect(screen.getAllByLabelText('Urlaubstage')).toHaveLength(2)
-    })
-
-    expect(mockSavePersons).toHaveBeenCalledWith(expect.objectContaining({
-      person2: expect.objectContaining({
+      expect(updatePerson).toHaveBeenCalledWith(2, expect.objectContaining({
         id: 2,
-        selectedState: GermanState.BE,
-        availableVacationDays: 30
-      })
-    }))
-  })
-
-  it('should remove Person 2 when clicking remove button', async () => {
-    mockLoadPersons.mockReturnValue({
-      person1: {
-        id: 1,
         selectedState: GermanState.BE,
         availableVacationDays: 30,
         vacationPlans: []
-      },
-      person2: {
-        id: 2,
-        selectedState: GermanState.HH,
-        availableVacationDays: 25,
-        vacationPlans: []
-      }
-    })
-    renderWithProviders(<PersonManager />)
-
-    fireEvent.click(screen.getByText('Entfernen'))
-
-    await waitFor(() => {
-      expect(screen.queryByText('Person 2')).not.toBeInTheDocument()
-      expect(screen.getByText('Person 2 hinzufügen')).toBeInTheDocument()
-    })
-
-    expect(mockSavePersons).toHaveBeenCalledWith(expect.objectContaining({
-      person2: null
-    }))
-  })
-
-  it('should update vacation days', async () => {
-    mockLoadPersons.mockReturnValue(null)
-    renderWithProviders(<PersonManager />)
-
-    const input = screen.getByLabelText('Urlaubstage')
-    fireEvent.change(input, { target: { value: '20' } })
-
-    await waitFor(() => {
-      expect(mockSavePersons).toHaveBeenCalledWith(expect.objectContaining({
-        person1: expect.objectContaining({
-          availableVacationDays: 20
-        })
       }))
     })
   })
 
-  it('should update selected state', async () => {
-    mockLoadPersons.mockReturnValue(null)
-    renderWithProviders(<PersonManager />)
+  it('handles removing Person 2', async () => {
+    const updatePerson = jest.fn()
+    const contextWithPerson2: MockPersonContextType = {
+      ...mockPersonContext,
+      updatePerson,
+      persons: {
+        ...mockPersonContext.persons,
+        person2: {
+          id: 2 as const,
+          selectedState: GermanState.BE,
+          availableVacationDays: 30,
+          vacationPlans: []
+        }
+      } as PersonInfo
+    }
+
+    renderWithContext(<PersonManager />, contextWithPerson2)
+
+    const removeButton = screen.getByText('Entfernen')
+    fireEvent.click(removeButton)
+
+    await waitFor(() => {
+      expect(updatePerson).toHaveBeenCalledWith(2, null)
+    })
+  })
+
+  it('handles updating vacation days', async () => {
+    const updatePerson = jest.fn()
+    renderWithContext(<PersonManager />, { ...mockPersonContext, updatePerson })
+
+    const input = screen.getByLabelText('Urlaubstage')
+    fireEvent.change(input, { target: { value: '25' } })
+
+    await waitFor(() => {
+      expect(updatePerson).toHaveBeenCalledWith(1, { availableVacationDays: 25 })
+    })
+  })
+
+  it('handles updating state selection', async () => {
+    const updatePerson = jest.fn()
+    renderWithContext(<PersonManager />, { ...mockPersonContext, updatePerson })
 
     const select = screen.getByLabelText('Bundesland')
     fireEvent.change(select, { target: { value: GermanState.BY } })
 
     await waitFor(() => {
-      expect(mockSavePersons).toHaveBeenCalledWith(expect.objectContaining({
-        person1: expect.objectContaining({
-          selectedState: GermanState.BY
-        })
-      }))
+      expect(updatePerson).toHaveBeenCalledWith(1, { selectedState: GermanState.BY })
     })
   })
 
-  it('should handle Person 2 state updates', async () => {
-    mockLoadPersons.mockReturnValue({
-      person1: {
-        id: 1,
-        selectedState: GermanState.BE,
-        availableVacationDays: 30,
-        vacationPlans: []
-      },
-      person2: {
-        id: 2,
-        selectedState: GermanState.BE,
-        availableVacationDays: 30,
-        vacationPlans: []
-      }
+  it('handles clearing all data', async () => {
+    const clearPersons = jest.fn()
+    const originalLocation = window.location
+    const mockLocation = { 
+      ...originalLocation,
+      reload: jest.fn()
+    }
+    Object.defineProperty(window, 'location', {
+      value: mockLocation,
+      writable: true
     })
-    renderWithProviders(<PersonManager />)
 
-    const person2Select = screen.getByLabelText('Bundesland', { selector: '#person2-state' })
-    fireEvent.change(person2Select, { target: { value: GermanState.NW } })
+    renderWithContext(<PersonManager />, { ...mockPersonContext, clearPersons })
+
+    const clearButton = screen.getByText('Alle Daten zurücksetzen')
+    fireEvent.click(clearButton)
 
     await waitFor(() => {
-      expect(mockSavePersons).toHaveBeenCalledWith(expect.objectContaining({
-        person2: expect.objectContaining({
-          selectedState: GermanState.NW
-        })
-      }))
+      expect(clearPersons).toHaveBeenCalled()
+      expect(mockLocation.reload).toHaveBeenCalled()
     })
-  })
-})
 
-describe('PersonManager - Same State Tests', () => {
-  it('should calculate bridge days correctly when both persons are in same state', () => {
-    // Setup both persons in Berlin
-    const persons: PersonInfo = {
-      person1: {
-        id: 1,
-        selectedState: GermanState.BE,
-        availableVacationDays: 30,
-        vacationPlans: []
-      },
-      person2: {
-        id: 2,
-        selectedState: GermanState.BE,
-        availableVacationDays: 30,
-        vacationPlans: []
-      }
-    };
-
-    // Test bridge day calculation
-    // ...
-  });
-
-  it('should highlight shared vacation days correctly', () => {
-    // Test overlapping vacation visualization
-    // ...
-  });
-});
-
-describe('PersonManager - Different State Tests', () => {
-  it('should calculate bridge days independently for different states', () => {
-    // Setup: Person 1 in Berlin, Person 2 in Bayern
-    const persons: PersonInfo = {
-      person1: {
-        id: 1,
-        selectedState: GermanState.BE,
-        availableVacationDays: 30,
-        vacationPlans: []
-      },
-      person2: {
-        id: 2,
-        selectedState: GermanState.BY,
-        availableVacationDays: 30,
-        vacationPlans: []
-      }
-    };
-
-    // Test bridge day differences
-    // ...
-  });
-
-  it('should handle state-specific holidays correctly', () => {
-    // Test holiday visualization
-    // ...
-  });
-});
-
-describe('Person 2 Functionality - 2025 Scenarios', () => {
-  const mockSavePersons = jest.fn()
-  const mockLoadPersons = jest.fn()
-  const mockShowNotification = jest.fn()
-
-  beforeEach(() => {
-    jest.clearAllMocks()
-    mockUsePersonStorage.mockReturnValue({
-      savePersons: mockSavePersons,
-      loadPersons: mockLoadPersons,
-      clearPersons: jest.fn()
-    })
-    mockUseNotification.mockReturnValue({
-      showNotification: mockShowNotification
+    // Restore original location
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true
     })
   })
 
-  it('should handle Person 2 vacation planning workflow', async () => {
-    const testData = {
-      person1: {
-        id: 1,
-        selectedState: GermanState.BE,
-        availableVacationDays: 30,
-        vacationPlans: []
-      },
-      person2: null // Start with no Person 2
-    }
-    mockLoadPersons.mockReturnValue(testData)
-    
-    renderWithProviders(<PersonManager />)
-    
-    // First, add Person 2
-    const addPerson2Btn = screen.getByText('Person 2 hinzufügen')
-    fireEvent.click(addPerson2Btn)
-    
-    // Verify Person 2 section is visible
-    expect(screen.getByText('Person 2')).toBeInTheDocument()
-    
-    // Select a state for Person 2
-    const stateSelect = screen.getByLabelText('Bundesland', { selector: '#person2-state' })
-    fireEvent.change(stateSelect, { target: { value: GermanState.BY } })
-    
-    // Now the vacation planning button should be visible
-    const vacationBtn = screen.getByRole('button', { name: /Urlaub planen/i })
-    expect(vacationBtn).toBeInTheDocument()
+  it('handles errors when updating vacation days', async () => {
+    const updatePerson = jest.fn().mockRejectedValue(new Error('Update failed'))
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+
+    renderWithContext(<PersonManager />, { ...mockPersonContext, updatePerson })
+
+    const input = screen.getByLabelText('Urlaubstage')
+    fireEvent.change(input, { target: { value: '25' } })
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to update vacation days:',
+        expect.any(Error)
+      )
+    })
+
+    consoleSpy.mockRestore()
   })
 
-  it('should handle overlapping vacation plans between persons', async () => {
-    const testData = {
-      person1: {
-        id: 1,
-        selectedState: GermanState.BE,
-        availableVacationDays: 30,
-        vacationPlans: [{
-          id: 'vacation1',
-          start: new Date('2025-07-21'),
-          end: new Date('2025-07-25'),
-          isVisible: true,
-          personId: 1
-        }]
-      },
-      person2: {
-        id: 2,
-        selectedState: GermanState.BE,
-        availableVacationDays: 30,
-        vacationPlans: []
-      }
-    }
-    mockLoadPersons.mockReturnValue(testData)
-    
-    renderWithProviders(<PersonManager />)
-    
-    // Verify Person 2 is visible and has state selected
-    expect(screen.getByText('Person 2')).toBeInTheDocument()
-    const stateSelect = screen.getByLabelText('Bundesland', { selector: '#person2-state' })
-    expect(stateSelect).toHaveValue('BE')
-    
-    // Add overlapping vacation for Person 2
-    const vacationBtn = screen.getByRole('button', { name: /Urlaub planen/i })
-    fireEvent.click(vacationBtn)
-    
-    // Verify notification about vacation selection mode
-    expect(mockShowNotification).toHaveBeenCalledWith(
-      expect.stringContaining('Urlaub'),
-      expect.any(String)
-    )
+  it('handles errors when updating state', async () => {
+    const updatePerson = jest.fn().mockRejectedValue(new Error('Update failed'))
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+
+    renderWithContext(<PersonManager />, { ...mockPersonContext, updatePerson })
+
+    const select = screen.getByLabelText('Bundesland')
+    fireEvent.change(select, { target: { value: GermanState.BY } })
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to update state:',
+        expect.any(Error)
+      )
+    })
+
+    consoleSpy.mockRestore()
   })
 
-  // Note: Bridge day tests are pending tooltip implementation
-  it.todo('should show bridge day tooltips for October 2025 (Day of German Unity)')
-  it.todo('should show bridge day tooltips for Bavaria Epiphany 2025')
-  it.todo('should show bridge day tooltips for Christmas 2025')
+  it('handles errors when clearing data', async () => {
+    const clearPersons = jest.fn().mockRejectedValue(new Error('Clear failed'))
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
 
-  it('should handle Person 2 keyboard shortcuts', async () => {
-    const testData = {
-      person1: {
-        id: 1,
-        selectedState: GermanState.BE,
-        availableVacationDays: 30,
-        vacationPlans: []
-      },
-      person2: {
-        id: 2,
-        selectedState: GermanState.BE,
-        availableVacationDays: 30,
-        vacationPlans: [{
-          id: 'vacation1',
-          start: new Date('2025-08-11'),
-          end: new Date('2025-08-15'),
-          isVisible: true,
-          personId: 2
-        }]
-      }
-    }
-    mockLoadPersons.mockReturnValue(testData)
-    
-    renderWithProviders(<PersonManager />)
-    
-    // Test 'm' shortcut for Person 2 vacation planning
-    fireEvent.keyDown(document, { key: 'm' })
-    expect(mockShowNotification).toHaveBeenCalledWith(
-      expect.stringContaining('Urlaub'),
-      expect.any(String)
-    )
-    
-    // Test '5' shortcut for deleting Person 2's first vacation
-    fireEvent.keyDown(document, { key: '5' })
-    expect(mockSavePersons).toHaveBeenCalledWith(
-      expect.objectContaining({
-        person2: expect.objectContaining({
-          vacationPlans: []
-        })
-      })
-    )
+    renderWithContext(<PersonManager />, { ...mockPersonContext, clearPersons })
+
+    const clearButton = screen.getByText('Alle Daten zurücksetzen')
+    fireEvent.click(clearButton)
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to clear persons:',
+        expect.any(Error)
+      )
+    })
+
+    consoleSpy.mockRestore()
   })
 }) 
