@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { MobileLayout } from '../Layout/MobileLayout';
 import { MobileHeader } from '../Layout/MobileHeader';
 import { MobileActionBar } from '../ActionBar/MobileActionBar';
@@ -10,10 +10,14 @@ import { MobileSchoolHolidaysView } from '../Views/MobileSchoolHolidaysView';
 import { MobilePlanningView } from '../Views/MobilePlanningView';
 import { MobileCalendarView } from '../Views/MobileCalendarView';
 import { MobileBridgeDaysView } from '../Views/MobileBridgeDaysView';
+import { MobileExportModal } from '../Export/MobileExportModal';
 import { Holiday, BridgeDay } from '../../../types/holiday';
 import { GermanState } from '../../../types/GermanState';
 import { VacationPlan } from '../../../types/vacationPlan';
 import { AnimatePresence, motion } from 'framer-motion';
+import { TutorialModal } from '../Tutorial/TutorialModal';
+import { ExportService } from '../../../services/exportService';
+import { eachDayOfInterval, isWeekend, isSameDay } from 'date-fns';
 
 type ViewType = 'holidays' | 'school' | 'bridge' | 'planning' | 'calendar';
 
@@ -97,6 +101,35 @@ export const MobileContainer: React.FC<MobileContainerProps> = ({
   const [announcement, setAnnouncement] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [isViewTransitioning, setIsViewTransitioning] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+
+  // Calculate efficiency score
+  const efficiency = useMemo(() => {
+    if (!vacationPlans.length) return undefined;
+    
+    let totalRequiredDays = 0;
+    let totalGainedDays = 0;
+    
+    vacationPlans.forEach(vacation => {
+      const days = eachDayOfInterval({ start: vacation.start, end: vacation.end });
+      // Required days are workdays that aren't public holidays
+      const requiredDays = days.filter(d => 
+        !isWeekend(d) && !holidays.some(h => 
+          h.type === 'public' && isSameDay(new Date(h.date), d)
+        )
+      ).length;
+      
+      // Gained days are the total consecutive days off (including weekends and holidays)
+      const gainedDays = days.length;
+      
+      totalRequiredDays += requiredDays;
+      totalGainedDays += gainedDays;
+    });
+    
+    // Return the efficiency multiplier (e.g., 5 means 5x efficiency)
+    return totalRequiredDays > 0 ? totalGainedDays / totalRequiredDays : undefined;
+  }, [vacationPlans, holidays]);
 
   // Get accent color based on person
   const accentColor = personId === 1 ? '#10b981' : '#06b6d4';
@@ -138,6 +171,17 @@ export const MobileContainer: React.FC<MobileContainerProps> = ({
     setStatusMessage('Urlaub erfolgreich entfernt');
   };
 
+  const handleExport = (type: 'ics' | 'hr' | 'celebration') => {
+    ExportService.exportVacationPlan(
+      type === 'hr' ? vacationPlans : holidays,
+      holidays,
+      personId,
+      type,
+      otherPersonVacations
+    );
+    setShowExportModal(false);
+  };
+
   // Clear announcements after they're read
   useEffect(() => {
     if (announcement) {
@@ -156,6 +200,45 @@ export const MobileContainer: React.FC<MobileContainerProps> = ({
   // Filter holidays by type for different views
   const publicHolidays = holidays.filter(h => h.type === 'public');
   const schoolHolidays = holidays.filter(h => h.type === 'school');
+
+  // Define layout components
+  const header = (
+    <MobileHeader
+      title={`Urlaub ${personId === 2 ? "Person 2" : "Ich"}`}
+      onPersonSwitch={onPersonSwitch}
+      personId={personId}
+      onTutorialOpen={() => setShowTutorial(true)}
+      onExportOpen={() => setShowExportModal(true)}
+    />
+  );
+
+  const stateSelector = (
+    <MobileStateSelector
+      selectedState={selectedState}
+      onStateChange={onStateChange}
+      personId={personId}
+    />
+  );
+
+  const vacationCounter = (
+    <MobileVacationDaysCounter
+      availableVacationDays={availableVacationDays}
+      onAvailableDaysChange={onAvailableDaysChange}
+      vacationPlans={vacationPlans}
+      accentColor={personId === 1 ? 'emerald' : 'cyan'}
+      holidays={holidays}
+      otherPersonVacations={otherPersonVacations}
+    />
+  );
+
+  const viewTabs = (
+    <MobileViewTabs
+      activeView={activeView}
+      onViewChange={setActiveView}
+      personId={personId}
+      vacationPlans={vacationPlans}
+    />
+  );
 
   // Render current view
   const renderCurrentView = () => {
@@ -254,73 +337,27 @@ export const MobileContainer: React.FC<MobileContainerProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-gray-50">
-      {/* Status message for screen readers */}
-      <div className="sr-only" role="status" aria-live="polite">
-        {statusMessage}
-      </div>
-
-      {/* Announcement region for screen readers */}
-      <div className="sr-only" role="status" aria-live="assertive">
-        {announcement}
-      </div>
-
-      {/* Loading state */}
-      {isLoading && (
-        <div className="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
-          <div className="text-lg text-gray-600">Lade Daten...</div>
-        </div>
-      )}
-
-      {/* Error state */}
-      {error && (
-        <div className="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
-          <div className="text-lg text-red-600">{error.message}</div>
-        </div>
-      )}
-
-      {/* Main content */}
-      <MobileHeader
-        personId={personId}
-        onPersonSwitch={onPersonSwitch}
-      />
-
-      <MobileStateSelector
-        selectedState={selectedState}
-        onStateChange={onStateChange}
-        personId={personId}
-      />
-
-      <MobileViewTabs
-        activeView={activeView}
-        onViewChange={setActiveView}
-        personId={personId}
-        vacationPlans={vacationPlans}
-      />
-
-      <main className="flex-1 overflow-hidden">
+    <MobileLayout
+      header={header}
+      stateSelector={stateSelector}
+      vacationCounter={vacationCounter}
+      viewTabs={viewTabs}
+      actionBar={null}
+      efficiency={efficiency}
+      personId={personId}
+    >
+      <AnimatePresence mode="wait">
         {renderCurrentView()}
-      </main>
-
-      <MobileVacationDaysCounter
-        availableVacationDays={availableVacationDays}
-        onAvailableDaysChange={onAvailableDaysChange}
-        vacationPlans={vacationPlans}
-        accentColor={personId === 1 ? 'emerald' : 'cyan'}
-        holidays={holidays}
-        otherPersonVacations={otherPersonVacations}
+      </AnimatePresence>
+      <TutorialModal
+        isOpen={showTutorial}
+        onClose={() => setShowTutorial(false)}
       />
-
-      <MobileActionBar
-        onAddVacation={() => {
-          setActiveView('calendar');
-          setAnnouncement('Urlaubsplanung geöffnet');
-        }}
-        personId={personId}
-        vacationPlans={vacationPlans}
-        holidays={holidays}
-        otherPersonHolidays={otherPersonVacations?.length ? holidays : undefined}
+      <MobileExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        onExport={handleExport}
       />
-    </div>
+    </MobileLayout>
   );
 }; 

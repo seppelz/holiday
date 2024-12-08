@@ -42,16 +42,12 @@ export const MobilePlanningView: React.FC<MobilePlanningViewProps> = ({
 
     // Calculate efficiency
     const stats = vacation.efficiency || { requiredDays: 0, gainedDays: 0 };
-    const efficiency = stats.requiredDays > 0 
-      ? Math.round((stats.gainedDays / stats.requiredDays) * 100) 
-      : 0;
 
     return {
       totalDays,
       matchingDays,
       requiredDays: stats.requiredDays,
-      gainedDays: stats.gainedDays,
-      efficiency
+      gainedDays: stats.gainedDays
     };
   };
 
@@ -71,21 +67,12 @@ export const MobilePlanningView: React.FC<MobilePlanningViewProps> = ({
     <div className="mx-auto p-2">
       {/* Compact Header Stats */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-3">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between">
           <h2 className={`text-base font-medium ${colors.text}`}>
             Person {personId}
           </h2>
-          <span className="text-sm font-medium">
-            {availableVacationDays - totalStats.requiredDays}/{availableVacationDays} Tage übrig
-          </span>
-        </div>
-        <div className="flex justify-between text-xs text-gray-600">
-          <div className="flex items-center gap-1">
-            <span>📊</span>
-            <span>{Math.round((totalStats.gainedDays / totalStats.requiredDays) * 100 || 0)}% Effizienz</span>
-          </div>
           {totalStats.sharedDays > 0 && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 text-xs text-gray-600">
               <span>❤️</span>
               <span>{totalStats.sharedDays} gemeinsam</span>
             </div>
@@ -118,7 +105,6 @@ export const MobilePlanningView: React.FC<MobilePlanningViewProps> = ({
                     </div>
                     <div className="flex items-center gap-3 text-xs text-gray-600 mt-0.5">
                       <span className="flex items-center gap-0.5">
-                        <span>📊</span>
                         {details.requiredDays} {details.requiredDays === 1 ? 'Tag' : 'Tage'} Urlaub = {details.gainedDays} {details.gainedDays === 1 ? 'Tag' : 'Tage'} frei
                       </span>
                       {hasSharedDays && (

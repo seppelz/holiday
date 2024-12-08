@@ -1,7 +1,7 @@
 import React from 'react';
 import { VacationPlan } from '../../../types/vacationPlan';
 import { Holiday } from '../../../types/holiday';
-import { calculateVacationDays } from '../../../utils/vacationCalculator';
+import { eachDayOfInterval, isWeekend, isSameDay } from 'date-fns';
 
 interface MobileVacationDaysCounterProps {
   availableVacationDays: number;
@@ -20,57 +20,49 @@ export const MobileVacationDaysCounter: React.FC<MobileVacationDaysCounterProps>
   holidays,
   otherPersonVacations
 }) => {
-  const { usedDays, gainedDays } = calculateVacationDays(vacationPlans, holidays);
+  // Calculate used vacation days
+  const usedDays = vacationPlans.reduce((total, vacation) => {
+    if (!vacation.isVisible) return total;
+    
+    const days = eachDayOfInterval({ start: vacation.start, end: vacation.end });
+    const workdays = days.filter(date => {
+      // Skip weekends
+      if (isWeekend(date)) return false;
+      
+      // Skip public holidays
+      const isPublicHoliday = holidays.some(h => 
+        h.type === 'public' && isSameDay(new Date(h.date), date)
+      );
+      
+      return !isPublicHoliday;
+    }).length;
+    
+    return total + workdays;
+  }, 0);
+
   const remainingDays = availableVacationDays - usedDays;
 
   return (
-    <div 
-      className="px-4 py-3 bg-white shadow-sm border-b border-gray-200"
-      role="region" 
-      aria-label="Urlaubstage Übersicht"
-    >
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex-1">
-          <label 
-            htmlFor="vacation-days-input" 
-            className="block text-sm font-medium text-gray-700"
-          >
-            Urlaubstage pro Jahr
-          </label>
+    <div className="flex items-center gap-3" role="region" aria-label="Urlaubstage Übersicht">
+      <div className="flex-1">
+        <div className="relative inline-flex items-center">
           <input
-            id="vacation-days-input"
             type="number"
             min="0"
             max="365"
             value={availableVacationDays}
             onChange={(e) => onAvailableDaysChange(Math.max(0, parseInt(e.target.value) || 0))}
-            className="mt-1 w-20 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-0 transition-shadow"
-            style={{ '--tw-ring-color': accentColor + '4D' } as React.CSSProperties}
+            className={`w-16 pl-3 pr-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-shadow
+              ${accentColor === 'emerald' ? 'focus:ring-emerald-500/30' : 'focus:ring-cyan-500/30'}`}
           />
+          <span className="ml-2 text-sm text-gray-600">Tage</span>
         </div>
       </div>
-
-      <div className="grid grid-cols-3 gap-4 mt-3">
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <div className="text-2xl font-semibold" style={{ color: accentColor }}>
-            {usedDays}
-          </div>
-          <div className="text-xs text-gray-600 mt-1">Genommen</div>
+      <div className="flex items-center gap-2">
+        <div className={`text-sm font-medium ${accentColor === 'emerald' ? 'text-emerald-600' : 'text-cyan-600'}`}>
+          {remainingDays}
         </div>
-
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <div className="text-2xl font-semibold" style={{ color: accentColor }}>
-            {remainingDays}
-          </div>
-          <div className="text-xs text-gray-600 mt-1">Übrig</div>
-        </div>
-
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <div className="text-2xl font-semibold" style={{ color: accentColor }}>
-            {gainedDays}
-          </div>
-          <div className="text-xs text-gray-600 mt-1">Bonus Tage</div>
-        </div>
+        <div className="text-sm text-gray-500">übrig</div>
       </div>
     </div>
   );
