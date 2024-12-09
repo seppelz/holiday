@@ -23,19 +23,22 @@ describe('Calendar', () => {
   const mockPersonContext = {
     persons: {
       person1: {
-        id: 1 as const,
+        id: 1 as 1,
         selectedState: GermanState.BE,
         availableVacationDays: 30,
         vacationPlans: []
       },
       person2: null
     },
+    isLoading: false,
+    error: null,
     updatePerson: jest.fn(),
     addVacationPlan: jest.fn(),
     updateVacationPlan: jest.fn(),
     removeVacationPlan: jest.fn(),
     deleteVacationPlan: jest.fn(),
-    clearVacationPlans: jest.fn()
+    clearVacationPlans: jest.fn(),
+    clearPersons: jest.fn()
   };
 
   it('renders without crashing', () => {

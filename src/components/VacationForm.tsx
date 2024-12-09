@@ -24,7 +24,8 @@ export const VacationForm: React.FC<VacationFormProps> = ({
     onSubmit({
       start: new Date(startDate),
       end: new Date(endDate),
-      isVisible: true
+      isVisible: true,
+      state: state
     });
   };
 

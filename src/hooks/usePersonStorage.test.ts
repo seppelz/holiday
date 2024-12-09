@@ -26,6 +26,7 @@ describe('usePersonStorage', () => {
         start: new Date('2024-01-01'),
         end: new Date('2024-01-05'),
         isVisible: true,
+        state: GermanState.BE,
         efficiency: {
           requiredDays: 3,
           gainedDays: 5,
@@ -55,11 +56,28 @@ describe('usePersonStorage', () => {
     )
   })
 
-  it('should load persons from cookies', () => {
+  it('should load and parse dates correctly', async () => {
+    const mockPersonInfo = {
+      person1: {
+        id: 1 as const,
+        selectedState: GermanState.HH,
+        availableVacationDays: 25,
+        vacationPlans: [{
+          id: '1',
+          personId: 1 as const,
+          start: new Date('2024-01-01'),
+          end: new Date('2024-01-05'),
+          isVisible: true,
+          state: GermanState.HH
+        }]
+      },
+      person2: null
+    }
+
     mockGet.mockReturnValueOnce(JSON.stringify(mockPersonInfo))
     const { result } = renderHook(() => usePersonStorage())
     
-    const loaded = result.current.loadPersons()
+    const loaded = await result.current.loadPersons()
     expect(loaded).toEqual(mockPersonInfo)
     expect(loaded?.person1.vacationPlans[0].start).toBeInstanceOf(Date)
     expect(loaded?.person1.vacationPlans[0].efficiency?.bridgeDayBenefit?.dates[0]).toBeInstanceOf(Date)
@@ -86,11 +104,11 @@ describe('usePersonStorage', () => {
     expect(mockRemove).toHaveBeenCalledWith('holiday-planner-persons')
   })
 
-  it('should handle person2 data correctly when present', () => {
-    const mockWithPerson2: PersonInfo = {
-      ...mockPersonInfo,
+  it('should handle person2 data correctly', async () => {
+    const mockPersonInfo = {
       person2: {
         id: 2 as const,
+        personId: 2 as const,
         selectedState: GermanState.HH,
         availableVacationDays: 25,
         vacationPlans: [{
@@ -98,15 +116,16 @@ describe('usePersonStorage', () => {
           personId: 2 as const,
           start: new Date('2024-02-01'),
           end: new Date('2024-02-05'),
-          isVisible: true
+          isVisible: true,
+          state: GermanState.HH
         }]
       }
     }
 
-    mockGet.mockReturnValueOnce(JSON.stringify(mockWithPerson2))
+    mockGet.mockReturnValueOnce(JSON.stringify(mockPersonInfo))
     const { result } = renderHook(() => usePersonStorage())
     
-    const loaded = result.current.loadPersons()
+    const loaded = await result.current.loadPersons()
     expect(loaded?.person2?.vacationPlans[0].start).toBeInstanceOf(Date)
     expect(loaded?.person2?.selectedState).toBe(GermanState.HH)
   })

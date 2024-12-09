@@ -3,17 +3,23 @@ import { format, isWeekend, isSameDay, isWithinInterval, isBefore, startOfDay, a
 import { de } from 'date-fns/locale';
 import { BaseCalendarProps, useCalendar } from '../../Shared/Calendar/BaseCalendar';
 import { holidayColors } from '../../../constants/colors';
-import { Holiday } from '../../../types/holiday';
+import { Holiday, BridgeDay } from '../../../types/holiday';
 import { useSpring, animated } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 import { VacationPlan } from '../../../types/vacationPlan';
 
-interface MobileCalendarProps extends BaseCalendarProps {
+interface MobileCalendarProps extends Omit<BaseCalendarProps, 'getDateVacationInfo'> {
   personId: 1 | 2;
   onMonthChange?: (direction: number) => void;
   vacationPlans?: VacationPlan[];
+  bridgeDays: BridgeDay[];
   month: Date;
-  getDateVacationInfo: (date: Date) => { isSharedVacation: boolean };
+  getDateVacationInfo: (date: Date) => {
+    person1Vacation: boolean;
+    person2Vacation: boolean;
+    isSharedVacation: boolean;
+  };
+  initialDate?: Date | null;
 }
 
 export const MobileCalendar: React.FC<MobileCalendarProps> = (props) => {
@@ -59,68 +65,47 @@ export const MobileCalendar: React.FC<MobileCalendarProps> = (props) => {
     }
 
     // Then check for bridge days
-    const isBridgeDay = props.bridgeDays?.some(bd => {
-      const bridgeDate = new Date(bd.date);
-      return isSameDay(bridgeDate, date);
-    });
+    const isBridgeDay = props.bridgeDays?.some(bd => isSameDay(bd.date, date));
     if (isBridgeDay) {
       return { type: 'bridge', holiday: null };
     }
 
     // Then check for holidays
     const holiday = props.holidays?.find(h => {
-      const holidayDate = new Date(h.date);
       if (h.endDate) {
-        const endDate = new Date(h.endDate);
-        return isWithinInterval(date, { start: holidayDate, end: endDate });
+        return isWithinInterval(date, { start: h.date, end: h.endDate });
       }
-      return isSameDay(holidayDate, date);
+      return isSameDay(h.date, date);
     });
 
     return holiday ? { type: holiday.type, holiday } : { type: null, holiday: null };
   }, [isDateInVacation, props.bridgeDays, props.holidays]);
 
-  // Memoize calendar grid generation
-  const { weeks, firstDay, lastDay } = useMemo(() => {
-    const weeks: Date[][] = [];
+  // Generate calendar grid
+  const weeks = useMemo<Date[][]>(() => {
     const firstDay = new Date(props.month.getFullYear(), props.month.getMonth(), 1);
     const lastDay = new Date(props.month.getFullYear(), props.month.getMonth() + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - (startDate.getDay() + 6) % 7);
     
-    // Fill in days from previous month
-    const firstDayOfWeek = firstDay.getDay() || 7; // Convert Sunday (0) to 7
-    const prevMonthDays = [];
-    for (let i = firstDayOfWeek - 1; i > 0; i--) {
-      const date = new Date(firstDay);
-      date.setDate(date.getDate() - i);
-      prevMonthDays.push(date);
-    }
+    const endDate = new Date(lastDay);
+    endDate.setDate(endDate.getDate() + (7 - endDate.getDay()) % 7);
     
-    // Fill in days of current month
-    const currentMonthDays = [];
-    for (let date = new Date(firstDay); date <= lastDay; date.setDate(date.getDate() + 1)) {
-      currentMonthDays.push(new Date(date));
-    }
+    const weeks: Date[][] = [];
+    let currentWeek: Date[] = [];
     
-    // Fill in days from next month
-    const remainingDays = 7 - ((prevMonthDays.length + currentMonthDays.length) % 7);
-    const nextMonthDays = [];
-    if (remainingDays < 7) {
-      const lastDate = new Date(lastDay);
-      for (let i = 1; i <= remainingDays; i++) {
-        lastDate.setDate(lastDate.getDate() + 1);
-        nextMonthDays.push(new Date(lastDate));
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      if (currentWeek.length === 7) {
+        weeks.push(currentWeek);
+        currentWeek = [];
       }
+      currentWeek.push(new Date(d));
+    }
+    if (currentWeek.length > 0) {
+      weeks.push(currentWeek);
     }
     
-    // Combine all days
-    const allDays = [...prevMonthDays, ...currentMonthDays, ...nextMonthDays];
-    
-    // Split into weeks
-    for (let i = 0; i < allDays.length; i += 7) {
-      weeks.push(allDays.slice(i, i + 7));
-    }
-
-    return { weeks, firstDay, lastDay };
+    return weeks;
   }, [props.month]);
 
   // Memoize date classes generation
@@ -239,6 +224,11 @@ export const MobileCalendar: React.FC<MobileCalendarProps> = (props) => {
         // The tab order will flow to the next focusable element (navigation buttons)
         break;
     }
+  };
+
+  const getBridgeDayInfo = (date: Date) => {
+    const bridgeDay = props.bridgeDays?.find(bd => isSameDay(bd.date, date));
+    return bridgeDay;
   };
 
   return (

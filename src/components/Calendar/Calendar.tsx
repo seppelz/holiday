@@ -84,8 +84,8 @@ export const Calendar: React.FC<CalendarProps> = (props) => {
     onDateSelect: handleDateSelect,
     holidays: props.holidays,
     secondStateHolidays: props.secondStateHolidays,
-    bridgeDays: props.bridgeDays.map(bd => bd.date),
-    secondStateBridgeDays: props.secondStateBridgeDays.map(bd => bd.date),
+    bridgeDays: props.bridgeDays,
+    secondStateBridgeDays: props.secondStateBridgeDays,
     getDateVacationInfo,
     activePersonId: props.personId,
     tabIndex: 0,
@@ -101,7 +101,7 @@ export const Calendar: React.FC<CalendarProps> = (props) => {
   };
 
   return isMobile ? (
-    <MobileCalendar {...baseCalendarProps} />
+    <MobileCalendar {...baseCalendarProps} personId={props.personId || 1} />
   ) : (
     <DesktopCalendar {...baseCalendarProps} />
   );

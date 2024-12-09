@@ -52,6 +52,8 @@ export const usePersonStorage = () => {
       console.warn('IndexedDB failed, falling back to localStorage:', error);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+        // Set cookie with proper SameSite attribute
+        document.cookie = `${STORAGE_KEY}=${JSON.stringify(dataToSave)}; SameSite=Lax; Secure; max-age=${30 * 24 * 60 * 60}`;
       } catch (error) {
         console.error('Storage failed:', error);
       }

@@ -9,7 +9,7 @@ interface MobileActionBarProps {
   personId: 1 | 2;
   vacationPlans?: VacationPlan[];
   holidays?: Holiday[];
-  otherPersonHolidays?: Holiday[];
+  otherPersonVacations?: VacationPlan[];
 }
 
 export const MobileActionBar: React.FC<MobileActionBarProps> = ({
@@ -17,12 +17,18 @@ export const MobileActionBar: React.FC<MobileActionBarProps> = ({
   personId,
   vacationPlans = [],
   holidays = [],
-  otherPersonHolidays
+  otherPersonVacations = []
 }) => {
   const [showExportModal, setShowExportModal] = useState(false);
 
   const handleExport = (type: 'ics' | 'hr' | 'celebration') => {
-    ExportService.exportVacationPlan(vacationPlans, holidays, personId, type, otherPersonHolidays);
+    ExportService.exportVacationPlan(
+      vacationPlans,
+      holidays,
+      personId,
+      type,
+      otherPersonVacations
+    );
     setShowExportModal(false);
   };
 

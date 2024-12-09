@@ -140,11 +140,10 @@ describe('bridgeDayService', () => {
           state
         },
         {
-          date: new Date('2025-07-01'),
           name: 'Sommerferien Berlin',
           type: 'school',
           state,
-          startDate: new Date('2025-07-01'),
+          date: new Date('2025-07-01'),
           endDate: new Date('2025-08-31')
         }
       ];

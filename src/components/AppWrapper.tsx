@@ -4,6 +4,8 @@ import { MobileContainer } from './Mobile/Container/MobileContainer';
 import { Holiday, BridgeDay } from '../types/holiday';
 import { GermanState } from '../types/GermanState';
 import { VacationPlan } from '../types/vacationPlan';
+import { InstallPrompt } from './Mobile/PWA/InstallPrompt';
+import { UpdateNotification } from './Mobile/PWA/UpdateNotification';
 
 interface AppWrapperProps {
   children: React.ReactNode;
@@ -29,30 +31,32 @@ export const AppWrapper: React.FC<AppWrapperProps> = ({
 }) => {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  if (isMobile && mobileProps) {
-    return (
-      <MobileContainer
-        personId={mobileProps.personId}
-        selectedState={mobileProps.selectedState}
-        onStateChange={mobileProps.onStateChange}
-        holidays={mobileProps.holidays}
-        bridgeDays={mobileProps.bridgeDays}
-        vacationPlans={mobileProps.vacationPlans}
-        onAddVacation={mobileProps.onAddVacation}
-        onRemoveVacation={mobileProps.onRemoveVacation}
-        onPersonSwitch={mobileProps.onPersonSwitch}
-        availableVacationDays={mobileProps.availableVacationDays}
-        onAvailableDaysChange={mobileProps.onAvailableDaysChange}
-        otherPersonVacations={mobileProps.otherPersonVacations}
-      />
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {children}
-      </div>
-    </div>
+    <>
+      {isMobile && mobileProps ? (
+        <MobileContainer
+          personId={mobileProps.personId}
+          selectedState={mobileProps.selectedState}
+          onStateChange={mobileProps.onStateChange}
+          holidays={mobileProps.holidays}
+          bridgeDays={mobileProps.bridgeDays}
+          vacationPlans={mobileProps.vacationPlans}
+          onAddVacation={mobileProps.onAddVacation}
+          onRemoveVacation={mobileProps.onRemoveVacation}
+          onPersonSwitch={mobileProps.onPersonSwitch}
+          availableVacationDays={mobileProps.availableVacationDays}
+          onAvailableDaysChange={mobileProps.onAvailableDaysChange}
+          otherPersonVacations={mobileProps.otherPersonVacations}
+        />
+      ) : (
+        <div className="min-h-screen bg-gray-50">
+          <div className="w-full">
+            {children}
+          </div>
+        </div>
+      )}
+      <InstallPrompt />
+      <UpdateNotification />
+    </>
   );
 }; 

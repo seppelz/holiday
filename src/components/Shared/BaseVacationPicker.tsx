@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { isBefore, differenceInDays, startOfDay, parse, isValid, addMonths, isWithinInterval } from 'date-fns';
 import { VacationPlan } from '../../types/vacationPlan';
 import { Holiday } from '../../types/holiday';
+import { GermanState } from '../../types/GermanState';
 
 export interface BaseVacationPickerProps {
   personId: 1 | 2;
@@ -10,6 +11,7 @@ export interface BaseVacationPickerProps {
   onSubmit: (plan: Omit<VacationPlan, 'id' | 'personId'>) => void;
   onClose: () => void;
   existingVacations: VacationPlan[];
+  state: GermanState;
 }
 
 export interface DateRange {
@@ -114,7 +116,8 @@ export const useVacationPicker = (props: BaseVacationPickerProps) => {
       props.onSubmit({
         start: state.startDate,
         end: state.endDate,
-        isVisible: true
+        isVisible: true,
+        state: props.state
       });
     }
   };

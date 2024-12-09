@@ -1,12 +1,20 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { VacationList } from './VacationList';
-import { VacationPlan, Holiday } from '../types/holiday';
+import { Holiday } from '../types/holiday';
+import { VacationPlan } from '../types/vacationPlan';
 import { GermanState } from '../types/GermanState';
 
 describe('VacationList', () => {
   const state = GermanState.BE;
-  const mockVacations: VacationPlan[] = [];
+  const mockVacations: VacationPlan[] = [{
+    id: '1',
+    personId: 1,
+    start: new Date('2025-12-24'),
+    end: new Date('2025-12-28'),
+    state: GermanState.BE,
+    isVisible: true
+  }];
 
   describe('Christmas 2025', () => {
     const christmasHolidays: Holiday[] = [

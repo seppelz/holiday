@@ -1,7 +1,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { VacationPlan } from '../types/holiday';
+import { VacationPlan } from '../types/vacationPlan';
 import { holidayColors } from '../constants/colors';
 import { Holiday } from '../types/holiday';
 import { analyzeVacationOpportunities, VacationRecommendation } from '../utils/smartVacationAnalysis';
@@ -32,14 +32,12 @@ export const VacationEfficiencyInsights: React.FC<VacationEfficiencyInsightsProp
   
   // Find bridge day opportunities
   const combinations = analyzeVacationOpportunities(
-    vacations, 
     holidays,
     state
   );
   const bestCombinations = combinations
-    .filter((c: VacationRecommendation) => c.requiredDays <= remainingDays)
-    .sort((a: VacationRecommendation, b: VacationRecommendation) => 
-      (b.gainedDays / b.requiredDays) - (a.gainedDays / a.requiredDays))
+    .filter((c) => c.requiredDays <= remainingDays)
+    .sort((a, b) => (b.gainedDays / b.requiredDays) - (a.gainedDays / a.requiredDays))
     .slice(0, 5);
 
   return (
@@ -68,15 +66,15 @@ export const VacationEfficiencyInsights: React.FC<VacationEfficiencyInsightsProp
                   ${combo.gainedDays / combo.requiredDays >= 2 
                     ? colors.bg 
                     : 'hover:bg-gray-50'}`}
-                onClick={() => onSelectDates?.(combo.dates)}
+                onClick={() => onSelectDates?.(combo.vacationDays)}
               >
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="text-sm text-gray-700">
-                      {combo.description}
+                      {combo.displayRange}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {Math.round((combo.gainedDays / combo.requiredDays - 1) * 100)}% mehr freie Tage
+                      {combo.efficiencyDisplay}
                     </div>
                   </div>
                 </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { MobileEfficiencyScore } from './MobileEfficiencyScore';
 
 interface MobileLayoutProps {
   header: React.ReactNode;
@@ -7,6 +8,8 @@ interface MobileLayoutProps {
   viewTabs: React.ReactNode;
   actionBar: React.ReactNode;
   children: React.ReactNode;
+  efficiency?: number;
+  personId: 1 | 2;
 }
 
 export const MobileLayout: React.FC<MobileLayoutProps> = ({
@@ -15,7 +18,9 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
   vacationCounter,
   viewTabs,
   actionBar,
-  children
+  children,
+  efficiency,
+  personId
 }) => {
   return (
     <div className="h-screen flex flex-col">
@@ -33,10 +38,31 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
         role="banner"
       >
         {header}
-        <div role="region" aria-label="Einstellungen">
-          {stateSelector}
-          {vacationCounter}
+        
+        {/* Efficiency Score */}
+        {efficiency !== undefined && (
+          <MobileEfficiencyScore efficiency={efficiency} personId={personId} />
+        )}
+
+        <div 
+          role="region" 
+          aria-label="Einstellungen"
+          className="flex flex-col gap-2 px-4 py-3 border-t border-gray-200 bg-gray-50"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              {stateSelector}
+            </div>
+            <div className="flex-1">
+              {vacationCounter}
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Navigation Tabs - Moved up */}
+      <div className="flex-none border-t border-gray-200">
+        {viewTabs}
       </div>
 
       {/* Main Content */}
@@ -49,14 +75,11 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
         {children}
       </main>
 
-      {/* Fixed Footer */}
+      {/* Fixed Footer - Only Export Button */}
       <div 
         className="flex-none"
         role="contentinfo"
       >
-        {/* Navigation */}
-        {viewTabs}
-        {/* Action Bar */}
         {actionBar}
       </div>
 

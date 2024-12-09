@@ -12,7 +12,7 @@ interface VacationDaysInputProps {
 export const VacationDaysInput: React.FC<VacationDaysInputProps> = ({
   value,
   onChange,
-  min = 20, // German minimum by law
+  min = 10, // Changed from 20 to 10
   max = 40, // Reasonable maximum
   personId
 }) => {

@@ -3,12 +3,12 @@ import { format, isWeekend, isSameDay, isWithinInterval, isBefore, startOfDay, a
 import { de } from 'date-fns/locale';
 import { BaseCalendarProps, useCalendar } from '../../Shared/Calendar/BaseCalendar';
 import { holidayColors, gradientColors } from '../../../constants/colors';
-import { Holiday } from '../../../types/holiday';
+import { Holiday, BridgeDay } from '../../../types/holiday';
 import { parseDateString } from '../../../utils/dateUtils';
 
 interface HolidayType {
-  type: 'public' | 'regional' | 'bridge' | 'school' | null;
-  holiday?: Holiday;
+  type: Holiday["type"] | "bridge" | null;
+  holiday: Holiday | null | undefined;
 }
 
 interface HolidayTypes {
@@ -372,9 +372,9 @@ export const DesktopCalendar: React.FC<ExtendedBaseCalendarProps> = (props) => {
   const getHolidayType = (
     date: Date,
     holidays: Holiday[],
-    bridgeDays: Date[],
+    bridgeDays: BridgeDay[],
     secondStateHolidays: Holiday[],
-    secondStateBridgeDays: Date[]
+    secondStateBridgeDays: BridgeDay[]
   ) => {
     const result = {
       firstState: { type: null as Holiday['type'] | 'bridge' | null, holiday: null as Holiday | null },
@@ -382,13 +382,13 @@ export const DesktopCalendar: React.FC<ExtendedBaseCalendarProps> = (props) => {
     };
 
     // Check bridge days for both states
-    const isFirstStateBridgeDay = bridgeDays.some(d => isSameDay(d, date));
-    const isSecondStateBridgeDay = secondStateBridgeDays.some(d => isSameDay(d, date));
+    const firstStateBridgeDay = bridgeDays.find(bd => isSameDay(bd.date, date));
+    const secondStateBridgeDay = secondStateBridgeDays.find(bd => isSameDay(bd.date, date));
 
-    if (isFirstStateBridgeDay) {
+    if (firstStateBridgeDay) {
       result.firstState = { type: 'bridge', holiday: null };
     }
-    if (isSecondStateBridgeDay) {
+    if (secondStateBridgeDay) {
       result.secondState = { type: 'bridge', holiday: null };
     }
 
@@ -682,7 +682,11 @@ export const DesktopCalendar: React.FC<ExtendedBaseCalendarProps> = (props) => {
                     role="gridcell"
                     aria-label={getDateAriaLabel(date, holidayTypes, vacationInfo)}
                     aria-disabled={isDisabled}
-                    aria-selected={isSameDay(date, props.startDate) || isSameDay(date, props.endDate)}
+                    aria-selected={
+                      (props.startDate && isSameDay(date, props.startDate)) || 
+                      (props.endDate && isSameDay(date, props.endDate)) || 
+                      undefined
+                    }
                     aria-current={isSameDay(date, today) ? 'date' : undefined}
                   >
                     {format(date, 'd')}

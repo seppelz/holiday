@@ -5,34 +5,24 @@ import { DesktopCalendar } from './DesktopCalendar';
 describe('DesktopCalendar', () => {
   const mockOnDateSelect = jest.fn();
   const defaultProps = {
-    isSelectingVacation: true,
+    isSelectingVacation: false,
     onDateSelect: mockOnDateSelect,
-    month: new Date('2025-01-01'),
+    month: new Date(),
     startDate: null,
     endDate: null,
     holidays: [],
     bridgeDays: [],
     disabledDates: [],
     tabIndex: 0,
+    activePersonId: 1 as 1 | 2 | undefined,
+    onShowRecommendations: () => {},
     secondStateHolidays: [],
     secondStateBridgeDays: [],
     getDateVacationInfo: () => ({
       person1Vacation: false,
       person2Vacation: false,
       isSharedVacation: false
-    }),
-    state: 'BE' as const,
-    secondState: null,
-    onVacationSelectComplete: () => {},
-    onDeleteVacation: () => {},
-    vacationCount: { person1: 0, person2: 0 },
-    onStartVacationSelect: () => {},
-    recommendedDates: {
-      person1: [],
-      person2: []
-    },
-    activePersonId: 1,
-    onShowRecommendations: () => {}
+    })
   };
 
   it('renders calendar with correct month', () => {

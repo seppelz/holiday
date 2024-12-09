@@ -1,5 +1,5 @@
 import React from 'react';
-import { Holiday } from '../../../types/holiday';
+import { Holiday, BridgeDay } from '../../../types/holiday';
 
 export interface BaseCalendarProps {
   month: Date;
@@ -8,8 +8,8 @@ export interface BaseCalendarProps {
   onDateSelect: (date: Date) => void;
   holidays: Holiday[];
   secondStateHolidays: Holiday[];
-  bridgeDays: Date[];
-  secondStateBridgeDays: Date[];
+  bridgeDays: BridgeDay[];
+  secondStateBridgeDays: BridgeDay[];
   getDateVacationInfo: (date: Date) => {
     person1Vacation: boolean;
     person2Vacation: boolean;

@@ -17,17 +17,16 @@ export const MobileViewTabs: React.FC<MobileViewTabsProps> = ({
   personId,
   vacationPlans
 }) => {
-  const colors = personId === 1 ? holidayColors.person1.ui : holidayColors.person2.ui;
-  const accentColor = personId === 1 ? '#10B981' : '#06B6D4'; // emerald-500 for person1, cyan-500 for person2
+  const accentColor = personId === 1 ? '#10b981' : '#06b6d4';
 
-  const topTabs: { id: ViewType; label: string; icon: JSX.Element }[] = [
+  const topTabs: Array<{ id: ViewType; label: string; icon: JSX.Element }> = [
     {
       id: 'holidays',
       label: 'Feiertage',
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" 
+            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" 
           />
         </svg>
       )
@@ -49,14 +48,14 @@ export const MobileViewTabs: React.FC<MobileViewTabsProps> = ({
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" 
+            d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" 
           />
         </svg>
       )
     }
   ];
 
-  const bottomTabs: { id: ViewType; label: string; icon: JSX.Element }[] = [
+  const bottomTabs: Array<{ id: ViewType; label: string; icon: JSX.Element }> = [
     {
       id: 'planning',
       label: 'Planung',
@@ -93,11 +92,9 @@ export const MobileViewTabs: React.FC<MobileViewTabsProps> = ({
     }
   ];
 
-  // Combine all tabs for navigation
-  const allTabs = [...topTabs, ...bottomTabs];
-
+  // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, currentId: ViewType) => {
-    const currentTab = allTabs.find(tab => tab.id === currentId);
+    const allTabs = [...topTabs, ...bottomTabs];
     const currentIndex = allTabs.findIndex(tab => tab.id === currentId);
     const isInTopRow = currentIndex < topTabs.length;
     
@@ -123,7 +120,6 @@ export const MobileViewTabs: React.FC<MobileViewTabsProps> = ({
       case 'ArrowUp':
         e.preventDefault();
         if (!isInTopRow && currentIndex >= topTabs.length) {
-          // Move from bottom row to top row
           const topRowIndex = currentIndex % topTabs.length;
           const topTab = topTabs[topRowIndex];
           onViewChange(topTab.id);
@@ -134,27 +130,12 @@ export const MobileViewTabs: React.FC<MobileViewTabsProps> = ({
       case 'ArrowDown':
         e.preventDefault();
         if (isInTopRow && currentIndex < topTabs.length) {
-          // Move from top row to bottom row
           const bottomRowIndex = currentIndex % bottomTabs.length;
           const bottomTab = bottomTabs[bottomRowIndex];
           onViewChange(bottomTab.id);
           const element = document.querySelector(`[data-nav="${bottomTab.id}"]`) as HTMLElement;
           element?.focus();
         }
-        break;
-      case 'Home':
-        e.preventDefault();
-        const firstTab = allTabs[0];
-        onViewChange(firstTab.id);
-        const firstElement = document.querySelector(`[data-nav="${firstTab.id}"]`) as HTMLElement;
-        firstElement?.focus();
-        break;
-      case 'End':
-        e.preventDefault();
-        const lastTab = allTabs[allTabs.length - 1];
-        onViewChange(lastTab.id);
-        const lastElement = document.querySelector(`[data-nav="${lastTab.id}"]`) as HTMLElement;
-        lastElement?.focus();
         break;
     }
   };
@@ -167,7 +148,7 @@ export const MobileViewTabs: React.FC<MobileViewTabsProps> = ({
           onClick={() => onViewChange(tab.id)}
           onKeyDown={(e) => handleKeyDown(e, tab.id)}
           className={`flex-1 flex flex-col items-center py-2 px-2 transition-colors
-            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-${personId === 1 ? 'emerald' : 'cyan'}-500
             ${activeView === tab.id
               ? 'text-gray-900'
               : 'text-gray-500 hover:text-gray-700'
@@ -179,7 +160,7 @@ export const MobileViewTabs: React.FC<MobileViewTabsProps> = ({
           aria-selected={activeView === tab.id}
           aria-controls={`panel-${tab.id}`}
           id={`tab-${tab.id}`}
-          tabIndex={0} // Allow all buttons to be tabbable
+          tabIndex={activeView === tab.id ? 0 : -1}
           data-nav={tab.id}
         >
           {tab.icon}

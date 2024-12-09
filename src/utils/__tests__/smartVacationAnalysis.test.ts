@@ -1,6 +1,6 @@
 import { analyzeVacationOpportunities } from '../smartVacationAnalysis';
 import { Holiday } from '../../types/holiday';
-import { GermanState } from '../../types/germanState';
+import { GermanState } from '../../types/GermanState';
 
 describe('smartVacationAnalysis', () => {
   const state = 'BE' as GermanState;

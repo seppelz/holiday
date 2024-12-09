@@ -79,7 +79,7 @@ async function fetchSchoolHolidays(): Promise<Record<number, Record<typeof STATE
     // Process all holidays
     for (const holiday of allHolidays) {
       const year = new Date(holiday.start).getFullYear();
-      if (YEARS.includes(year) && STATES.includes(holiday.stateCode)) {
+      if (YEARS.includes(year as typeof YEARS[number]) && STATES.includes(holiday.stateCode)) {
         schoolHolidays[year][holiday.stateCode].push({
           name: holiday.name,
           start: holiday.start,

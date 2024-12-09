@@ -6,19 +6,142 @@ import { VacationDaysInput } from '../components/VacationDaysInput';
 import { HomePage } from '../pages/HomePage';
 import { KeyboardShortcutsHelper } from '../components/KeyboardShortcutsHelper';
 import { useBridgeDays } from '../hooks/useBridgeDays';
-import { eachDayOfInterval, isSameDay, isWithinInterval, isWeekend, subDays, addDays, differenceInDays } from 'date-fns';
+import { eachDayOfInterval, isSameDay, isWithinInterval, isWeekend, subDays, addDays, differenceInDays, format } from 'date-fns';
+import { de } from 'date-fns/locale';
 import { Holiday } from '../types/holiday';
 import { VacationPlan } from '../types/vacationPlan';
 import { VacationEfficiencyInsights } from '../components/VacationEfficiencyInsights';
 import { AppWrapper } from '../components/AppWrapper';
+import { MobileExportModal } from '../components/Mobile/Export/MobileExportModal';
+import { ExportService } from '../services/exportService';
+import { TutorialModal } from '../components/Mobile/Tutorial/TutorialModal';
+import { DesktopEfficiencyScore } from '../components/Desktop/DesktopEfficiencyScore';
 
-const StateSelector: React.FC<{
+// Helper function to download files
+const downloadFile = (content: string, filename: string, type: string) => {
+  const blob = new Blob([content], { type });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
+// Generate ICS calendar data
+const generateICSData = (persons: { person1: any; person2: any }) => {
+  const events: Array<{
+    start: Date;
+    end: Date;
+    summary: string;
+    description: string;
+  }> = [];
+
+  // Add person 1 vacations
+  if (persons.person1?.vacationPlans) {
+    persons.person1.vacationPlans.forEach((vacation: VacationPlan) => {
+      events.push({
+        start: vacation.start,
+        end: vacation.end,
+        summary: 'Urlaub Person 1',
+        description: `Urlaub in ${stateNames[vacation.state]}`
+      });
+    });
+  }
+
+  // Add person 2 vacations
+  if (persons.person2?.vacationPlans) {
+    persons.person2.vacationPlans.forEach((vacation: VacationPlan) => {
+      events.push({
+        start: vacation.start,
+        end: vacation.end,
+        summary: 'Urlaub Person 2',
+        description: `Urlaub in ${stateNames[vacation.state]}`
+      });
+    });
+  }
+
+  return ExportService.createICSFile(events);
+};
+
+// Generate HR format data
+const generateHRData = (persons: { person1: any; person2: any }) => {
+  const lines = ['Urlaubsantrag\n'];
+
+  // Helper to format date for HR
+  const formatHRDate = (date: Date) => format(date, 'dd.MM.yyyy', { locale: de });
+
+  // Add person 1 vacations
+  if (persons.person1?.vacationPlans) {
+    lines.push('\nPerson 1:');
+    persons.person1.vacationPlans.forEach((vacation: VacationPlan) => {
+      lines.push(
+        `Von: ${formatHRDate(vacation.start)}`,
+        `Bis: ${formatHRDate(vacation.end)}`,
+        `Bundesland: ${stateNames[vacation.state]}`,
+        ''
+      );
+    });
+  }
+
+  // Add person 2 vacations
+  if (persons.person2?.vacationPlans) {
+    lines.push('\nPerson 2:');
+    persons.person2.vacationPlans.forEach((vacation: VacationPlan) => {
+      lines.push(
+        `Von: ${formatHRDate(vacation.start)}`,
+        `Bis: ${formatHRDate(vacation.end)}`,
+        `Bundesland: ${stateNames[vacation.state]}`,
+        ''
+      );
+    });
+  }
+
+  return lines.join('\n');
+};
+
+// Generate holiday data
+const generateHolidayData = (holidays1: Holiday[], holidays2: Holiday[]) => {
+  const lines = ['Feiertagsübersicht 2025\n'];
+
+  // Helper to format date for holidays
+  const formatHolidayDate = (date: Date) => format(date, 'dd.MM.yyyy', { locale: de });
+
+  // Add person 1 holidays
+  lines.push('\nPerson 1:');
+  holidays1.forEach(holiday => {
+    lines.push(
+      `${formatHolidayDate(new Date(holiday.date))} - ${holiday.name}`,
+      `Typ: ${holiday.type}`,
+      holiday.state ? `Bundesland: ${stateNames[holiday.state]}` : '',
+      ''
+    );
+  });
+
+  // Add person 2 holidays if different
+  if (holidays2 && holidays2.length > 0) {
+    lines.push('\nPerson 2:');
+    holidays2.forEach(holiday => {
+      lines.push(
+        `${formatHolidayDate(new Date(holiday.date))} - ${holiday.name}`,
+        `Typ: ${holiday.type}`,
+        holiday.state ? `Bundesland: ${stateNames[holiday.state]}` : '',
+        ''
+      );
+    });
+  }
+
+  return lines.join('\n');
+};
+
+const StateSelector = React.forwardRef<HTMLSelectElement, {
   value: GermanState;
   onChange: (value: GermanState) => void;
   label: string;
   personId: 1 | 2;
-  ref?: React.RefObject<HTMLSelectElement>;
-}> = React.forwardRef(({ value, onChange, label, personId }, ref) => (
+}>(({ value, onChange, label, personId }, ref) => (
   <div className="flex items-center gap-2">
     <span className="text-sm font-medium text-gray-900">{label}</span>
     <select
@@ -47,6 +170,8 @@ export const MainLayout: React.FC = () => {
   const [selectedPersonId, setSelectedPersonId] = useState<1 | 2 | undefined>(undefined);
   const [showSecondPerson, setShowSecondPerson] = useState(false);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const { persons, updatePerson } = usePersonContext();
   
   // Add refs for focusing elements
@@ -210,6 +335,35 @@ export const MainLayout: React.FC = () => {
     };
   }, [calculateRequiredDays, findConnectedFreeDays]);
 
+  // Calculate efficiency for a person's vacations
+  const calculatePersonEfficiency = useCallback((
+    vacations: VacationPlan[],
+    holidays: Holiday[]
+  ) => {
+    if (!vacations?.length) return 1;
+    
+    let totalRequiredDays = 0;
+    let totalGainedDays = 0;
+    
+    vacations.forEach(vacation => {
+      const days = eachDayOfInterval({ start: vacation.start, end: vacation.end });
+      // Required days are workdays that aren't public holidays
+      const requiredDays = days.filter(d => 
+        !isWeekend(d) && !holidays.some(h => 
+          h.type === 'public' && isSameDay(new Date(h.date), d)
+        )
+      ).length;
+      
+      // Gained days are the total consecutive days off (including weekends and holidays)
+      const gainedDays = days.length;
+      
+      totalRequiredDays += requiredDays;
+      totalGainedDays += gainedDays;
+    });
+    
+    return totalRequiredDays > 0 ? totalGainedDays / totalRequiredDays : 1;
+  }, []);
+
   const renderPersonConfig = (personId: 1 | 2) => {
     const person = personId === 1 ? persons.person1 : persons.person2;
     
@@ -220,7 +374,7 @@ export const MainLayout: React.FC = () => {
         {/* State Selection */}
         <div className="flex items-center gap-2">
           <StateSelector
-            value={person?.selectedState || ''}
+            value={person?.selectedState || GermanState.BE}
             onChange={(value) => updatePerson(personId, { selectedState: value })}
             label={`Person ${personId}`}
             personId={personId}
@@ -336,8 +490,14 @@ export const MainLayout: React.FC = () => {
   const renderSidebarContent = (personId: 1 | 2) => {
     const person = personId === 1 ? persons.person1 : persons.person2;
     const { holidays: sidebarHolidays, bridgeDays } = personId === 1 ? person1BridgeDays : person2BridgeDays;
+    const colors = personId === 1 ? 'emerald' : 'cyan';
     
     if (personId === 2 && !showSecondPerson) return null;
+
+    const efficiency = calculatePersonEfficiency(
+      person?.vacationPlans || [],
+      [...(sidebarHolidays || []), ...(bridgeDays || [])]
+    );
 
     const handleVacationAdd = (start: Date, end: Date) => {
       const person = personId === 2 ? persons.person2 : persons.person1;
@@ -366,6 +526,32 @@ export const MainLayout: React.FC = () => {
             {renderLegend(personId)}
           </div>
         </div>
+
+        {/* Efficiency Score */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <DesktopEfficiencyScore efficiency={efficiency} personId={personId} />
+        </div>
+
+        {/* Vacation Days Input */}
+        <div className="flex items-center justify-between p-2 bg-white rounded-lg shadow-sm">
+          <span className="text-sm text-gray-600">Urlaubstage pro Jahr:</span>
+          <VacationDaysInput
+            value={person?.availableVacationDays || 30}
+            onChange={(days) => updatePerson(personId, { availableVacationDays: days })}
+            personId={personId}
+          />
+        </div>
+
+        {/* Add Vacation Button */}
+        <button
+          onClick={() => handleStartVacationSelection(personId)}
+          className={`w-full flex items-center justify-center gap-2 px-4 py-2 bg-${colors}-500 hover:bg-${colors}-600 text-white rounded-lg transition-colors`}
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Urlaub planen</span>
+        </button>
 
         {/* Selection Info */}
         {isSelectingVacation && selectedPersonId === personId && (
@@ -400,7 +586,7 @@ export const MainLayout: React.FC = () => {
             personId={personId}
             availableVacationDays={person?.availableVacationDays || 30}
             onAddVacation={handleVacationAdd}
-            state={person?.selectedState || ''}
+            state={person?.selectedState || GermanState.BE}
           />
         </div>
       </div>
@@ -433,6 +619,58 @@ export const MainLayout: React.FC = () => {
       vacationPlans: [...(person.vacationPlans || []), newVacation]
     });
   }, [selectedPersonId, persons, holidayData, calculateVacationEfficiency, updatePerson]);
+
+  const handleExport = async (type: 'ics' | 'hr' | 'celebration') => {
+    switch (type) {
+      case 'ics':
+        // Export as iCal
+        const icsData = generateICSData(persons);
+        downloadFile(icsData, 'urlaubsplan.ics', 'text/calendar');
+        break;
+      case 'hr':
+        // Export as HR format PDF
+        if (persons.person2?.vacationPlans) {
+          // If we have two persons, ask which one to export
+          const personId = await new Promise<1 | 2>((resolve) => {
+            const confirmPerson = window.confirm('Für Person 2 exportieren? (Abbrechen für Person 1)');
+            resolve(confirmPerson ? 2 : 1);
+          });
+
+          const hrPdf = ExportService.createHRDocument(
+            personId === 1 ? persons.person1.vacationPlans : persons.person2.vacationPlans,
+            personId,
+            personId === 1 ? holidayData.person1.holidays : holidayData.person2.holidays
+          );
+          await ExportService.downloadPDF(hrPdf, `urlaubsantrag_person${personId}.pdf`);
+        } else {
+          // If only person 1 exists, export directly
+          const hrPdf = ExportService.createHRDocument(
+            persons.person1.vacationPlans,
+            1,
+            holidayData.person1.holidays
+          );
+          await ExportService.downloadPDF(hrPdf, 'urlaubsantrag.pdf');
+        }
+        break;
+      case 'celebration':
+        // Export holidays as PDF
+        const celebrationPdf = ExportService.createCelebrationDocument(
+          persons.person1.vacationPlans,
+          1,
+          holidayData.person1.holidays,
+          persons.person2?.vacationPlans || [],
+          holidayData.person2.holidays || [],
+          {
+            person1State: persons.person1.selectedState,
+            person2State: persons.person2?.selectedState,
+            showSharedAnalysis: !!persons.person2?.selectedState
+          }
+        );
+        await ExportService.downloadPDF(celebrationPdf, 'urlaubsplanung.pdf');
+        break;
+    }
+    setShowExportModal(false);
+  };
 
   return (
     <AppWrapper
@@ -478,36 +716,42 @@ export const MainLayout: React.FC = () => {
           onClose={() => setShowKeyboardShortcuts(false)}
         />
         
+        <MobileExportModal
+          isOpen={showExportModal}
+          onClose={() => setShowExportModal(false)}
+          onExport={handleExport}
+          hasTwoPersons={!!persons.person2?.vacationPlans}
+        />
+
+        <TutorialModal
+          isOpen={showTutorial}
+          onClose={() => setShowTutorial(false)}
+        />
+        
         {/* Header */}
         <nav className="bg-white/80 backdrop-blur-sm shadow-sm border-b z-50">
-          <div className="max-w-full mx-4 h-12 flex items-center gap-8">
+          <div className="w-full px-2 h-12 flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-2 min-w-[80px]">
               <div className="w-7 h-7">
                 <img src="/favicon.svg" alt="Logo" className="w-full h-full" />
               </div>
               <span className="text-lg font-medium text-gray-900">
-                Urlaub {selectedPersonId === 2 ? "Person 2" : "Ich"}
+                Urlaub
               </span>
             </div>
 
-            {/* Person 1 Config */}
-            {renderPersonConfig(1)}
-
-            {/* Year */}
-            <div className="text-sm font-medium text-gray-600">2025</div>
-
-            {/* Two Person Toggle */}
-            <button
-              onClick={toggleSecondPerson}
-              className={`px-3 py-1 text-sm font-medium rounded-full transition-colors border ${
-                showSecondPerson
-                  ? 'bg-blue-500 text-white hover:bg-blue-600 border-transparent'
-                  : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
-              }`}
-              title={showSecondPerson ? "Zweite Person deaktivieren" : "Zweite Person aktivieren"}
-            >
-              <div className="flex items-center gap-2">
+            {/* Center Content */}
+            <div className="flex items-center gap-4">
+              {/* Person 2 Toggle */}
+              <button
+                onClick={toggleSecondPerson}
+                className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                  showSecondPerson
+                    ? 'bg-cyan-500 text-white hover:bg-cyan-600'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                     d={showSecondPerson 
@@ -516,20 +760,42 @@ export const MainLayout: React.FC = () => {
                   />
                 </svg>
                 <span>Person 2</span>
-              </div>
-            </button>
+              </button>
 
-            {/* Person 2 Config */}
-            {renderPersonConfig(2)}
+              {/* Year Display */}
+              <div className="text-sm font-medium text-gray-600">2025</div>
+            </div>
+
+            {/* Right Actions */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowExportModal(true)}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Export</span>
+              </button>
+
+              <button
+                onClick={() => setShowTutorial(true)}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Tutorial</span>
+              </button>
+            </div>
           </div>
         </nav>
 
         {/* Main Content */}
-        <main className="flex-1 max-w-full mx-4 py-2 flex gap-4 min-h-0">
-          {/* Left Sidebar */}
+        <main className="flex-1 w-full px-2 py-2 flex gap-4 min-h-0">
+          {/* Left Sidebar - Person 1 */}
           <aside className="w-80 space-y-2">
             {renderSidebarContent(1)}
-            {showSecondPerson && renderSidebarContent(2)}
           </aside>
 
           {/* Calendar */}
@@ -540,6 +806,13 @@ export const MainLayout: React.FC = () => {
               onVacationSelectComplete={handleVacationSelectComplete}
             />
           </div>
+
+          {/* Right Sidebar - Person 2 */}
+          {showSecondPerson && (
+            <aside className="w-80 space-y-2">
+              {renderSidebarContent(2)}
+            </aside>
+          )}
         </main>
       </div>
     </AppWrapper>

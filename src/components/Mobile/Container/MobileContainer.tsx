@@ -173,7 +173,7 @@ export const MobileContainer: React.FC<MobileContainerProps> = ({
 
   const handleExport = (type: 'ics' | 'hr' | 'celebration') => {
     ExportService.exportVacationPlan(
-      type === 'hr' ? vacationPlans : holidays,
+      vacationPlans,
       holidays,
       personId,
       type,

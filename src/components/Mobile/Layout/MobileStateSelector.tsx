@@ -2,40 +2,44 @@ import React from 'react';
 import { GermanState, stateNames } from '../../../types/GermanState';
 
 interface MobileStateSelectorProps {
-  value: GermanState;
-  onChange: (state: GermanState) => void;
-  accentColor: string;
+  selectedState: GermanState;
+  onStateChange: (state: GermanState) => void;
+  personId: 1 | 2;
 }
 
 export const MobileStateSelector: React.FC<MobileStateSelectorProps> = ({
-  value,
-  onChange,
-  accentColor
+  selectedState,
+  onStateChange,
+  personId
 }) => {
+  const accentColor = personId === 1 ? '#10b981' : '#06b6d4';
+  
   return (
-    <div className="px-4 py-2 border-t border-gray-200" role="region" aria-label="Bundesland-Auswahl">
-      <label htmlFor="state-select" className="sr-only">Bundesland auswählen</label>
-      <select
-        id="state-select"
-        value={value}
-        onChange={(e) => onChange(e.target.value as GermanState)}
-        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900
-          focus:outline-none focus:ring-2 transition-shadow appearance-none"
-        style={{ 
-          backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-          backgroundPosition: 'right 0.5rem center',
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: '1.5em 1.5em',
-          paddingRight: '2.5rem',
-          '--tw-ring-color': accentColor + '4D' // 30% opacity
-        } as React.CSSProperties}
-        aria-label="Bundesland auswählen"
-      >
-        <option value="" disabled>Bundesland wählen</option>
-        {Object.entries(GermanState).map(([key, value]) => (
-          <option key={key} value={value}>{stateNames[value as GermanState]}</option>
-        ))}
-      </select>
+    <div className="w-full" role="region" aria-label="Bundesland-Auswahl">
+      <div className="relative">
+        <select
+          id="state-select"
+          value={selectedState}
+          onChange={(e) => onStateChange(e.target.value as GermanState)}
+          className="w-full pl-3 pr-8 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900
+            focus:outline-none focus:ring-2 focus:border-transparent transition-shadow appearance-none"
+          style={{ 
+            '--tw-ring-color': accentColor + '4D',
+            '--tw-ring-opacity': 0.3
+          } as React.CSSProperties}
+          aria-label="Bundesland auswählen"
+        >
+          <option value="" disabled>Bundesland wählen</option>
+          {Object.entries(GermanState).map(([key, value]) => (
+            <option key={key} value={value}>{stateNames[value as GermanState]}</option>
+          ))}
+        </select>
+        <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+          <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
     </div>
   );
 }; 

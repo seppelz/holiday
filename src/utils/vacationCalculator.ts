@@ -12,7 +12,7 @@ export function calculateVacationDays(
   holidays: Holiday[]
 ): VacationDaysResult {
   let usedDays = 0;
-  let gainedDays = 0;
+  let totalFreeDays = 0;
 
   vacationPlans.forEach(vacation => {
     if (!vacation.isVisible) return;
@@ -20,10 +20,10 @@ export function calculateVacationDays(
     // Get all days in the vacation period
     const allDays = eachDayOfInterval({ start: vacation.start, end: vacation.end });
     
-    // Count workdays and gained days
+    // Count workdays and all free days (including vacation days)
     allDays.forEach(date => {
       if (isWeekend(date)) {
-        gainedDays++;
+        totalFreeDays++;
         return;
       }
 
@@ -32,15 +32,16 @@ export function calculateVacationDays(
       );
 
       if (isPublicHoliday) {
-        gainedDays++;
+        totalFreeDays++;
       } else {
         usedDays++;
+        totalFreeDays++; // Count vacation days as free days too
       }
     });
   });
 
   return {
     usedDays,
-    gainedDays
+    gainedDays: totalFreeDays // This now includes vacation days + weekends + holidays
   };
 } 
