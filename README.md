@@ -167,10 +167,10 @@ For detailed information about project management, contribution guidelines, and 
 - 📦 Zustand für State Management
 - 🏃 Vite als Build Tool
 - 🧪 Jest für Testing
-- Grundregel für die Zusammenarbeit: Du liest Dateien immer erst komplett und führst dann Optimierungen und Erweiterungen durch, damit wir keinen existierenden Code zerstören.Dies ist wichtig. Und bei Codeabschnitten immer informationen wie // ... rest of existing code.. hinzufügen oder voranstellen, damit kein Code verloren geht.
+- Grundregel für die Zusammenarbeit: Du liest Dateien immer erst komplett und führst dann Optimierungen und Erweiterungen durch, damit wir keinen existierenden Code zerstören.Dies ist wichtig. Und bei Codeabschnitten immer informationen wie // ... rest of existing code.. hinzuf��gen oder voranstellen, damit kein Code verloren geht.
 
 ## Roadmap
-1. Q1 2024
+1. Q1 2024 ✅
    - [x] Grundlegende Kalenderfunktionalität
    - [x] Bundesland-spezifische Feiertage
    - [x] Brückentag-Berechnung
@@ -184,15 +184,15 @@ For detailed information about project management, contribution guidelines, and 
    - [x] Korrekte Effizienzberechnung
    - [x] Schulferien-Integration
 
-2. Q2 2024
-   - [ ] Optimierte Urlaubsauswahl
-   - [ ] Erweiterte Personenfunktionen
+2. Q2 2024 🚧
+   - [x] PWA-Unterstützung
    - [ ] Mobile Optimierung
-   - [ ] PWA-Unterstützung
+     - [x] Separate Komponenten
+     - [x] Modernes Design
+     - [ ] Touch-Interaktion Testing
+     - [ ] Performance Optimierung
 
-3. Q3 2024
-   - [ ] Export-Funktionalität (PDF, iCal)
-   - [ ] Erweiterte Statistiken
+3. Post-Release Features ⏳
    - [ ] Team-Kalender Feature
    - [ ] Internationalisierung
 

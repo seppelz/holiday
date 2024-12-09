@@ -43,12 +43,11 @@ node src/scripts/fetchHolidays.mjs
 4. Update documentation if new years/states are added
 
 ### Current Focus
-- Mobile optimization implementation
-- Export functionality development
-- Extended statistics features
-- Bridge day calculations completed and tested
-- Efficiency calculations verified
-- School holiday integration optimized
+- Mobile optimization completion
+- PWA functionality verification
+- Production build optimization
+- Cross-device testing
+- Documentation updates
 
 ## Quick Start for Development Sessions
 
@@ -107,19 +106,18 @@ gh api graphql -f query='query {
    - Correct time period display
    - School holiday handling
 
-3. **Testing & Documentation** ✅
-   - Component tests
-   - Integration tests
-   - Updated documentation
-   - Type safety improvements
-   - Bridge day calculation tests
-   - Person 2 functionality tests
+3. **PWA & Offline** ✅
+   - Service worker implementation
+   - Offline functionality
+   - Install prompt
+   - Update notifications
+   - Data persistence
 
 4. **UI/UX & Performance** 🚧
    - Mobile optimization
-   - Enhanced UI/UX
+   - Touch interactions
    - Performance improvements
-   - Export functionality
+   - Cross-device testing
 
 ### Project Board Workflow
 1. **Columns**
