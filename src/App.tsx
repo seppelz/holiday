@@ -7,7 +7,7 @@ function App() {
   return (
     <NotificationProvider>
       <PersonProvider>
-        <MainLayout />
+        <MainLayout /> 
       </PersonProvider>
     </NotificationProvider>
   );
