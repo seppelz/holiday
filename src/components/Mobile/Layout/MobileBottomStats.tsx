@@ -1,7 +1,8 @@
 import React from 'react';
 import { Holiday } from '../../../types/holiday';
 import { VacationPlan } from '../../../types/vacationPlan';
-import { isWeekend, isSameDay } from 'date-fns';
+import { isWeekend, isSameDay, eachDayOfInterval, differenceInBusinessDays } from 'date-fns';
+import { holidayColors } from '../../../constants/colors';
 
 interface MobileBottomStatsProps {
   vacationPlans: VacationPlan[];
@@ -14,37 +15,64 @@ export const MobileBottomStats: React.FC<MobileBottomStatsProps> = ({
   holidays,
   personId
 }) => {
-  // Calculate total free days
-  const totalFreeDays = vacationPlans.reduce((total, vacation) => {
-    if (!vacation.isVisible) return total;
-    if (!vacation.efficiency) return total;
-    return total + vacation.efficiency.gainedDays;
-  }, 0);
+  const colors = personId === 1 ? holidayColors.person1.ui : holidayColors.person2.ui;
+  
+  // Calculate vacation days and additional free days
+  const stats = vacationPlans.reduce((acc, vacation) => {
+    if (!vacation.isVisible) return acc;
 
-  // Calculate used vacation days
-  const usedVacationDays = vacationPlans.reduce((total, vacation) => {
-    if (!vacation.isVisible) return total;
-    if (!vacation.efficiency) return total;
-    return total + vacation.efficiency.requiredDays;
-  }, 0);
+    const allDays = eachDayOfInterval({ start: vacation.start, end: vacation.end });
+    
+    // Count workdays that are not holidays as vacation days
+    const vacationDays = allDays.filter(date => {
+      if (isWeekend(date)) return false;
+      const isHoliday = holidays.some(h => 
+        h.type === 'public' && isSameDay(new Date(h.date), date)
+      );
+      return !isHoliday;
+    }).length;
+
+    // Count weekends and holidays as additional free days
+    const additionalFreeDays = allDays.filter(date => {
+      if (isWeekend(date)) return true;
+      return holidays.some(h => 
+        h.type === 'public' && isSameDay(new Date(h.date), date)
+      );
+    }).length;
+
+    return {
+      vacationDays: acc.vacationDays + vacationDays,
+      additionalFreeDays: acc.additionalFreeDays + additionalFreeDays
+    };
+  }, { vacationDays: 0, additionalFreeDays: 0 });
+
+  const totalFreeDays = stats.vacationDays + stats.additionalFreeDays;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 flex items-center justify-between">
+    <div className={`fixed bottom-0 left-0 right-0 bg-gradient-to-r ${
+      personId === 1 
+        ? 'from-emerald-200 to-emerald-100'
+        : 'from-cyan-200 to-cyan-100'
+    } border-t border-gray-200 px-4 py-3 flex items-center justify-between shadow-lg`}>
       <div className="flex items-center gap-2">
         <span className="text-sm text-gray-600">Freie Tage insgesamt:</span>
-        <span className={`text-sm font-medium ${
-          personId === 1 ? 'text-emerald-600' : 'text-cyan-600'
-        }`}>
+        <div className={`px-2 py-1 rounded-full ${
+          personId === 1 
+            ? 'bg-emerald-500 text-white'
+            : 'bg-cyan-500 text-white'
+        } font-medium text-sm`}>
           {totalFreeDays}
-        </span>
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <span className="text-sm text-gray-600">Urlaubstage:</span>
-        <span className={`text-sm font-medium ${
-          personId === 1 ? 'text-emerald-600' : 'text-cyan-600'
-        }`}>
-          {usedVacationDays}
-        </span>
+        <div className={`px-2 py-1 rounded-full ${
+          personId === 1 
+            ? 'bg-emerald-500 text-white'
+            : 'bg-cyan-500 text-white'
+        } font-medium text-sm`}>
+          {stats.vacationDays}
+        </div>
       </div>
     </div>
   );

@@ -345,6 +345,8 @@ export const MobileContainer: React.FC<MobileContainerProps> = ({
       actionBar={null}
       efficiency={efficiency}
       personId={personId}
+      vacationPlans={vacationPlans}
+      holidays={holidays}
     >
       <AnimatePresence mode="wait">
         {renderCurrentView()}
