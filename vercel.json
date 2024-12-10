@@ -9,6 +9,14 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "github": {
-    "silent": true
-  }
+    "silent": true,
+    "enabled": true,
+    "autoAlias": true
+  },
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/node"
+    }
+  ]
 }
