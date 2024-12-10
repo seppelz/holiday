@@ -1,5 +1,8 @@
 import React from 'react';
 import { MobileEfficiencyScore } from './MobileEfficiencyScore';
+import { MobileBottomStats } from './MobileBottomStats';
+import { Holiday } from '../../../types/holiday';
+import { VacationPlan } from '../../../types/vacationPlan';
 
 interface MobileLayoutProps {
   header: React.ReactNode;
@@ -10,6 +13,8 @@ interface MobileLayoutProps {
   children: React.ReactNode;
   efficiency?: number;
   personId: 1 | 2;
+  vacationPlans: VacationPlan[];
+  holidays: Holiday[];
 }
 
 export const MobileLayout: React.FC<MobileLayoutProps> = ({
@@ -20,7 +25,9 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
   actionBar,
   children,
   efficiency,
-  personId
+  personId,
+  vacationPlans,
+  holidays
 }) => {
   return (
     <div className="h-screen flex flex-col">
@@ -77,11 +84,18 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
 
       {/* Fixed Footer - Only Export Button */}
       <div 
-        className="flex-none"
+        className="flex-none pb-16"
         role="contentinfo"
       >
         {actionBar}
       </div>
+
+      {/* Bottom Stats */}
+      <MobileBottomStats
+        vacationPlans={vacationPlans}
+        holidays={holidays}
+        personId={personId}
+      />
 
       {/* Landmark navigation for screen readers */}
       <nav className="sr-only" aria-label="Seitenstruktur">
