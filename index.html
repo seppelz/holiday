@@ -1,13 +1,79 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <meta name="description" content="Optimiere deine Urlaubsplanung mit unserem intelligenten Tool. Finde die besten Brückentage und vermeide Verkehrsspitzen." />
+    <meta name="theme-color" content="#4f46e5" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <title>Holiday - Smarte Urlaubsplanung</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      let refreshing = false;
+
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', async () => {
+          try {
+            console.log('Starting service worker registration process...');
+
+            // First, unregister any existing service workers
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            console.log('Found existing service workers:', registrations.length);
+            
+            for (const registration of registrations) {
+              await registration.unregister();
+              console.log('Unregistered service worker');
+            }
+
+            // Register service worker
+            console.log('Registering service worker...');
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            console.log('ServiceWorker registration successful:', registration);
+            
+            // Handle updates
+            registration.addEventListener('updatefound', () => {
+              console.log('New service worker update found!');
+              const newWorker = registration.installing;
+              
+              newWorker.addEventListener('statechange', () => {
+                console.log('Service worker state:', newWorker.state);
+                if (newWorker.state === 'activated' && !refreshing) {
+                  refreshing = true;
+                  // Instead of automatic reload, dispatch an event that the app can handle
+                  window.dispatchEvent(new CustomEvent('swUpdated'));
+                }
+              });
+            });
+
+          } catch (err) {
+            console.error('ServiceWorker registration failed:', err);
+          }
+        });
+
+        // Handle service worker updates
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            console.log('Service worker controller changed, update available');
+            // Instead of reloading, dispatch an event
+            window.dispatchEvent(new CustomEvent('swControllerChange'));
+          }
+        });
+
+        // Log current controller
+        if (navigator.serviceWorker.controller) {
+          console.log('Current controller:', navigator.serviceWorker.controller);
+        } else {
+          console.log('No controller found');
+        }
+      } else {
+        console.log('Service workers are not supported');
+      }
+    </script>
   </body>
 </html>
