@@ -1,1 +1,92 @@
-if(!self.define){let e,i={};const n=(n,s)=>(n=new URL(n+".js",s).href,i[n]||new Promise((i=>{if("document"in self){const e=document.createElement("script");e.src=n,e.onload=i,document.head.appendChild(e)}else e=n,importScripts(n),i()})).then((()=>{let e=i[n];if(!e)throw new Error(`Module ${n} didn’t register its module`);return e})));self.define=(s,o)=>{const c=e||("document"in self?document.currentScript.src:"")||location.href;if(i[c])return;let a={};const r=e=>n(e,c),f={module:{uri:c},exports:a,require:r};i[c]=Promise.all(s.map((e=>f[e]||r(e)))).then((e=>(o(...e),a)))}}define(["./workbox-b833909e"],(function(e){"use strict";self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"200.html",revision:"77402f8b5d9252d25bd069be25312a4f"},{url:"404.html",revision:"11629df04c119a1688f22bae6130320c"},{url:"assets/html2canvas.esm-CBrSDip1.js",revision:null},{url:"assets/index-C8UjX9nc.css",revision:null},{url:"assets/index-DT2g8Rgu.js",revision:null},{url:"assets/index.es-D-L5BZSn.js",revision:null},{url:"assets/purify.es-a-CayzAK.js",revision:null},{url:"favicon.svg",revision:"9f6708b61422d2a101f8aaad48c1b626"},{url:"icons/icon-128x128.png",revision:"7a4767ae2508c9b2b5d3a2b4754a67a7"},{url:"icons/icon-144x144.png",revision:"8f7c0f4f74fbbf614a8a2d8bfaff8d5c"},{url:"icons/icon-152x152.png",revision:"d478a2a01b142eb65391c2f2499f1a9b"},{url:"icons/icon-192x192.png",revision:"c43f14d3c201b049b80abe8734d73720"},{url:"icons/icon-384x384.png",revision:"e0b4cc53ea3db4b5a3bd363606249d7a"},{url:"icons/icon-512x512.png",revision:"2a6e26032fb8a3fb134aa12c1ec9147d"},{url:"icons/icon-72x72.png",revision:"bf435ff2f84218d3f120f3c878e802cd"},{url:"icons/icon-96x96.png",revision:"4b317fbf0f6ce298988c254fd7bdb438"},{url:"index.html",revision:"a40f9aa48ae744d10f3e23bdf26723b6"},{url:"offline.html",revision:"e48b944095d9a1f582dff15022ebb7b2"},{url:"registerSW.js",revision:"d75471eb81b34c48b79cbc0188f67429"},{url:"screenshots/desktop.png",revision:"5d9184fb21b04862572b24209e17b872"},{url:"screenshots/mobile.png",revision:"b7a582eb462ab56fc08d84c469abaa7c"},{url:"vite.svg",revision:"8e3a10e157f75ada21ab742c022d5430"},{url:"favicon.svg",revision:"9f6708b61422d2a101f8aaad48c1b626"},{url:"icons/icon-128x128.png",revision:"7a4767ae2508c9b2b5d3a2b4754a67a7"},{url:"icons/icon-144x144.png",revision:"8f7c0f4f74fbbf614a8a2d8bfaff8d5c"},{url:"icons/icon-152x152.png",revision:"d478a2a01b142eb65391c2f2499f1a9b"},{url:"icons/icon-192x192.png",revision:"c43f14d3c201b049b80abe8734d73720"},{url:"icons/icon-384x384.png",revision:"e0b4cc53ea3db4b5a3bd363606249d7a"},{url:"icons/icon-512x512.png",revision:"2a6e26032fb8a3fb134aa12c1ec9147d"},{url:"icons/icon-72x72.png",revision:"bf435ff2f84218d3f120f3c878e802cd"},{url:"icons/icon-96x96.png",revision:"4b317fbf0f6ce298988c254fd7bdb438"},{url:"manifest.webmanifest",revision:"4deed43a37b71aeb912a58f8d5f7a25b"}],{}),e.cleanupOutdatedCaches(),e.registerRoute(new e.NavigationRoute(e.createHandlerBoundToURL("/holiday/index.html"),{denylist:[/^\/holiday\/api/]})),e.registerRoute(/^https:\/\/fonts\.googleapis\.com\/.*/i,new e.CacheFirst({cacheName:"google-fonts-cache",plugins:[new e.ExpirationPlugin({maxEntries:10,maxAgeSeconds:31536e3}),new e.CacheableResponsePlugin({statuses:[0,200]})]}),"GET"),e.registerRoute(/^https:\/\/fonts\.gstatic\.com\/.*/i,new e.CacheFirst({cacheName:"gstatic-fonts-cache",plugins:[new e.ExpirationPlugin({maxEntries:10,maxAgeSeconds:31536e3}),new e.CacheableResponsePlugin({statuses:[0,200]})]}),"GET")}));
+const CACHE_NAME = 'holiday-cache-v1';
+const OFFLINE_URL = '/offline.html';
+
+// Add app shell files to cache
+const APP_SHELL = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/favicon.svg',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png'
+];
+
+// Cache first, then network strategy
+const cacheFirst = async (request) => {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+  if (cached) {
+    return cached;
+  }
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      await cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    // If offline and requesting a page, return offline page
+    if (request.mode === 'navigate') {
+      return cache.match(OFFLINE_URL);
+    }
+    throw error;
+  }
+};
+
+// Install event - cache initial resources
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    Promise.all([
+      caches.open(CACHE_NAME).then((cache) => {
+        console.log('Caching app shell');
+        return cache.addAll(APP_SHELL);
+      }),
+      // Cache offline page separately
+      caches.open(CACHE_NAME).then((cache) => {
+        console.log('Caching offline page');
+        return cache.add(OFFLINE_URL);
+      })
+    ]).then(() => {
+      // Skip waiting to activate the new service worker immediately
+      return self.skipWaiting();
+    })
+  );
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    Promise.all([
+      // Clean up old caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      // Enable immediate use of the new service worker
+      self.clients.claim()
+    ])
+  );
+});
+
+// Fetch event - serve from cache, fallback to network
+self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Skip browser-sync and websocket requests
+  if (event.request.url.includes('browser-sync') || 
+      event.request.url.includes('ws') ||
+      event.request.url.includes('sockjs-node')) {
+    return;
+  }
+
+  event.respondWith(cacheFirst(event.request));
+}); 
