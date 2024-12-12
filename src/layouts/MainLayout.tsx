@@ -16,6 +16,8 @@ import { MobileExportModal } from '../components/Mobile/Export/MobileExportModal
 import { ExportService } from '../services/exportService';
 import { TutorialModal } from '../components/Mobile/Tutorial/TutorialModal';
 import { DesktopEfficiencyScore } from '../components/Desktop/DesktopEfficiencyScore';
+import { useFirstTimeUser } from '../hooks/useFirstTimeUser';
+import { useTheme } from '../hooks/useTheme';
 
 // Helper function to download files
 const downloadFile = (content: string, filename: string, type: string) => {
@@ -173,6 +175,8 @@ export const MainLayout: React.FC = () => {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const { persons, updatePerson } = usePersonContext();
+  const { isFirstTimeUser, markTutorialAsSeen } = useFirstTimeUser();
+  const theme = useTheme();
   
   // Add refs for focusing elements
   const person2StateRef = useRef<HTMLSelectElement>(null);
@@ -412,8 +416,8 @@ export const MainLayout: React.FC = () => {
                 }, 100);
               }}
               className={`px-3 py-1 text-sm font-medium text-white rounded-full transition-colors ${
-                personId === 1
-                  ? 'bg-emerald-500 hover:bg-emerald-600'
+                personId === 1 
+                  ? 'bg-emerald-500 hover:bg-emerald-600' 
                   : 'bg-cyan-500 hover:bg-cyan-600'
               }`}
             >
@@ -465,23 +469,40 @@ export const MainLayout: React.FC = () => {
 
   const renderLegend = (personId: 1 | 2) => {
     const colors = {
-      holiday: personId === 1 ? '#EF4444' : '#A855F7',     // red-500 : purple-500
-      bridge: personId === 1 ? '#FB923C' : '#EC4899',      // orange-400 : pink-400
-      school: personId === 1 ? '#6366F1' : '#EAB308',      // indigo-500 : yellow-500
-      vacation: personId === 1 ? '#22C55E' : '#3B82F6'     // green-500 : blue-500
+      holiday: {
+        bg: 'bg-red-500',
+        text: 'text-white'
+      },
+      bridge: {
+        bg: 'bg-orange-500',
+        text: 'text-white'
+      },
+      school: {
+        bg: 'bg-purple-500',
+        text: 'text-white'
+      },
+      vacation: personId === 1 
+        ? {
+            bg: 'bg-emerald-500',
+            text: 'text-white'
+          }
+        : {
+            bg: 'bg-cyan-500',
+            text: 'text-white'
+          }
     };
 
     return (
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded" style={{ backgroundColor: colors.holiday }} />
-          <div className="w-2.5 h-2.5 rounded" style={{ backgroundColor: colors.bridge }} />
-          <span className="text-xs text-gray-600">Feiertage & Brücken</span>
+          <div className={`w-2.5 h-2.5 rounded ${colors.holiday.bg}`} />
+          <div className={`w-2.5 h-2.5 rounded ${colors.bridge.bg}`} />
+          <span className={theme.text.secondary}>Feiertage & Brücken</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded" style={{ backgroundColor: colors.school }} />
-          <div className="w-2.5 h-2.5 rounded" style={{ backgroundColor: colors.vacation }} />
-          <span className="text-xs text-gray-600">Schule & Urlaub</span>
+          <div className={`w-2.5 h-2.5 rounded ${colors.school.bg}`} />
+          <div className={`w-2.5 h-2.5 rounded ${colors.vacation.bg}`} />
+          <span className={theme.text.secondary}>Schule & Urlaub</span>
         </div>
       </div>
     );
@@ -490,7 +511,7 @@ export const MainLayout: React.FC = () => {
   const renderSidebarContent = (personId: 1 | 2) => {
     const person = personId === 1 ? persons.person1 : persons.person2;
     const { holidays: sidebarHolidays, bridgeDays } = personId === 1 ? person1BridgeDays : person2BridgeDays;
-    const colors = personId === 1 ? 'emerald' : 'cyan';
+    const personColor = personId === 1 ? 'emerald' : 'cyan';
     
     if (personId === 2 && !showSecondPerson) return null;
 
@@ -498,6 +519,12 @@ export const MainLayout: React.FC = () => {
       person?.vacationPlans || [],
       [...(sidebarHolidays || []), ...(bridgeDays || [])]
     );
+
+    // Calculate used vacation days
+    const usedDays = person?.vacationPlans?.reduce((sum, vacation) => {
+      const days = calculateRequiredDays(vacation.start, vacation.end, [...(sidebarHolidays || []), ...(bridgeDays || [])]);
+      return sum + days;
+    }, 0) || 0;
 
     const handleVacationAdd = (start: Date, end: Date) => {
       const person = personId === 2 ? persons.person2 : persons.person1;
@@ -520,47 +547,49 @@ export const MainLayout: React.FC = () => {
     return (
       <div className="space-y-3" data-person={personId}>
         {/* Person Header with Legend */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h3 className="font-medium text-gray-900">{personId === 1 ? 'Ich' : 'Person 2'}</h3>
-            {renderLegend(personId)}
+        <div className={`${theme.card.base} p-4`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <h3 className={theme.text.heading}>{personId === 1 ? 'Ich' : 'Person 2'}</h3>
+              {renderLegend(personId)}
+            </div>
           </div>
         </div>
 
         {/* Efficiency Score */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className={`${theme.card.base} overflow-hidden`}>
           <DesktopEfficiencyScore efficiency={efficiency} personId={personId} />
         </div>
 
         {/* Vacation Days Input */}
-        <div className="flex items-center justify-between p-2 bg-white rounded-lg shadow-sm">
-          <span className="text-sm text-gray-600">Urlaubstage pro Jahr:</span>
-          <VacationDaysInput
-            value={person?.availableVacationDays || 30}
-            onChange={(days) => updatePerson(personId, { availableVacationDays: days })}
-            personId={personId}
-          />
+        <div className={`${theme.card.base} p-4 flex items-center justify-between`}>
+          <div className="flex items-center gap-2">
+            <span className={theme.text.body}>Urlaubstage pro Jahr:</span>
+            <VacationDaysInput
+              value={person?.availableVacationDays || 30}
+              onChange={(days) => updatePerson(personId, { availableVacationDays: days })}
+              personId={personId}
+            />
+          </div>
+          <span className={`${theme.text.body} font-medium ${usedDays > (person?.availableVacationDays || 30) ? 'text-red-600' : personId === 1 ? 'text-emerald-600' : 'text-cyan-600'}`}>
+            {usedDays} verplant
+          </span>
         </div>
 
         {/* Add Vacation Button */}
         <button
           onClick={() => handleStartVacationSelection(personId)}
-          className={`w-full flex items-center justify-center gap-2 px-4 py-2 bg-${colors}-500 hover:bg-${colors}-600 text-white rounded-lg transition-colors`}
+          className={`w-full flex items-center justify-center gap-2 ${theme.button.base} ${
+            personId === 1 
+              ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
+              : 'bg-cyan-500 hover:bg-cyan-600 text-white'
+          }`}
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           <span>Urlaub planen</span>
         </button>
-
-        {/* Selection Info */}
-        {isSelectingVacation && selectedPersonId === personId && (
-          <div className={`${
-            personId === 1 ? 'bg-green-50 text-green-800' : 'bg-blue-50 text-blue-800'
-          } p-2 rounded-lg text-xs`}>
-            Bitte wählen Sie das Startdatum Ihres Urlaubs
-          </div>
-        )}
 
         {/* Vacation List with Recommendations */}
         <div ref={vacationListRef} data-person={personId} className="focus-within:outline-none">
@@ -672,6 +701,32 @@ export const MainLayout: React.FC = () => {
     setShowExportModal(false);
   };
 
+  // Show tutorial for first-time users
+  useEffect(() => {
+    if (isFirstTimeUser) {
+      setShowTutorial(true);
+    }
+  }, [isFirstTimeUser]);
+
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+    markTutorialAsSeen();
+  };
+
+  const handleStateSelect = (state: GermanState) => {
+    updatePerson(1, {
+      ...persons.person1,
+      selectedState: state
+    });
+  };
+
+  const handleVacationDaysSet = (days: number) => {
+    updatePerson(1, {
+      ...persons.person1,
+      availableVacationDays: days
+    });
+  };
+
   return (
     <AppWrapper
       mobileProps={persons.person1?.selectedState ? {
@@ -725,7 +780,9 @@ export const MainLayout: React.FC = () => {
 
         <TutorialModal
           isOpen={showTutorial}
-          onClose={() => setShowTutorial(false)}
+          onClose={handleTutorialClose}
+          onStateSelect={handleStateSelect}
+          onVacationDaysSet={handleVacationDaysSet}
         />
         
         {/* Header */}
