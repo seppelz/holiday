@@ -4,10 +4,10 @@ import { de } from 'date-fns/locale';
 import { VacationPlan } from '../types/vacationPlan';
 import { GermanState } from '../types/GermanState';
 import { Holiday } from '../types/holiday';
-import { analyzeVacationOpportunities, VacationRecommendation } from '../utils/smartVacationAnalysis';
+import { analyzeVacationOpportunities } from '../utils/smartVacationAnalysis';
 import { useTheme } from '../hooks/useTheme';
 import { calculateVacationDays } from '../utils/vacationCalculator';
-import { VacationDaysInput } from '../components/VacationDaysInput';
+import styles from './VacationList.module.css';
 
 interface VacationListProps {
   vacations: VacationPlan[];
@@ -19,7 +19,6 @@ interface VacationListProps {
   bridgeDays?: Holiday[];
   onAddVacation?: (start: Date, end: Date) => void;
   availableVacationDays?: number;
-  onAvailableDaysChange?: (days: number) => void;
   state: GermanState;
 }
 
@@ -97,7 +96,6 @@ export const VacationList: React.FC<VacationListProps> = ({
   bridgeDays = [],
   onAddVacation,
   availableVacationDays = 30,
-  onAvailableDaysChange,
   state,
 }) => {
   const theme = useTheme();
@@ -185,10 +183,10 @@ export const VacationList: React.FC<VacationListProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full relative">
+    <div className="flex flex-col h-full">
       {/* Bridge Day Opportunities */}
       {enhancedRecommendations.length > 0 && (
-        <div className="mt-2 flex-none">
+        <div className="flex-none">
           <h4 className={`text-xs font-medium mb-1 ${personId === 1 ? 'text-emerald-600' : 'text-cyan-600'}`}>
             Brückentag-Möglichkeiten
           </h4>
@@ -221,73 +219,83 @@ export const VacationList: React.FC<VacationListProps> = ({
         </div>
       )}
 
-      {/* Planned Vacations - Scrollable */}
-      <div className="flex flex-col flex-1 mt-2 min-h-0 pb-[88px]">
-        <h4 className={`text-xs font-medium mb-1 ${personId === 1 ? 'text-emerald-600' : 'text-cyan-600'}`}>
-          Geplante Urlaube
-        </h4>
-        <div className="overflow-y-auto flex-1 space-y-0.5">
+      {/* Planned Vacations - Enhanced Scrollable Area */}
+      <div className={styles.vacationList}>
+        <div className={styles.vacationListHeader}>
+          <h4 
+            className={styles.vacationListTitle}
+            style={{ '--person-color': personId === 1 ? '#059669' : '#0891b2' } as React.CSSProperties}
+          >
+            Geplante Urlaube
+          </h4>
+          <span className={styles.vacationListCount}>
+            {vacations.length} {vacations.length === 1 ? 'Urlaub' : 'Urlaube'}
+          </span>
+        </div>
+
+        <div className={styles.vacationListScroll}>
           {vacations.map((vacation) => {
             const matchingDays = getMatchingDays(vacation);
+            const stats = vacationStats[vacation.id];
+            
             return (
               <div
                 key={vacation.id}
-                className={`${theme.card.base} flex items-center justify-between py-1.5 px-3 transition-colors ${
-                  vacation.isVisible 
-                    ? personId === 1 ? 'bg-emerald-50' : 'bg-cyan-50'
-                    : 'bg-gray-50'
-                }`}
+                className={`${styles.vacationItem} ${vacation.isVisible ? styles.visible : ''}`}
+                style={{ 
+                  '--person-bg': personId === 1 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(6, 182, 212, 0.1)',
+                  '--person-border': personId === 1 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(6, 182, 212, 0.2)'
+                } as React.CSSProperties}
               >
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className={styles.vacationToggle}>
                   <input
                     type="checkbox"
                     className="sr-only peer"
                     checked={vacation.isVisible}
                     onChange={() => onToggleVisibility(vacation.id)}
                   />
-                  <div className={`w-6 h-3 rounded-full peer bg-gray-200 peer-checked:${
+                  <div className={`w-8 h-4 rounded-full peer bg-gray-200 peer-checked:${
                     personId === 1 ? 'bg-emerald-500' : 'bg-cyan-500'
-                  } peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-2.5 after:w-2.5 after:transition-all`}></div>
+                  } peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all`}></div>
                 </label>
 
-                <div className="flex-1 ml-2">
-                  <div className="flex items-center justify-between">
-                    <div className={`${theme.text.body} text-sm`}>
-                      {format(vacationStats[vacation.id].displayStart, 'd.M.', { locale: de })} - {format(vacationStats[vacation.id].displayEnd, 'd.M.yy', { locale: de })}
-                      <span className={`${theme.text.secondary} text-sm ml-2`}>
-                        ({vacationStats[vacation.id].requiredDays}d = {vacationStats[vacation.id].gainedDays}d)
+                <div className={styles.vacationContent}>
+                  <div className={styles.vacationDate}>
+                    {format(stats.displayStart, 'd.M.', { locale: de })} - {format(stats.displayEnd, 'd.M.yy', { locale: de })}
+                  </div>
+                  <div className={styles.vacationStats}>
+                    <span className={styles.vacationStat}>
+                      {stats.requiredDays}d = {stats.gainedDays}d
+                    </span>
+                    {matchingDays > 0 && (
+                      <span className={styles.sharedDays}>
+                        ❤️ {matchingDays}d gemeinsam
                       </span>
-                      {matchingDays > 0 && (
-                        <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
-                          {matchingDays}d gemeinsam
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => onRemove(vacation.id)}
-                      className={`${theme.button.icon} ml-2 p-1`}
-                      title="Löschen"
-                    >
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                    )}
                   </div>
                 </div>
+
+                <button
+                  onClick={() => onRemove(vacation.id)}
+                  className={styles.deleteButton}
+                  title="Löschen"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
             );
           })}
           {vacations.length === 0 && (
-            <div className={`${theme.text.secondary} text-sm`}>
+            <div className={`${theme.text.secondary} text-sm text-center py-4`}>
               Noch keine Urlaube geplant
             </div>
           )}
         </div>
-      </div>
 
-      {/* Total Free Days Summary - Sticky at bottom */}
-      <div className={`${theme.card.base} absolute bottom-2 left-0 right-0 bg-white`}>
-        <div className="px-3 py-2 bg-gradient-to-r from-gray-50 to-white">
+        {/* Total Free Days Summary - Inside the list container */}
+        <div className={styles.summary}>
           <div className="flex items-center justify-between">
             <div>
               <h4 className={`${theme.text.heading} text-sm`}>Freie Tage insgesamt</h4>
