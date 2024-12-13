@@ -1,5 +1,6 @@
 import React from 'react';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useTheme } from '../hooks/useTheme';
 import { MobileContainer } from './Mobile/Container/MobileContainer';
 import { Holiday, BridgeDay } from '../types/holiday';
 import { GermanState } from '../types/GermanState';
@@ -30,6 +31,7 @@ export const AppWrapper: React.FC<AppWrapperProps> = ({
   mobileProps,
 }) => {
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const theme = useTheme();
 
   return (
     <>
@@ -49,8 +51,8 @@ export const AppWrapper: React.FC<AppWrapperProps> = ({
           otherPersonVacations={mobileProps.otherPersonVacations}
         />
       ) : (
-        <div className="min-h-screen bg-gray-50">
-          <div className="w-full">
+        <div className={`min-h-screen bg-gradient-to-br from-beach-sand/40 to-beach-ocean/5 ${theme.effects.transitions.slow}`}>
+          <div className={`w-full ${theme.effects.glass.light} backdrop-blur-sm min-h-screen`}>
             {children}
           </div>
         </div>

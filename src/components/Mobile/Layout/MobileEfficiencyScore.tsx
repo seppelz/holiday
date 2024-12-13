@@ -23,12 +23,12 @@ export const MobileEfficiencyScore: React.FC<MobileEfficiencyScoreProps> = ({
   const progressPercentage = Math.min(100, (efficiency / 5) * 100);
 
   return (
-    <div className="px-4 py-3 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+    <div className="px-4 py-2 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">Effizienz</span>
           <div 
-            className={`px-2 py-1 rounded-full text-sm font-medium bg-${accentColor}-50 text-${accentColor}-600`}
+            className={`px-1.5 py-0.5 rounded-full text-sm font-medium bg-${accentColor}-50 text-${accentColor}-600`}
             role="status"
             aria-label={`Effizienz Score: ${percentage}%`}
           >
@@ -47,7 +47,7 @@ export const MobileEfficiencyScore: React.FC<MobileEfficiencyScoreProps> = ({
         </div>
       </div>
       
-      <div className="mt-2 relative">
+      <div className="mt-1 relative">
         <div 
           className="h-2 bg-gray-100 rounded-full overflow-hidden"
           role="progressbar"

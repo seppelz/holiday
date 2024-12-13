@@ -3,6 +3,7 @@ import { format, isWeekend, isSameDay, isWithinInterval, isBefore, startOfDay } 
 import { de } from 'date-fns/locale';
 import { Holiday } from '../../types/holiday';
 import { parseDateString } from '../../utils/dateUtils';
+import { useTheme } from '../../hooks/useTheme';
 
 interface DateRange {
   start: Date;
@@ -30,6 +31,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   disabledDates = [],
   tabIndex = 0
 }) => {
+  const theme = useTheme();
   const today = startOfDay(new Date());
 
   const getDaysInMonth = (date: Date) => {
@@ -77,7 +79,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   };
 
   const getDayClasses = (date: Date) => {
-    const baseClasses = 'w-8 h-8 flex items-center justify-center rounded-full text-sm transition-all';
+    const baseClasses = `w-8 h-8 flex items-center justify-center ${theme.calendar.day.base} text-sm relative`;
     const classes = [baseClasses];
 
     const isDisabled = isDateDisabled(date);
@@ -91,20 +93,26 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
     );
 
     if (isDisabled) {
-      classes.push('text-gray-300 cursor-not-allowed');
+      classes.push('text-neutral-300 cursor-not-allowed');
       if (isBooked) {
-        classes.push('bg-gray-200');
+        classes.push('bg-neutral-100');
       }
     } else {
-      classes.push('cursor-pointer hover:bg-gray-100');
+      classes.push('cursor-pointer hover:bg-neutral-100');
       if (isStart || isEnd) {
-        classes.push('bg-emerald-500 text-white');
+        classes.push('bg-emerald-500 text-white hover:bg-emerald-600');
       } else if (isInRange) {
-        classes.push('bg-emerald-100');
+        classes.push('bg-emerald-100 text-emerald-700');
       } else if (holiday) {
-        classes.push(type === 'bridge' ? 'bg-orange-100' : 'bg-red-100');
+        if (type === 'bridge') {
+          classes.push('bg-orange-100 text-orange-700');
+        } else if (type === 'public') {
+          classes.push('bg-red-100 text-red-700');
+        } else if (type === 'school') {
+          classes.push('bg-purple-100 text-purple-700');
+        }
       } else if (isWeekendDay) {
-        classes.push('text-gray-500');
+        classes.push('text-neutral-500');
       }
     }
 
@@ -112,17 +120,17 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   };
 
   const days = getDaysInMonth(month);
-  const firstDayOffset = days[0].getDay() || 7; // Convert Sunday (0) to 7
+  const firstDayOffset = days[0].getDay() || 7;
 
   return (
-    <div>
-      <div className="text-sm font-medium text-gray-900 mb-2 text-center">
+    <div className={theme.calendar.container}>
+      <div className={`${theme.text.heading} mb-2 text-center text-sm`}>
         {format(month, 'MMMM yyyy', { locale: de })}
       </div>
       <div className="grid grid-cols-7 gap-1">
         {/* Weekday headers */}
         {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(day => (
-          <div key={day} className="text-xs font-medium text-gray-500 h-8 flex items-center justify-center">
+          <div key={day} className={`text-xs font-medium ${theme.text.body} h-8 flex items-center justify-center`}>
             {day}
           </div>
         ))}

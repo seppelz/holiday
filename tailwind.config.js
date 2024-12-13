@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+import { colors } from './src/theme/colors';
+
 export default {
   content: [
     './*.html',
@@ -16,8 +18,20 @@ export default {
       },
     },
     extend: {
+      colors: {
+        beach: colors.primary.beach,
+        ui: colors.primary.ui,
+        holiday: colors.secondary,
+        neutral: colors.neutral,
+      },
       animation: {
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
+      backdropBlur: {
+        xs: '2px',
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
       }
     },
   },

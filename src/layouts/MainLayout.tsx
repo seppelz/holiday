@@ -18,6 +18,7 @@ import { TutorialModal } from '../components/Mobile/Tutorial/TutorialModal';
 import { DesktopEfficiencyScore } from '../components/Desktop/DesktopEfficiencyScore';
 import { useFirstTimeUser } from '../hooks/useFirstTimeUser';
 import { useTheme } from '../hooks/useTheme';
+import { AppNavbar } from '../components/Navigation/AppNavbar';
 
 // Helper function to download files
 const downloadFile = (content: string, filename: string, type: string) => {
@@ -785,71 +786,19 @@ export const MainLayout: React.FC = () => {
           onVacationDaysSet={handleVacationDaysSet}
         />
         
-        {/* Header */}
-        <nav className="bg-white/80 backdrop-blur-sm shadow-sm border-b z-50">
-          <div className="w-full px-2 h-12 flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center gap-2 min-w-[80px]">
-              <div className="w-7 h-7">
-                <img src="/favicon.svg" alt="Logo" className="w-full h-full" />
-              </div>
-              <span className="text-lg font-medium text-gray-900">
-                Urlaub
-              </span>
-            </div>
+        <AppNavbar
+          selectedState={persons.person1?.selectedState || null}
+          onStateChange={(state) => state && updatePerson(1, { selectedState: state })}
+          onTogglePerson2={toggleSecondPerson}
+          showPerson2={showSecondPerson}
+          onShowTutorial={() => setShowTutorial(true)}
+          onExport={() => setShowExportModal(true)}
+          person2State={persons.person2?.selectedState || null}
+          onPerson2StateChange={(state) => state && updatePerson(2, { selectedState: state })}
+        />
 
-            {/* Center Content */}
-            <div className="flex items-center gap-4">
-              {/* Person 2 Toggle */}
-              <button
-                onClick={toggleSecondPerson}
-                className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                  showSecondPerson
-                    ? 'bg-cyan-500 text-white hover:bg-cyan-600'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                    d={showSecondPerson 
-                      ? "M20 12H4" 
-                      : "M12 4v16m8-8H4"} 
-                  />
-                </svg>
-                <span>Person 2</span>
-              </button>
-
-              {/* Year Display */}
-              <div className="text-sm font-medium text-gray-600">2025</div>
-            </div>
-
-            {/* Right Actions */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowExportModal(true)}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                <span>Export</span>
-              </button>
-
-              <button
-                onClick={() => setShowTutorial(true)}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Tutorial</span>
-              </button>
-            </div>
-          </div>
-        </nav>
-
-        {/* Main Content */}
-        <main className="flex-1 w-full px-2 py-2 flex gap-4 min-h-0">
+        {/* Main Content - Added pt-16 (64px) to account for navbar height */}
+        <main className="flex-1 w-full px-2 pt-16 pb-2 flex gap-4 min-h-0">
           {/* Left Sidebar - Person 1 */}
           <aside className="w-80 space-y-2">
             {renderSidebarContent(1)}

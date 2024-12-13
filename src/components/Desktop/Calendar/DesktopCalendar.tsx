@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { format, isWeekend, isSameDay, isWithinInterval, isBefore, startOfDay, addMonths, addDays, addWeeks } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { BaseCalendarProps, useCalendar } from '../../Shared/Calendar/BaseCalendar';
-import { holidayColors, gradientColors } from '../../../constants/colors';
+import { useTheme } from '../../../hooks/useTheme';
 import { Holiday, BridgeDay } from '../../../types/holiday';
 import { parseDateString } from '../../../utils/dateUtils';
 
@@ -46,6 +46,7 @@ const DateTooltip: React.FC<DateTooltipProps> = ({
   vacationInfo,
   isSelectingVacation
 }) => {
+  const theme = useTheme();
   const items: { icon: string; text: string; color: string }[] = [];
 
   // Add holiday information
@@ -53,7 +54,7 @@ const DateTooltip: React.FC<DateTooltipProps> = ({
     items.push({
       icon: '🎉',
       text: `Feiertag: ${holidayTypes.firstState.holiday.name}`,
-      color: 'text-purple-700'
+      color: theme.colors.secondary.holiday
     });
   }
 
@@ -62,14 +63,14 @@ const DateTooltip: React.FC<DateTooltipProps> = ({
     items.push({
       icon: '🌉',
       text: 'Brückentag Person 1',
-      color: 'text-orange-700'
+      color: theme.colors.secondary.bridge
     });
   }
   if (holidayTypes.secondState.type === 'bridge') {
     items.push({
       icon: '🌉',
       text: 'Brückentag Person 2',
-      color: 'text-orange-700'
+      color: theme.colors.secondary.bridge
     });
   }
 
@@ -78,21 +79,21 @@ const DateTooltip: React.FC<DateTooltipProps> = ({
     items.push({
       icon: '✈️',
       text: 'Gemeinsamer Urlaub',
-      color: 'text-blue-700'
+      color: theme.colors.primary.beach.ocean
     });
   } else {
     if (vacationInfo.person1Vacation) {
       items.push({
         icon: '🏖️',
         text: 'Urlaub Person 1',
-        color: 'text-green-700'
+        color: theme.colors.primary.ui.person1
       });
     }
     if (vacationInfo.person2Vacation) {
       items.push({
         icon: '🏖️',
         text: 'Urlaub Person 2',
-        color: 'text-purple-700'
+        color: theme.colors.primary.ui.person2
       });
     }
   }
@@ -103,9 +104,9 @@ const DateTooltip: React.FC<DateTooltipProps> = ({
 
   return (
     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50">
-      <div className="bg-white rounded-lg shadow-lg p-2 text-sm">
+      <div className={`${theme.effects.glass.light} ${theme.effects.rounded.lg} ${theme.effects.shadows.lg} p-2 text-sm`}>
         {items.map((item, index) => (
-          <div key={index} className={`flex items-center gap-2 ${item.color} whitespace-nowrap`}>
+          <div key={index} className={`flex items-center gap-2 text-[${item.color}] whitespace-nowrap ${theme.effects.transitions.default}`}>
             <span>{item.icon}</span>
             <span>{item.text}</span>
           </div>
@@ -115,7 +116,23 @@ const DateTooltip: React.FC<DateTooltipProps> = ({
   );
 };
 
+const getHolidayColor = (type: string, theme: any, personId: 1 | 2) => {
+  switch (type) {
+    case 'public':
+      return `bg-red-100 text-red-700`;
+    case 'bridge':
+      return `bg-orange-100 text-orange-700`;
+    case 'school':
+      return `bg-purple-100 text-purple-700`;
+    default:
+      return personId === 1 
+        ? `bg-emerald-100 text-emerald-700`
+        : `bg-cyan-100 text-cyan-700`;
+  }
+};
+
 export const DesktopCalendar: React.FC<ExtendedBaseCalendarProps> = (props) => {
+  const theme = useTheme();
   const {
     state,
     handleDateSelect,
@@ -428,107 +445,87 @@ export const DesktopCalendar: React.FC<ExtendedBaseCalendarProps> = (props) => {
     const vacationInfo = props.getDateVacationInfo(date);
 
     // Base classes with focus outline always visible
-    const baseClasses = "flex items-center justify-center rounded-full text-sm transition-colors relative";
+    const baseClasses = `flex items-center justify-center ${theme.calendar.day.base} text-sm relative`;
     
     // Focus classes with high contrast and larger offset
     const focusClasses = isFocused 
-      ? 'outline outline-2 outline-offset-2 outline-blue-600 ring-2 ring-white ring-offset-2 ring-offset-white z-20' 
+      ? `outline outline-2 outline-offset-2 outline-blue-600 ring-2 ring-white ring-offset-2 ring-offset-white z-20` 
       : '';
     
     if (isBefore(date, today)) {
-      return `${baseClasses} text-gray-300 cursor-default ${focusClasses}`;
+      return `${baseClasses} text-neutral-300 cursor-default ${focusClasses}`;
     }
 
     if (isStart || isEnd) {
       const color = props.activePersonId === 1 
-        ? 'bg-emerald-500 hover:bg-emerald-600' 
-        : 'bg-cyan-500 hover:bg-cyan-600';
-      return `${baseClasses} ${color} text-white cursor-pointer ${focusClasses} ${isFocused && props.isSelectingVacation ? 'animate-pulse' : ''}`;
+        ? `bg-emerald-500 text-white hover:bg-emerald-600` 
+        : `bg-cyan-500 text-white hover:bg-cyan-600`;
+      return `${baseClasses} ${color} cursor-pointer ${focusClasses} ${isFocused && props.isSelectingVacation ? 'animate-pulse' : ''}`;
     }
 
     if (isInRange) {
-      const color = props.activePersonId === 1 ? 'bg-emerald-100' : 'bg-cyan-100';
+      const color = props.activePersonId === 1 
+        ? `bg-emerald-100 text-emerald-700` 
+        : `bg-cyan-100 text-cyan-700`;
       return `${baseClasses} ${color} cursor-pointer ${focusClasses}`;
     }
 
     // Handle vacation and holiday combinations
     if (vacationInfo.isSharedVacation) {
-      return `${baseClasses} ${gradientColors.shared.vacation} text-white cursor-pointer ${focusClasses}`;
+      return `${baseClasses} bg-gradient-to-r from-emerald-500 to-cyan-500 text-white cursor-pointer ${focusClasses}`;
     }
 
     // Handle person1 vacation with holidays
     if (vacationInfo.person1Vacation) {
-      if (holidayTypes.firstState.type === 'public') {
-        return `${baseClasses} bg-gradient-to-r from-red-500 to-emerald-500 text-white cursor-pointer ${focusClasses}`;
+      if (holidayTypes.firstState.type) {
+        const holidayColor = getHolidayColor(holidayTypes.firstState.type, theme, 1);
+        return `${baseClasses} ${holidayColor} cursor-pointer ${focusClasses}`;
       }
-      if (holidayTypes.firstState.type === 'bridge') {
-        return `${baseClasses} bg-gradient-to-r from-orange-400 to-emerald-500 text-white cursor-pointer ${focusClasses}`;
-      }
-      if (holidayTypes.firstState.type === 'regional') {
-        return `${baseClasses} bg-gradient-to-r from-indigo-500 to-emerald-500 text-white cursor-pointer ${focusClasses}`;
-      }
-      return `${baseClasses} ${holidayColors.person1.vacation} text-white cursor-pointer ${focusClasses}`;
+      return `${baseClasses} bg-emerald-100 text-emerald-700 cursor-pointer ${focusClasses}`;
     }
 
     // Handle person2 vacation with holidays
     if (vacationInfo.person2Vacation) {
-      if (holidayTypes.secondState.type === 'public') {
-        return `${baseClasses} bg-gradient-to-r from-red-500 to-cyan-500 text-white cursor-pointer ${focusClasses}`;
+      if (holidayTypes.secondState.type) {
+        const holidayColor = getHolidayColor(holidayTypes.secondState.type, theme, 2);
+        return `${baseClasses} ${holidayColor} cursor-pointer ${focusClasses}`;
       }
-      if (holidayTypes.secondState.type === 'bridge') {
-        return `${baseClasses} bg-gradient-to-r from-orange-400 to-cyan-500 text-white cursor-pointer ${focusClasses}`;
-      }
-      if (holidayTypes.secondState.type === 'regional') {
-        return `${baseClasses} bg-gradient-to-r from-indigo-500 to-cyan-500 text-white cursor-pointer ${focusClasses}`;
-      }
-      return `${baseClasses} ${holidayColors.person2.vacation} text-white cursor-pointer ${focusClasses}`;
+      return `${baseClasses} bg-cyan-100 text-cyan-700 cursor-pointer ${focusClasses}`;
     }
 
     // Handle overlapping holidays between states
     if (holidayTypes.firstState.type && holidayTypes.secondState.type) {
-      if (holidayTypes.firstState.type === 'public' && holidayTypes.secondState.type === 'public') {
-        return `${baseClasses} ${gradientColors.shared.holiday} text-white cursor-pointer ${focusClasses}`;
+      if (holidayTypes.firstState.type === holidayTypes.secondState.type) {
+        const color = getHolidayColor(holidayTypes.firstState.type, theme, 1);
+        return `${baseClasses} ${color} cursor-pointer ${focusClasses}`;
       }
-      if (holidayTypes.firstState.type === 'bridge' && holidayTypes.secondState.type === 'bridge') {
-        return `${baseClasses} ${gradientColors.shared.bridge} text-white cursor-pointer ${focusClasses}`;
-      }
-      if (holidayTypes.firstState.type === 'regional' && holidayTypes.secondState.type === 'regional') {
-        return `${baseClasses} ${gradientColors.shared.school} text-white cursor-pointer ${focusClasses}`;
-      }
-      // For mixed holiday types, use person-specific colors
-      const firstStateColor = holidayTypes.firstState.type === 'public' ? 'holiday' :
-                           holidayTypes.firstState.type === 'bridge' ? 'bridge' : 'school';
-      const secondStateColor = holidayTypes.secondState.type === 'public' ? 'holiday' :
-                             holidayTypes.secondState.type === 'bridge' ? 'bridge' : 'school';
-      return `${baseClasses} bg-gradient-to-r from-${holidayColors.person1[firstStateColor].replace('bg-', '')} to-${holidayColors.person2[secondStateColor].replace('bg-', '')} text-white cursor-pointer ${focusClasses}`;
+      return `${baseClasses} bg-gradient-to-r from-emerald-100 to-cyan-100 text-gray-700 cursor-pointer ${focusClasses}`;
     }
 
     // Handle single state holidays
     if (holidayTypes.firstState.type) {
-      const colorType = holidayTypes.firstState.type === 'public' ? 'holiday' :
-                       holidayTypes.firstState.type === 'bridge' ? 'bridge' : 'school';
-      return `${baseClasses} ${holidayColors.person1[colorType]} text-white cursor-pointer ${focusClasses}`;
+      const color = getHolidayColor(holidayTypes.firstState.type, theme, 1);
+      return `${baseClasses} ${color} cursor-pointer ${focusClasses}`;
     }
 
     if (holidayTypes.secondState.type) {
-      const colorType = holidayTypes.secondState.type === 'public' ? 'holiday' :
-                       holidayTypes.secondState.type === 'bridge' ? 'bridge' : 'school';
-      return `${baseClasses} ${holidayColors.person2[colorType]} text-white cursor-pointer ${focusClasses}`;
+      const color = getHolidayColor(holidayTypes.secondState.type, theme, 2);
+      return `${baseClasses} ${color} cursor-pointer ${focusClasses}`;
     }
 
     if (isWeekendDay) {
-      return `${baseClasses} text-gray-500 hover:bg-gray-100 cursor-pointer ${focusClasses}`;
+      return `${baseClasses} text-neutral-500 hover:bg-neutral-100 cursor-pointer ${focusClasses}`;
     }
 
     if (isFocused && props.isSelectingVacation) {
-      return `${baseClasses} bg-blue-50 cursor-pointer ${focusClasses}`;
+      return `${baseClasses} bg-blue-50 text-blue-700 cursor-pointer ${focusClasses}`;
     }
 
     if (isHovered && props.isSelectingVacation) {
-      return `${baseClasses} bg-gray-100 cursor-pointer ${focusClasses}`;
+      return `${baseClasses} bg-neutral-100 cursor-pointer ${focusClasses}`;
     }
 
-    return `${baseClasses} text-gray-900 hover:bg-gray-100 cursor-pointer ${focusClasses}`;
+    return `${baseClasses} text-neutral-900 hover:bg-neutral-100 cursor-pointer ${focusClasses}`;
   };
 
   const getDaysInMonth = (date: Date) => {
@@ -722,7 +719,7 @@ export const DesktopCalendar: React.FC<ExtendedBaseCalendarProps> = (props) => {
   return (
     <div 
       ref={calendarRef}
-      className="relative"
+      className={`relative ${theme.calendar.container}`}
       onMouseLeave={handleMouseLeave}
       role="grid"
       aria-label="Kalender"

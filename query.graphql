@@ -1,1 +1,1 @@
-query{user(login:"seppelz"){projectV2(number:3){items(first:100){nodes{fieldValues(first:10){nodes{...on ProjectV2ItemFieldSingleSelectValue{name}}}content{...on Issue{number title state}}}}}}}
+query{user(login:"seppelz"){projectV2(number:3){items(first:100){nodes{fieldValues(first:10){nodes{...on ProjectV2ItemFieldSingleSelectValue{name}}}content{...on Issue{number title state}}}}}}

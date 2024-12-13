@@ -7,6 +7,21 @@ const isValidDate = (date: any): date is Date => {
   return date instanceof Date && !isNaN(date.getTime());
 };
 
+const capitalizeHolidayName = (name: string): string => {
+  // Split by spaces and capitalize each word
+  return name.split(' ').map(word => {
+    // Special handling for state abbreviations and specific words
+    if (word === 'baden-württemberg') return 'Baden-Württemberg';
+    if (word === 'nordrhein-westfalen') return 'Nordrhein-Westfalen';
+    if (word === 'rheinland-pfalz') return 'Rheinland-Pfalz';
+    if (word === 'sachsen-anhalt') return 'Sachsen-Anhalt';
+    if (word === 'mecklenburg-vorpommern') return 'Mecklenburg-Vorpommern';
+    if (word === '(beweglicher') return '(Beweglicher';
+    if (word === 'ferientag)') return 'Ferientag)';
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  }).join(' ');
+};
+
 const getHolidaysForYear = (year: number, stateCode: GermanState) => {
   const allHolidays = holidays.publicHolidays[year]?.ALL || [];
   const stateHolidays = holidays.publicHolidays[year]?.[stateCode] || [];
@@ -39,6 +54,7 @@ export const holidayService = {
           
           const holidayObj: MultiDayHoliday = {
             ...holiday,
+            name: capitalizeHolidayName(holiday.name), // Capitalize the holiday name
             date: start,
             endDate: end,
             type: 'school',
@@ -84,4 +100,4 @@ export const holidayService = {
       return [];
     }
   }
-}; 
+};

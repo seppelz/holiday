@@ -1,0 +1,228 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.navContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  height: 100%;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Logo section */
+.logoSection {
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  transition: opacity 0.2s;
+  height: 40px;
+}
+
+.logo:hover {
+  opacity: 0.8;
+}
+
+.logoImage {
+  width: 32px;
+  height: 32px;
+}
+
+.logoText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+/* Main controls section */
+.mainControls {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* State selection */
+.stateSelection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 220px;
+  padding: 0.5rem 0.75rem;
+  background: rgba(66, 153, 225, 0.15);
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  height: 44px;
+  justify-content: center;
+}
+
+.stateSelection:hover {
+  background: rgba(66, 153, 225, 0.25);
+}
+
+.stateLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #4a5568;
+  padding-left: 0.25rem;
+  line-height: 1;
+}
+
+/* Year display */
+.yearDisplay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  margin: 0 auto;
+}
+
+.year {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #4a5568;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+/* Person 2 controls */
+.person2Controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem;
+  background: rgba(72, 187, 120, 0.15);
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  height: 44px;
+}
+
+.person2Controls:hover {
+  background: rgba(72, 187, 120, 0.25);
+}
+
+/* Additional controls */
+.additionalControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  padding: 0.25rem;
+  background: rgba(237, 137, 54, 0.15);
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  height: 44px;
+}
+
+.additionalControls:hover {
+  background: rgba(237, 137, 54, 0.25);
+}
+
+/* Buttons */
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 36px;
+  padding: 0 0.75rem;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255, 255, 255, 0.5);
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.iconButton:hover {
+  background: rgba(255, 255, 255, 0.8);
+  color: #2d3748;
+}
+
+.iconButton.active {
+  background: #4299e1;
+  color: white;
+}
+
+.iconButton.active:hover {
+  background: #3182ce;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.buttonText {
+  display: inline-block;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .navContent {
+    padding: 0 1rem;
+    gap: 1rem;
+  }
+
+  .mainControls {
+    gap: 1rem;
+  }
+
+  .logoText {
+    display: none;
+  }
+
+  .stateSelection,
+  .person2Controls,
+  .additionalControls {
+    padding: 0.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .year {
+    font-size: 1rem;
+    padding: 0.375rem 0.75rem;
+  }
+
+  .iconButton {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+  }
+
+  .buttonText {
+    display: none;
+  }
+
+  .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .stateSelection {
+    min-width: 180px;
+  }
+} 

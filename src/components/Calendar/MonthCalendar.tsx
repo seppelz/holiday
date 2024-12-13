@@ -3,7 +3,7 @@ import { format, isWeekend, isSameDay, isWithinInterval } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Holiday, MultiDayHoliday } from '../../types/holiday';
 import { VacationPlan } from '../../types/holiday';
-import { holidayColors, gradientColors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 
 interface MonthCalendarProps {
   month: Date;
@@ -26,6 +26,8 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
   vacationPlans,
   secondStateVacationPlans
 }) => {
+  const theme = useTheme();
+
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -59,7 +61,7 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
   };
 
   const getDayClasses = (date: Date) => {
-    const baseClasses = 'w-6 h-6 flex items-center justify-center text-xs select-none';
+    const baseClasses = `w-6 h-6 flex items-center justify-center text-xs select-none ${theme.calendar.day.base}`;
     const classes = [baseClasses];
     const isWeekendDay = isWeekend(date);
     const isFirstStateHoliday = holidays.find(h => isSameDay(date, h.date));
@@ -72,42 +74,42 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
     const isSecondStateVacation = isInVacation(date, secondStateVacationPlans);
 
     // Weekday text color
-    classes.push(isWeekendDay ? 'text-gray-500' : 'text-gray-900');
+    classes.push(isWeekendDay ? 'text-neutral-500' : 'text-neutral-900');
 
     // Holiday colors
     if (isFirstStateHoliday && isSecondStateHoliday) {
-      classes.push(gradientColors.shared.holiday + ' text-white');
+      classes.push('bg-red-100 text-red-700');
     } else if (isFirstStateHoliday) {
-      classes.push(holidayColors.person1.holiday + ' text-white');
+      classes.push('bg-red-100 text-red-700');
     } else if (isSecondStateHoliday) {
-      classes.push(holidayColors.person2.holiday + ' text-white');
+      classes.push('bg-red-100 text-red-700');
     }
 
     // Bridge day colors
     if (isFirstStateBridgeDay && isSecondStateBridgeDay) {
-      classes.push(gradientColors.shared.bridge + ' text-white');
+      classes.push('bg-orange-100 text-orange-700');
     } else if (isFirstStateBridgeDay) {
-      classes.push(holidayColors.person1.bridge);
+      classes.push('bg-orange-100 text-orange-700');
     } else if (isSecondStateBridgeDay) {
-      classes.push(holidayColors.person2.bridge);
+      classes.push('bg-orange-100 text-orange-700');
     }
 
-    // School holiday colors - Apply person-specific colors
+    // School holiday colors
     if (isFirstStateSchoolHoliday && isSecondStateSchoolHoliday) {
-      classes.push(gradientColors.shared.school + ' text-white');
+      classes.push('bg-purple-100 text-purple-700');
     } else if (isFirstStateSchoolHoliday) {
-      classes.push(holidayColors.person1.school + ' text-white');
+      classes.push('bg-purple-100 text-purple-700');
     } else if (isSecondStateSchoolHoliday) {
-      classes.push(holidayColors.person2.school + ' text-white');
+      classes.push('bg-purple-100 text-purple-700');
     }
 
     // Vacation colors
     if (isFirstStateVacation && isSecondStateVacation) {
-      classes.push(gradientColors.shared.vacation + ' text-white');
+      classes.push('bg-gradient-to-r from-emerald-500 to-cyan-500 text-white');
     } else if (isFirstStateVacation) {
-      classes.push(holidayColors.person1.vacation);
+      classes.push('bg-emerald-100 text-emerald-700');
     } else if (isSecondStateVacation) {
-      classes.push(holidayColors.person2.vacation);
+      classes.push('bg-cyan-100 text-cyan-700');
     }
 
     return classes.join(' ');
@@ -153,18 +155,18 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
   };
 
   const days = getDaysInMonth(month);
-  const firstDayOffset = days[0].getDay() || 7; // Convert Sunday (0) to 7
+  const firstDayOffset = days[0].getDay() || 7;
 
   return (
-    <div className="bg-white/80 rounded-lg shadow-sm overflow-hidden select-none">
-      <h3 className="text-xs font-medium text-gray-900 py-1 text-center border-b bg-white/60">
+    <div className={`${theme.calendar.container} overflow-hidden select-none`}>
+      <h3 className={`text-xs font-medium ${theme.text.body} py-1 text-center border-b ${theme.effects.glass.light}`}>
         {format(month, 'MMMM', { locale: de })} {month.getMonth() === 0 && '2025'}
       </h3>
       <div className="p-1">
         <div className="grid grid-cols-7 gap-px">
           {/* Weekday headers */}
           {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(day => (
-            <div key={day} className="text-[10px] font-medium text-gray-700 h-6 flex items-center justify-center w-6 mx-auto">
+            <div key={day} className={`text-[10px] font-medium ${theme.text.body} h-6 flex items-center justify-center w-6 mx-auto`}>
               {day}
             </div>
           ))}
@@ -185,7 +187,7 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
               >
                 {format(date, 'd')}
                 {dayInfo.title && (
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                  <div className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 ${theme.effects.glass.dark} ${theme.text.small} ${theme.effects.rounded.md} opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10`}>
                     {dayInfo.details.map((detail, index) => (
                       <div key={index}>{detail}</div>
                     ))}

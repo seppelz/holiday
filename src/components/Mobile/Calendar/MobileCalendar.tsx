@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useEffect } from 'react';
 import { format, isWeekend, isSameDay, isWithinInterval, isBefore, startOfDay, addDays } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { BaseCalendarProps, useCalendar } from '../../Shared/Calendar/BaseCalendar';
@@ -34,6 +34,43 @@ export const MobileCalendar: React.FC<MobileCalendarProps> = (props) => {
 
   // Animation for swipe gestures
   const [{ x }, api] = useSpring(() => ({ x: 0 }));
+
+  // Reset animation when month changes
+  useEffect(() => {
+    api.start({ x: 0, immediate: true });
+  }, [props.month]);
+
+  // Handle month change
+  const handleMonthChange = (direction: number) => {
+    props.onMonthChange?.(direction);
+  };
+
+  // Bind swipe gesture
+  const bind = useDrag(
+    ({ active, movement: [mx], direction: [xDir] }) => {
+      if (!active) {
+        if (Math.abs(mx) > 50) {
+          handleMonthChange(xDir > 0 ? -1 : 1);
+        }
+        api.start({ x: 0 });
+      } else {
+        api.start({ x: mx, immediate: true });
+      }
+    },
+    {
+      axis: 'x',
+      swipe: {
+        distance: 50
+      },
+      preventScroll: true,
+      eventOptions: { passive: false },
+      bounds: undefined,
+      rubberband: true,
+      from: () => [x.get(), 0],
+      filterTaps: true,
+      touchAction: 'none'
+    }
+  );
 
   // Memoize expensive date operations
   const isDateDisabled = useCallback((date: Date) => {
@@ -166,24 +203,6 @@ export const MobileCalendar: React.FC<MobileCalendarProps> = (props) => {
     props.personId
   ]);
 
-  // Handle month swipe
-  const bind = useDrag(
-    ({ movement: [mx], last, cancel, direction: [xDir] }) => {
-      if (last) {
-        if (Math.abs(mx) > 50) {
-          props.onMonthChange?.(xDir > 0 ? -1 : 1);
-          if (navigator.vibrate) {
-            navigator.vibrate(10);
-          }
-        }
-        api.start({ x: 0 });
-      } else {
-        api.start({ x: mx, immediate: true });
-      }
-    },
-    { axis: 'x', bounds: { left: -100, right: 100 } }
-  );
-
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, date: Date) => {
     const isDisabled = isDateDisabled(date);
@@ -226,150 +245,173 @@ export const MobileCalendar: React.FC<MobileCalendarProps> = (props) => {
     }
   };
 
+  // Memoize expensive date operations
   const getBridgeDayInfo = (date: Date) => {
     const bridgeDay = props.bridgeDays?.find(bd => isSameDay(bd.date, date));
     return bridgeDay;
   };
 
   return (
-    <div className="select-none">
-      {/* Month Navigation - Reduced padding and size */}
-      <div 
-        className="flex items-center justify-between mb-2 px-2"
-        role="toolbar"
-        aria-label="Monatsnavigation"
-      >
-        <button
-          onClick={() => props.onMonthChange?.(-1)}
-          className="p-1.5 text-gray-600 active:bg-gray-100 rounded-full touch-manipulation 
-            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          aria-label="Vorheriger Monat"
-          type="button"
-          tabIndex={0}
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-
+    <div className="relative w-full">
+      <div className="select-none">
+        {/* Month Navigation - Reduced padding and size */}
         <div 
-          className="text-base font-medium text-gray-900"
-          role="heading"
-          aria-level={2}
+          className="flex items-center justify-between mb-2 px-2"
+          role="toolbar"
+          aria-label="Monatsnavigation"
         >
-          {format(props.month, 'MMMM yyyy', { locale: de })}
+          <button
+            onClick={() => handleMonthChange(-1)}
+            className="p-1.5 text-gray-600 active:bg-gray-100 rounded-full touch-manipulation 
+              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            aria-label="Vorheriger Monat"
+            type="button"
+            tabIndex={0}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <div 
+            className="text-base font-medium text-gray-900"
+            role="heading"
+            aria-level={2}
+          >
+            {format(props.month, 'MMMM yyyy', { locale: de })}
+          </div>
+
+          <button
+            onClick={() => handleMonthChange(1)}
+            className="p-1.5 text-gray-600 active:bg-gray-100 rounded-full touch-manipulation 
+              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            aria-label="Nächster Monat"
+            type="button"
+            tabIndex={0}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
 
-        <button
-          onClick={() => props.onMonthChange?.(1)}
-          className="p-1.5 text-gray-600 active:bg-gray-100 rounded-full touch-manipulation 
-            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          aria-label="Nächster Monat"
-          type="button"
-          tabIndex={0}
+        <animated.div
+          {...bind()}
+          style={{ 
+            x,
+            touchAction: 'none',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            WebkitTapHighlightColor: 'transparent',
+            WebkitTouchCallout: 'none'
+          }}
+          className="w-full touch-none"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
+          <div className="grid grid-cols-7 bg-gray-100 rounded-lg overflow-hidden">
+            {/* Weekday headers - Reduced padding */}
+            <div className="contents" role="row">
+              {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((day) => (
+                <div
+                  key={day}
+                  className="bg-white py-1.5 text-xs font-medium text-gray-500 text-center border-b"
+                  role="columnheader"
+                  aria-label={day === 'Mo' ? 'Montag' : 
+                             day === 'Di' ? 'Dienstag' :
+                             day === 'Mi' ? 'Mittwoch' :
+                             day === 'Do' ? 'Donnerstag' :
+                             day === 'Fr' ? 'Freitag' :
+                             day === 'Sa' ? 'Samstag' : 'Sonntag'}
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+            
+            {/* Calendar grid - Adjusted cell sizes */}
+            {weeks.map((week, weekIndex) => (
+              <div key={weekIndex} role="row" className="contents">
+                {week.map((date, dayIndex) => {
+                  const isDisabled = isDateDisabled(date);
+                  const { holiday } = getHolidayType(date);
+                  const isToday = isSameDay(date, today);
+                  const vacationInfo = props.getDateVacationInfo(date);
+                  const isSelected = isDateInRange(date);
+                  const isCurrentMonth = date.getMonth() === props.month.getMonth();
 
-      {/* Calendar Grid */}
-      <animated.div
-        {...bind()}
-        style={{ x }}
-        className="touch-pan-x"
-        role="grid"
-        aria-label="Kalender"
-      >
-        <div className="grid grid-cols-7 bg-gray-100 rounded-lg overflow-hidden">
-          {/* Weekday headers - Reduced padding */}
-          <div className="contents" role="row">
-            {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((day) => (
-              <div
-                key={day}
-                className="bg-white py-1.5 text-xs font-medium text-gray-500 text-center border-b"
-                role="columnheader"
-                aria-label={day === 'Mo' ? 'Montag' : 
-                           day === 'Di' ? 'Dienstag' :
-                           day === 'Mi' ? 'Mittwoch' :
-                           day === 'Do' ? 'Donnerstag' :
-                           day === 'Fr' ? 'Freitag' :
-                           day === 'Sa' ? 'Samstag' : 'Sonntag'}
-              >
-                {day}
+                  const dateLabel = [
+                    format(date, 'd. MMMM yyyy', { locale: de }),
+                    isToday && 'Heute',
+                    holiday?.name,
+                    vacationInfo.isSharedVacation && 'Gemeinsamer Urlaub',
+                    isDisabled && 'Nicht verfügbar'
+                  ].filter(Boolean).join(', ');
+
+                  return (
+                    <div
+                      key={dayIndex}
+                      className={`relative bg-white border-b border-r last:border-r-0 focus-within:z-10`}
+                      data-date={format(date, 'yyyy-MM-dd')}
+                    >
+                      <button
+                        className={`w-full h-11 flex flex-col items-center justify-center ${getDateClasses(date)} 
+                          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+                          ${!isCurrentMonth ? 'focus:ring-gray-400' : ''}`}
+                        onTouchStart={(e) => {
+                          if (!isDisabled && props.isSelectingVacation) {
+                            e.preventDefault();
+                            handleDateHover(date);
+                          }
+                        }}
+                        onTouchEnd={(e) => {
+                          if (!isDisabled && props.isSelectingVacation) {
+                            e.preventDefault();
+                            handleDateSelect(date);
+                          }
+                        }}
+                        onClick={(e) => {
+                          if (!isDisabled && props.isSelectingVacation) {
+                            e.preventDefault();
+                            handleDateSelect(date);
+                          }
+                        }}
+                        onKeyDown={(e) => handleKeyDown(e, date)}
+                        role="gridcell"
+                        aria-disabled={isDisabled}
+                        aria-label={dateLabel}
+                        aria-selected={isSelected}
+                        tabIndex={isDisabled ? -1 : (isCurrentMonth ? 0 : -1)}
+                        type="button"
+                      >
+                        <span className={`
+                          ${isToday ? 'font-bold' : ''}
+                          ${!isSameDay(date, props.month) ? 'text-gray-400' : ''}
+                        `}>
+                          {format(date, 'd')}
+                        </span>
+                        {vacationInfo.isSharedVacation && (
+                          <div 
+                            className="absolute top-0.5 right-0.5 text-[8px] text-yellow-600"
+                            aria-hidden="true"
+                          >
+                            ❤️
+                          </div>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             ))}
           </div>
-          
-          {/* Calendar grid - Adjusted cell sizes */}
-          {weeks.map((week, weekIndex) => (
-            <div key={weekIndex} role="row" className="contents">
-              {week.map((date, dayIndex) => {
-                const isDisabled = isDateDisabled(date);
-                const { holiday } = getHolidayType(date);
-                const isToday = isSameDay(date, today);
-                const vacationInfo = props.getDateVacationInfo(date);
-                const isSelected = isDateInRange(date);
-                const isCurrentMonth = date.getMonth() === props.month.getMonth();
+        </animated.div>
 
-                const dateLabel = [
-                  format(date, 'd. MMMM yyyy', { locale: de }),
-                  isToday && 'Heute',
-                  holiday?.name,
-                  vacationInfo.isSharedVacation && 'Gemeinsamer Urlaub',
-                  isDisabled && 'Nicht verfügbar'
-                ].filter(Boolean).join(', ');
-
-                return (
-                  <div
-                    key={dayIndex}
-                    className={`relative bg-white border-b border-r last:border-r-0 focus-within:z-10`}
-                    data-date={format(date, 'yyyy-MM-dd')}
-                  >
-                    <button
-                      className={`w-full h-11 flex flex-col items-center justify-center ${getDateClasses(date)} 
-                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
-                        ${!isCurrentMonth ? 'focus:ring-gray-400' : ''}`}
-                      onTouchStart={() => !isDisabled && handleDateHover(date)}
-                      onClick={() => !isDisabled && handleDateSelect(date)}
-                      onKeyDown={(e) => handleKeyDown(e, date)}
-                      role="gridcell"
-                      aria-disabled={isDisabled}
-                      aria-label={dateLabel}
-                      aria-selected={isSelected}
-                      tabIndex={isDisabled ? -1 : (isCurrentMonth ? 0 : -1)}
-                      type="button"
-                    >
-                      <span className={`
-                        ${isToday ? 'font-bold' : ''}
-                        ${!isSameDay(date, props.month) ? 'text-gray-400' : ''}
-                      `}>
-                        {format(date, 'd')}
-                      </span>
-                      {vacationInfo.isSharedVacation && (
-                        <div 
-                          className="absolute top-0.5 right-0.5 text-[8px] text-yellow-600"
-                          aria-hidden="true"
-                        >
-                          ❤️
-                        </div>
-                      )}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+        {/* Swipe Hint */}
+        <div 
+          className="text-center text-xs text-gray-500 mt-2"
+          aria-hidden="true"
+        >
+          ← Wischen zum Monatswechsel →
         </div>
-      </animated.div>
-
-      {/* Swipe Hint */}
-      <div 
-        className="text-center text-xs text-gray-500 mt-2"
-        aria-hidden="true"
-      >
-        ← Wischen zum Monatswechsel →
       </div>
     </div>
   );

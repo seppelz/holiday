@@ -18,6 +18,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { TutorialModal } from '../Tutorial/TutorialModal';
 import { ExportService } from '../../../services/exportService';
 import { eachDayOfInterval, isWeekend, isSameDay } from 'date-fns';
+import { useFirstTimeUser } from '../../../hooks/useFirstTimeUser';
 
 type ViewType = 'holidays' | 'school' | 'bridge' | 'planning' | 'calendar';
 
@@ -101,8 +102,22 @@ export const MobileContainer: React.FC<MobileContainerProps> = ({
   const [announcement, setAnnouncement] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [isViewTransitioning, setIsViewTransitioning] = useState(false);
-  const [showTutorial, setShowTutorial] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const { isFirstTimeUser, markTutorialAsSeen } = useFirstTimeUser();
+
+  // Show tutorial automatically for first-time users
+  useEffect(() => {
+    if (isFirstTimeUser) {
+      setShowTutorial(true);
+    }
+  }, [isFirstTimeUser]);
+
+  // Handle tutorial close
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+    markTutorialAsSeen();
+  };
 
   // Calculate efficiency score
   const efficiency = useMemo(() => {
@@ -353,7 +368,7 @@ export const MobileContainer: React.FC<MobileContainerProps> = ({
       </AnimatePresence>
       <TutorialModal
         isOpen={showTutorial}
-        onClose={() => setShowTutorial(false)}
+        onClose={handleTutorialClose}
       />
       <MobileExportModal
         isOpen={showExportModal}
