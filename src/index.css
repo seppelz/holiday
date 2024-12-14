@@ -2,35 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base styles */
+/* Design System */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  /* Default state colors */
-  --state-primary-color: #4299e1;
-  --state-secondary-color: #2b6cb0;
-
-  /* System colors */
+  /* Brand Colors */
+  --brand-primary: #4299e1;
+  --brand-secondary: #ec6ef1;
+  --brand-gradient: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  
+  /* State Colors - Default */
+  --state-primary-color: var(--brand-primary);
+  --state-secondary-color: var(--brand-secondary);
+  --state-gradient: linear-gradient(135deg, var(--state-primary-color), var(--state-secondary-color));
+  
+  /* UI Colors */
   --color-background: #f8f9fa;
   --color-text: #2d3748;
   --color-text-light: #4a5568;
   --color-border: rgba(0, 0, 0, 0.1);
-  --color-shadow: rgba(0, 0, 0, 0.1);
-
+  
+  /* Glass Effect */
+  --glass-background: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  
   /* Spacing */
   --spacing-xs: 0.5rem;
   --spacing-sm: 1rem;
   --spacing-md: 1.5rem;
   --spacing-lg: 2rem;
   --spacing-xl: 3rem;
-
-  /* Border radius */
+  
+  /* Border Radius */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
   --radius-full: 9999px;
+  
+  /* Transitions */
+  --transition-fast: 0.2s;
+  --transition-medium: 0.3s;
+  --transition-slow: 0.5s;
+  --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Reset and base styles */
@@ -41,8 +53,8 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 
+    Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-background);
@@ -51,11 +63,6 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-}
-
-/* Reset max-width for icons */
-svg {
-  max-width: none;
 }
 
 /* Animation keyframes */
@@ -81,17 +88,35 @@ svg {
   100% { transform: scale(1); }
 }
 
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 /* Utility classes */
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+.glass-effect {
+  background: var(--glass-background);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.brand-gradient {
+  background: var(--brand-gradient);
+  background-size: 200% 200%;
+  animation: gradientFlow 15s ease infinite;
+}
+
+.state-gradient {
+  background: var(--state-gradient);
+  background-size: 200% 200%;
+  animation: gradientFlow 15s ease infinite;
+}
+
+/* Reset max-width for icons */
+svg {
+  max-width: none;
 }
 
 /* Smooth scrolling */

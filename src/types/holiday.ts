@@ -75,3 +75,30 @@ export interface HolidayData {
   schoolHolidays: Record<number, Record<GermanState, RawSchoolHoliday[]>>;
   publicHolidays: Record<number, Record<GermanState | 'ALL', RawPublicHoliday[]>>;
 }
+
+export interface Holiday {
+  name: string;
+  date?: string;
+  start?: string;
+  end?: string;
+  type?: 'public' | 'school';
+  isRegional?: boolean;
+  details?: {
+    description: string;
+    traditions?: string[];
+    locations?: string[];
+    culturalSignificance?: string;
+  };
+}
+
+export interface SeasonalTradition {
+  season: string;
+  description: string;
+}
+
+export interface HolidayDetails {
+  description: string;
+  traditions?: string[];
+  locations?: string[];
+  culturalSignificance?: string;
+}

@@ -1,0 +1,222 @@
+.timelineContainer {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  position: relative;
+  min-height: 200px;
+}
+
+.timeline {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  cursor: grab;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 2rem 0;
+  margin: 1rem 0;
+}
+
+.timeline::-webkit-scrollbar {
+  display: none;
+}
+
+.timeline:active {
+  cursor: grabbing;
+}
+
+.timelineTrack {
+  position: relative;
+  height: 150px;
+  padding: 2rem 1rem;
+  background: transparent;
+}
+
+.timelineTrack::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--state-primary-color) 10%,
+    var(--state-primary-color) 90%,
+    transparent
+  );
+  opacity: 0.3;
+  transform: translateY(-50%);
+}
+
+.holidayMarker {
+  position: absolute;
+  transform: translateX(-50%);
+  padding-top: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  z-index: 1;
+}
+
+.holidayMarker::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--state-primary-color);
+  transform: translateX(-50%);
+  transition: all 0.3s ease;
+}
+
+.holidayMarker:hover {
+  transform: translateX(-50%) translateY(-5px);
+}
+
+.holidayMarker:hover::before {
+  transform: translateX(-50%) scale(1.5);
+  box-shadow: 0 0 15px var(--state-primary-color);
+}
+
+.holidayContent {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+
+.holidayMarker:hover .holidayContent {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-color: var(--state-primary-color);
+}
+
+.holidayDate {
+  display: block;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.holidayName {
+  display: block;
+  font-weight: 600;
+  color: var(--state-primary-color);
+}
+
+.holidayPeriod {
+  display: block;
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.public::before {
+  background: var(--state-primary-color);
+}
+
+.school::before {
+  background: var(--state-secondary-color);
+}
+
+.regional::before {
+  background: linear-gradient(135deg, var(--state-primary-color), var(--state-secondary-color));
+}
+
+.regionalBadge {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  background: var(--state-primary-color);
+  color: white;
+  border-radius: 12px;
+  margin-top: 0.5rem;
+}
+
+.currentDate {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--state-primary-color);
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.currentDate::before {
+  content: 'Heute';
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--state-primary-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.currentDate::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: var(--state-primary-color);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--state-primary-color);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .timelineContainer {
+    padding: 0 1rem;
+  }
+
+  .timeline {
+    padding: 1rem 0;
+    margin: 0.5rem 0;
+  }
+
+  .holidayContent {
+    min-width: 160px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .holidayDate,
+  .holidayPeriod {
+    font-size: 0.8rem;
+  }
+
+  .holidayName {
+    font-size: 0.9rem;
+  }
+
+  .currentDate::before {
+    top: -20px;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+}
+
+/* Add smooth scrolling for non-touch devices */
+@media (hover: hover) {
+  .timeline {
+    scroll-behavior: smooth;
+  }
+} 

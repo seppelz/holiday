@@ -65,7 +65,7 @@ export const Navbar: React.FC = () => {
                   {GERMAN_STATES.map((state) => (
                     <Link
                       key={state.id}
-                      to={`/states/${state.slug}`}
+                      to={`/state/${state.slug}`}
                       className={styles.stateLink}
                       style={{
                         '--state-gradient': `linear-gradient(135deg, ${state.colors.join(', ')})`,

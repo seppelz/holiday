@@ -1,172 +1,1039 @@
-.statePage {
-  min-height: 100vh;
-  background: #f8f9fa;
-  padding-top: 64px; /* Account for fixed navbar */
+:root {
+  /* Brand Colors - Dynamic from State (only for hero) */
+  --state-primary-color: var(--state-color-1, #4299e1);
+  --state-secondary-color: var(--state-color-2, #2b6cb0);
+  
+  /* Landing Page Colors */
+  --landing-primary: #4299e1;
+  --landing-secondary: #ec6ef1;
+  
+  /* Theme Colors */
+  --theme-primary: #1a365d;
+  --theme-secondary: #2b6cb0;
+  --theme-accent: #4299e1;
+  
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7fafc;
+  --bg-tertiary: #edf2f7;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  
+  /* Text Colors */
+  --text-primary: #1a202c;
+  --text-secondary: #4a5568;
+  --text-tertiary: #718096;
+  --text-on-brand: #ffffff;
+  
+  /* Interactive States */
+  --hover-opacity: 0.9;
+  --active-opacity: 0.8;
+  --hover-transform: translateY(-2px);
+  --active-transform: translateY(0);
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 20px 25px rgba(0, 0, 0, 0.1);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
 }
 
-.errorPage {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 64px);
-  text-align: center;
-  padding: 2rem;
+.statePage {
+  min-height: 100vh;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--landing-primary) 10%, white 90%),
+    color-mix(in srgb, var(--landing-secondary) 15%, white 85%)
+  );
+  position: relative;
+  z-index: 0;
+}
+
+/* Add a subtle noise texture overlay */
+.statePage::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noiseFilter)' opacity='0.015'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Update section backgrounds to be slightly transparent */
+.holidayColumn,
+.stateOverviewSection,
+.seasonalSection,
+.vacationSection,
+.regionalSection {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(26, 54, 93, 0.08);
+  border-radius: 24px;
+  margin: 2rem auto;
+  max-width: 1600px;
+  width: calc(100% - 4rem);
+  overflow: hidden;
+}
+
+/* Update card backgrounds */
+.holidayItem,
+.seasonCard,
+.vacationCard,
+.microInfoItem,
+.regionalCard {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(26, 54, 93, 0.08);
+  border-radius: 16px;
+  box-shadow: 
+    0 4px 6px rgba(26, 54, 93, 0.02),
+    0 1px 3px rgba(26, 54, 93, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.holidayItem:hover,
+.seasonCard:hover,
+.vacationCard:hover,
+.microInfoItem:hover,
+.regionalCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 20px rgba(26, 54, 93, 0.04),
+    0 4px 8px rgba(26, 54, 93, 0.06);
+  border-color: rgba(26, 54, 93, 0.12);
 }
 
 .stateHeader {
   position: relative;
-  min-height: 70vh;
-  color: white;
+  min-height: 600px;
+  background: linear-gradient(135deg,
+    var(--state-primary-color),
+    var(--state-secondary-color)
+  );
+  color: var(--text-on-brand);
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 4rem;
-  background: linear-gradient(135deg, var(--state-primary-color), var(--state-secondary-color));
+  padding-bottom: 3rem;
 }
 
 .animatedBackground {
   position: absolute;
-  inset: 0;
-  z-index: 1;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   overflow: hidden;
-  opacity: 0.7;
 }
 
-/* Animated sun/moon */
+.headerOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.2),
+    rgba(0, 0, 0, 0.1)
+  );
+}
+
+.headerContent {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  z-index: 2;
+}
+
+.heroTitle {
+  font-size: 3rem;
+  font-weight: 800;
+  margin: 1.5rem 0;
+  line-height: 1.2;
+  animation: slideUp 0.8s ease-out;
+  color: var(--header-text-color);
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  opacity: 0.9;
+  margin-bottom: 2rem;
+  animation: slideUp 0.8s ease-out 0.2s backwards;
+  color: var(--header-text-color);
+}
+
+.heroStats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  animation: slideUp 0.8s ease-out 0.4s backwards;
+}
+
+.statBadge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  transition: transform 0.3s ease;
+}
+
+.statBadge:hover {
+  transform: translateY(-5px);
+}
+
+.statNumber {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: var(--header-text-color);
+}
+
+.statLabel {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  color: var(--header-text-color);
+}
+
+.statDivider {
+  width: 1px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.heroActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  animation: slideUp 0.8s ease-out 0.6s backwards;
+}
+
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  color: var(--primary-button-color);
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.primaryButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--header-text-color);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.secondaryButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.buttonIcon {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.primaryButton:hover .buttonIcon,
+.secondaryButton:hover .buttonIcon {
+  transform: translateX(4px);
+}
+
+/* Holiday Overview Section */
+.holidayOverview {
+  width: 100%;
+  margin: 2rem auto 0;
+  padding: 0;
+  position: relative;
+  z-index: 3;
+}
+
+.holidayGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+  padding: 0 2rem;
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.holidayColumn {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(26, 54, 93, 0.08);
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+/* Public Holidays Column */
+.holidayColumn:first-child .holidayList {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+/* School Holidays Column */
+.holidayColumn:last-child .holidayList {
+  padding: 1.5rem;
+}
+
+.holidayItem {
+  background: var(--bg-card);
+  border-radius: 12px;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+  height: fit-content;
+}
+
+.holidayRow {
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: all var(--transition-normal);
+  background: #fafbff;
+}
+
+.holidayDate {
+  color: #1a365d;
+  font-weight: 500;
+  min-width: 110px;
+  font-size: 0.9rem;
+}
+
+.holidayName {
+  flex: 1;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: #1a365d;
+}
+
+.dateSeparator {
+  margin: 0 0.25rem;
+  color: #718096;
+}
+
+.duration {
+  display: inline-block;
+  background: rgba(26, 54, 93, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  color: #1a365d;
+  margin-left: 0.75rem;
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+  .holidayColumn:first-child .holidayList {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1200px) {
+  .holidayGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .holidayColumn:first-child .holidayList {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .holidayOverview,
+  .stateOverviewSection,
+  .seasonalSection,
+  .vacationSection,
+  .regionalSection,
+  .ctaSection {
+    width: calc(100% - 2rem);
+  }
+  
+  .holidayGrid {
+    padding: 0 1rem;
+  }
+  
+  .holidayColumn:first-child .holidayList {
+    grid-template-columns: 1fr;
+  }
+  
+  .holidayDate {
+    min-width: 100px;
+    font-size: 0.85rem;
+  }
+  
+  .holidayName {
+    font-size: 0.9rem;
+  }
+  
+  .duration {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.4rem;
+  }
+}
+
+/* Update all section max-widths */
+.holidayOverview,
+.stateOverviewSection,
+.seasonalSection,
+.vacationSection,
+.regionalSection,
+.ctaSection {
+  max-width: 1600px;
+  width: calc(100% - 4rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.regionalBadge {
+  background: linear-gradient(135deg, 
+    var(--landing-primary),
+    var(--landing-secondary)
+  );
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  margin-left: 0.75rem;
+  font-weight: 600;
+  transition: opacity var(--transition-fast);
+}
+
+.regionalBadge:hover {
+  opacity: var(--hover-opacity);
+}
+
+.duration {
+  font-size: 0.8rem;
+  color: #666 !important;
+  margin-left: 0.5rem;
+}
+
+.detailsButton {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: white;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.detailsButton:hover {
+  background: #1a365d;
+  color: white;
+  border-color: #1a365d;
+}
+
+.detailsButton.active {
+  background: #1a365d;
+  color: white;
+  border-color: #1a365d;
+  transform: rotate(45deg);
+}
+
+.holidayDetails {
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 0 0 12px 12px;
+  margin-top: -0.5rem;
+  animation: slideDown var(--transition-normal);
+}
+
+.description {
+  margin: 0 0 1rem;
+  color: #444;
+  line-height: 1.6;
+}
+
+.traditions,
+.locations {
+  margin-top: 1rem;
+}
+
+.traditions h4,
+.locations h4 {
+  color: #1a365d;
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+}
+
+.traditions ul,
+.locations ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.traditions li,
+.locations li {
+  position: relative;
+  padding-left: 1.25rem;
+  margin-bottom: 0.25rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.traditions li:before,
+.locations li:before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #1a365d;
+}
+
+/* Seasonal Section */
+.seasonalSection {
+  width: 100%;
+  margin-top: 3rem;
+  padding: 2rem;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.seasonalSection h2,
+.vacationSection h2 {
+  color: #1a365d;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.seasonGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.seasonCard {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.seasonCard:hover {
+  transform: var(--hover-transform);
+  box-shadow: var(--shadow-lg);
+}
+
+.seasonCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, 
+    var(--landing-primary),
+    var(--landing-secondary)
+  );
+}
+
+.seasonIcon {
+  color: var(--landing-primary);
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+  display: inline-block;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.seasonCard h3 {
+  font-size: 1.25rem;
+  margin: 0 0 0.75rem;
+  color: #1a365d;
+  font-weight: 700;
+}
+
+.seasonCard p {
+  margin: 0;
+  color: #444;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* Season-specific styles with enhanced animations */
+.frühling .seasonIcon,
+.frühjahr .seasonIcon {
+  color: #10b981;
+  animation: springGrow 3s ease-in-out infinite;
+}
+
+.sommer .seasonIcon {
+  color: #f59e0b;
+  animation: summerSpin 4s ease-in-out infinite;
+}
+
+.herbst .seasonIcon {
+  color: #b45309;
+  animation: autumnFloat 3s ease-in-out infinite;
+}
+
+.winter .seasonIcon {
+  color: #3b82f6;
+  animation: winterGlitter 3s ease-in-out infinite;
+}
+
+/* Enhanced hover effects */
+.seasonCard:hover .seasonIcon {
+  transform: scale(1.2);
+}
+
+/* Season-specific animations */
+@keyframes springGrow {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.2));
+  }
+  50% {
+    transform: scale(1.15) rotate(10deg);
+    filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.4));
+  }
+}
+
+@keyframes summerSpin {
+  0% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.2));
+  }
+  50% {
+    transform: scale(1.1) rotate(180deg);
+    filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.4));
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.2));
+  }
+}
+
+@keyframes autumnFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    filter: drop-shadow(0 0 8px rgba(180, 83, 9, 0.2));
+  }
+  25% {
+    transform: translateY(-5px) rotate(-5deg);
+    filter: drop-shadow(2px 4px 8px rgba(180, 83, 9, 0.3));
+  }
+  75% {
+    transform: translateY(5px) rotate(5deg);
+    filter: drop-shadow(-2px 4px 8px rgba(180, 83, 9, 0.3));
+  }
+}
+
+@keyframes winterGlitter {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.2));
+  }
+  25% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4)) brightness(1.2);
+  }
+  50% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.2));
+  }
+  75% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4)) brightness(1.2);
+  }
+}
+
+/* Add pseudo-elements for additional effects */
+.frühling .seasonIcon::before,
+.frühjahr .seasonIcon::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  right: -10%;
+  bottom: -10%;
+  background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulseSpring 2s ease-in-out infinite;
+  z-index: -1;
+}
+
+.sommer .seasonIcon::before {
+  content: '';
+  position: absolute;
+  top: -15%;
+  left: -15%;
+  right: -15%;
+  bottom: -15%;
+  background: radial-gradient(circle at center, rgba(245, 158, 11, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulseSummer 3s ease-in-out infinite;
+  z-index: -1;
+}
+
+.herbst .seasonIcon::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -20%;
+  right: -20%;
+  bottom: -20%;
+  background: radial-gradient(circle at center, rgba(180, 83, 9, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulseAutumn 4s ease-in-out infinite;
+  z-index: -1;
+}
+
+.winter .seasonIcon::before {
+  content: '';
+  position: absolute;
+  top: -25%;
+  left: -25%;
+  right: -25%;
+  bottom: -25%;
+  background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulseWinter 3s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes pulseSpring {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+@keyframes pulseSummer {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.5; }
+  50% { transform: scale(1.3) rotate(180deg); opacity: 0.8; }
+}
+
+@keyframes pulseAutumn {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.4); opacity: 0.8; }
+}
+
+@keyframes pulseWinter {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.5); opacity: 0.6; }
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes floatCloud {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100vw);
+  }
+}
+
+@keyframes sway {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .headerContent {
+    padding: 2rem 1rem;
+  }
+
+  .heroTitle {
+    font-size: 2rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1rem;
+  }
+
+  .heroStats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .statBadge {
+    width: 100%;
+  }
+
+  .statDivider {
+    display: none;
+  }
+
+  .holidayOverview {
+    margin-top: -50px;
+    padding: 0 1rem;
+  }
+
+  .holidayGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .seasonGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .holidayDate {
+    min-width: 100px;
+    font-size: 0.8rem;
+  }
+
+  .holidayName {
+    font-size: 0.9rem;
+  }
+} 
+
+/* Celestial Body (Sun) */
 .celestialBody {
   position: absolute;
-  width: 120px;
-  height: 120px;
-  top: 15%;
-  right: 15%;
-  background: white;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
   box-shadow: 0 0 60px rgba(255, 255, 255, 0.6);
-  animation: glow 8s infinite ease-in-out;
+  top: 10%;
+  right: 10%;
+  animation: float 6s ease-in-out infinite;
 }
 
-/* Floating clouds */
+/* Clouds with more organic shapes */
 .cloud {
   position: absolute;
   background: rgba(255, 255, 255, 0.15);
-  border-radius: 100px;
-  animation: floatCloud linear infinite;
+  border-radius: 50px;
+  animation: floatCloud 20s linear infinite;
+  filter: blur(1px);
 }
 
-.cloud::before,
-.cloud::after {
+.cloud:before,
+.cloud:after,
+.cloud span:before,
+.cloud span:after {
   content: '';
   position: absolute;
   background: inherit;
   border-radius: 50%;
 }
 
-/* Large cloud */
 .cloud:nth-child(1) {
-  width: 180px;
-  height: 50px;
-  top: 15%;
-  animation-duration: 45s;
+  width: 120px;
+  height: 35px;
+  top: 25%;
+  left: -120px;
+  animation-delay: 0s;
 }
 
-.cloud:nth-child(1)::before {
-  width: 80px;
-  height: 80px;
-  top: -35px;
-  left: 25px;
-}
-
-.cloud:nth-child(1)::after {
-  width: 60px;
-  height: 60px;
+.cloud:nth-child(1):before {
+  width: 45px;
+  height: 45px;
   top: -25px;
-  left: 85px;
-}
-
-/* Medium cloud */
-.cloud:nth-child(2) {
-  width: 140px;
-  height: 40px;
-  top: 30%;
-  animation-duration: 35s;
-  animation-delay: -15s;
-  opacity: 0.8;
-}
-
-.cloud:nth-child(2)::before {
-  width: 60px;
-  height: 60px;
-  top: -30px;
   left: 15px;
 }
 
-.cloud:nth-child(2)::after {
-  width: 45px;
-  height: 45px;
+.cloud:nth-child(1):after {
+  width: 35px;
+  height: 35px;
+  top: -18px;
+  left: 45px;
+}
+
+.cloud:nth-child(1) span:before {
+  width: 40px;
+  height: 40px;
   top: -20px;
   left: 65px;
 }
 
-/* Small cloud */
-.cloud:nth-child(3) {
-  width: 120px;
-  height: 35px;
+.cloud:nth-child(2) {
+  width: 180px;
+  height: 45px;
   top: 45%;
-  animation-duration: 40s;
-  animation-delay: -25s;
-  opacity: 0.6;
+  left: -180px;
+  animation-delay: 5s;
 }
 
-.cloud:nth-child(3)::before {
+.cloud:nth-child(2):before {
+  width: 70px;
+  height: 70px;
+  top: -35px;
+  left: 25px;
+}
+
+.cloud:nth-child(2):after {
+  width: 55px;
+  height: 55px;
+  top: -25px;
+  left: 75px;
+}
+
+.cloud:nth-child(2) span:before {
+  width: 65px;
+  height: 65px;
+  top: -30px;
+  left: 100px;
+}
+
+.cloud:nth-child(2) span:after {
+  width: 45px;
+  height: 45px;
+  top: -15px;
+  left: 120px;
+}
+
+.cloud:nth-child(3) {
+  width: 140px;
+  height: 40px;
+  top: 65%;
+  left: -140px;
+  animation-delay: 10s;
+}
+
+.cloud:nth-child(3):before {
   width: 50px;
   height: 50px;
-  top: -25px;
-  left: 10px;
+  top: -28px;
+  left: 20px;
 }
 
-.cloud:nth-child(3)::after {
-  width: 35px;
-  height: 35px;
-  top: -15px;
+.cloud:nth-child(3):after {
+  width: 40px;
+  height: 40px;
+  top: -20px;
   left: 55px;
 }
 
-/* Additional small cloud */
-.cloud:nth-child(4) {
-  width: 100px;
-  height: 30px;
-  top: 25%;
-  animation-duration: 50s;
-  animation-delay: -10s;
-  opacity: 0.7;
-}
-
-.cloud:nth-child(4)::before {
+.cloud:nth-child(3) span:before {
   width: 45px;
   height: 45px;
-  top: -20px;
-  left: 8px;
+  top: -22px;
+  left: 85px;
 }
 
-.cloud:nth-child(4)::after {
-  width: 30px;
-  height: 30px;
-  top: -12px;
-  left: 45px;
+.cloud:nth-child(4) {
+  width: 160px;
+  height: 42px;
+  top: 85%;
+  left: -160px;
+  animation-delay: 15s;
 }
 
-@keyframes floatCloud {
-  from { 
-    transform: translateX(-200%) translateY(0);
-  }
-  50% {
-    transform: translateX(100%) translateY(-10px);
-  }
-  to { 
-    transform: translateX(400%) translateY(0);
-  }
+.cloud:nth-child(4):before {
+  width: 60px;
+  height: 60px;
+  top: -32px;
+  left: 22px;
+}
+
+.cloud:nth-child(4):after {
+  width: 50px;
+  height: 50px;
+  top: -25px;
+  left: 60px;
+}
+
+.cloud:nth-child(4) span:before {
+  width: 55px;
+  height: 55px;
+  top: -28px;
+  left: 90px;
+}
+
+.cloud:nth-child(4) span:after {
+  width: 42px;
+  height: 42px;
+  top: -18px;
+  left: 110px;
 }
 
 /* Palm tree */
@@ -178,6 +1045,7 @@
   height: 200px;
   transform-origin: bottom center;
   animation: sway 8s ease-in-out infinite;
+  z-index: 2;
 }
 
 .trunk {
@@ -212,619 +1080,1667 @@
 .leaf:nth-child(3) { transform: rotate(-50deg) translateX(-50%); }
 .leaf:nth-child(4) { transform: rotate(50deg) translateX(-50%); }
 
-/* Beach waves */
-.waves {
+@keyframes sway {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+} 
+
+/* Dandelion */
+.dandelion {
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  width: 60px;
+  height: 120px;
+  z-index: 2;
+  transform-origin: bottom center;
+  transform: rotate(15deg);
+  animation: gentleSway 6s ease-in-out infinite;
+}
+
+.dandelionStem {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 3px;
+  height: 80px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2));
+  transform: translateX(-50%);
+}
+
+.dandelionHead {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50px;
+  height: 50px;
+  transform: translateX(-50%);
+}
+
+.dandelionCore {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+.seed {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: bottom center;
+}
+
+.seedCore {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  height: 2px;
+  background: rgba(255, 255, 255, 1);
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.seedParachute {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 8px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 50% 50% 0 0;
+  transform: translateX(-50%);
+}
+
+/* Generate 24 attached seeds */
+.seed:nth-child(1) { transform: rotate(0deg) translateY(-20px); }
+.seed:nth-child(2) { transform: rotate(15deg) translateY(-20px); }
+.seed:nth-child(3) { transform: rotate(30deg) translateY(-20px); }
+.seed:nth-child(4) { transform: rotate(45deg) translateY(-20px); }
+.seed:nth-child(5) { transform: rotate(60deg) translateY(-20px); }
+.seed:nth-child(6) { transform: rotate(75deg) translateY(-20px); }
+.seed:nth-child(7) { transform: rotate(90deg) translateY(-20px); }
+.seed:nth-child(8) { transform: rotate(105deg) translateY(-20px); }
+.seed:nth-child(9) { transform: rotate(120deg) translateY(-20px); }
+.seed:nth-child(10) { transform: rotate(135deg) translateY(-20px); }
+.seed:nth-child(11) { transform: rotate(150deg) translateY(-20px); }
+.seed:nth-child(12) { transform: rotate(165deg) translateY(-20px); }
+.seed:nth-child(13) { transform: rotate(180deg) translateY(-20px); }
+.seed:nth-child(14) { transform: rotate(195deg) translateY(-20px); }
+.seed:nth-child(15) { transform: rotate(210deg) translateY(-20px); }
+.seed:nth-child(16) { transform: rotate(225deg) translateY(-20px); }
+.seed:nth-child(17) { transform: rotate(240deg) translateY(-20px); }
+.seed:nth-child(18) { transform: rotate(255deg) translateY(-20px); }
+.seed:nth-child(19) { transform: rotate(270deg) translateY(-20px); }
+.seed:nth-child(20) { transform: rotate(285deg) translateY(-20px); }
+.seed:nth-child(21) { transform: rotate(300deg) translateY(-20px); }
+.seed:nth-child(22) { transform: rotate(315deg) translateY(-20px); }
+.seed:nth-child(23) { transform: rotate(330deg) translateY(-20px); }
+.seed:nth-child(24) { transform: rotate(345deg) translateY(-20px); }
+
+/* Flying seeds */
+.flyingSeed {
+  position: absolute;
+  width: 10px;
+  height: 14px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.flyingSeed .seedCore {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.flyingSeed .seedParachute {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 8px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50% 50% 0 0;
+  transform: translateX(-50%);
+}
+
+.flyingSeed:nth-child(1) {
+  top: 0;
+  left: 0;
+  animation: fly1 8s linear infinite;
+}
+
+.flyingSeed:nth-child(2) {
+  top: 5px;
+  left: 5px;
+  animation: fly2 7s linear infinite 1s;
+}
+
+.flyingSeed:nth-child(3) {
+  top: -5px;
+  left: -5px;
+  animation: fly3 9s linear infinite 2s;
+}
+
+.flyingSeed:nth-child(4) {
+  top: 10px;
+  left: 2px;
+  animation: fly4 6s linear infinite 3s;
+}
+
+.flyingSeed:nth-child(5) {
+  top: -8px;
+  left: -2px;
+  animation: fly5 8s linear infinite 4s;
+}
+
+.flyingSeed:nth-child(6) {
+  top: 3px;
+  left: 3px;
+  animation: fly6 7s linear infinite 5s;
+}
+
+/* Flying seed animations */
+@keyframes fly1 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(100px, -100px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fly2 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(120px, -80px) rotate(540deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fly3 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(80px, -120px) rotate(660deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fly4 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(110px, -90px) rotate(480deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fly5 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(90px, -110px) rotate(600deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fly6 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(130px, -70px) rotate(540deg);
+    opacity: 0;
+  }
+}
+
+/* Performance optimizations for animations */
+.cloud, .dandelion, .celestialBody, .flyingSeed {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Seasonal Decorations Container */
+.seasonalDecorations {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 40%;
-  mask-image: linear-gradient(to bottom, transparent, black);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black);
+  height: 200px;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  padding: 0 5%;
+  pointer-events: none;
+  z-index: 10;
 }
 
-.wave {
+/* Spring - Dandelion */
+.springDandelion {
+  position: relative;
+  width: 60px;
+  height: 120px;
+  transform-origin: bottom center;
+  transform: rotate(15deg);
+  animation: gentleSway 6s ease-in-out infinite;
+  z-index: 1;
+}
+
+.dandelionStem {
   position: absolute;
-  height: 100px;
-  width: 200%;
-  background: rgba(255, 255, 255, 0.1);
+  bottom: 0;
+  left: 50%;
+  width: 3px;
+  height: 80px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.3));
+  transform: translateX(-50%);
+}
+
+.dandelionHead {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.dandelionCore {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.8));
   border-radius: 50%;
-  left: -50%;
-  animation: waveMotion infinite linear;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
 }
 
-.wave:nth-child(1) {
-  bottom: -80px;
-  animation-duration: 15s;
-  opacity: 0.3;
+.seed {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: bottom center;
 }
 
-.wave:nth-child(2) {
-  bottom: -90px;
-  animation-duration: 12s;
-  animation-delay: -5s;
-  opacity: 0.2;
+.seedCore {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  height: 2px;
+  background: rgba(255, 255, 255, 1);
+  border-radius: 50%;
+  transform: translateX(-50%);
 }
 
-.wave:nth-child(3) {
-  bottom: -100px;
-  animation-duration: 18s;
-  animation-delay: -8s;
-  opacity: 0.1;
+.seedParachute {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 6px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50% 50% 0 0;
+  transform: translateX(-50%);
 }
 
-/* Holiday symbols */
-.holidaySymbol {
+/* Generate 24 attached seeds */
+.seed:nth-child(1) { transform: rotate(0deg) translateY(-16px); }
+.seed:nth-child(2) { transform: rotate(15deg) translateY(-16px); }
+.seed:nth-child(3) { transform: rotate(30deg) translateY(-16px); }
+.seed:nth-child(4) { transform: rotate(45deg) translateY(-16px); }
+.seed:nth-child(5) { transform: rotate(60deg) translateY(-16px); }
+.seed:nth-child(6) { transform: rotate(75deg) translateY(-16px); }
+.seed:nth-child(7) { transform: rotate(90deg) translateY(-16px); }
+.seed:nth-child(8) { transform: rotate(105deg) translateY(-16px); }
+.seed:nth-child(9) { transform: rotate(120deg) translateY(-16px); }
+.seed:nth-child(10) { transform: rotate(135deg) translateY(-16px); }
+.seed:nth-child(11) { transform: rotate(150deg) translateY(-16px); }
+.seed:nth-child(12) { transform: rotate(165deg) translateY(-16px); }
+.seed:nth-child(13) { transform: rotate(180deg) translateY(-16px); }
+.seed:nth-child(14) { transform: rotate(195deg) translateY(-16px); }
+.seed:nth-child(15) { transform: rotate(210deg) translateY(-16px); }
+.seed:nth-child(16) { transform: rotate(225deg) translateY(-16px); }
+.seed:nth-child(17) { transform: rotate(240deg) translateY(-16px); }
+.seed:nth-child(18) { transform: rotate(255deg) translateY(-16px); }
+.seed:nth-child(19) { transform: rotate(270deg) translateY(-16px); }
+.seed:nth-child(20) { transform: rotate(285deg) translateY(-16px); }
+.seed:nth-child(21) { transform: rotate(300deg) translateY(-16px); }
+.seed:nth-child(22) { transform: rotate(315deg) translateY(-16px); }
+.seed:nth-child(23) { transform: rotate(330deg) translateY(-16px); }
+.seed:nth-child(24) { transform: rotate(345deg) translateY(-16px); }
+
+/* Flying seeds */
+.flyingSeed {
+  position: absolute;
+  width: 8px;
+  height: 12px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.flyingSeed .seedCore {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  height: 2px;
+  background: rgba(255, 255, 255, 1);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
+}
+
+.flyingSeed .seedParachute {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 6px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50% 50% 0 0;
+  transform: translateX(-50%);
+}
+
+/* Flying seed positions and animations */
+.flyingSeed:nth-child(1) {
+  top: 20%;
+  left: 120%;
+  animation: flyRight1 4s linear infinite;
+}
+
+.flyingSeed:nth-child(2) {
+  top: 10%;
+  left: 110%;
+  animation: flyRight2 5s linear infinite 1s;
+}
+
+.flyingSeed:nth-child(3) {
+  top: 30%;
+  left: 130%;
+  animation: flyRight3 6s linear infinite 2s;
+}
+
+.flyingSeed:nth-child(4) {
+  top: 15%;
+  left: 125%;
+  animation: flyRight4 4.5s linear infinite 3s;
+}
+
+.flyingSeed:nth-child(5) {
+  top: 25%;
+  left: 115%;
+  animation: flyRight5 5.5s linear infinite 4s;
+}
+
+.flyingSeed:nth-child(6) {
+  top: 35%;
+  left: 135%;
+  animation: flyRight6 4.8s linear infinite 5s;
+}
+
+/* Flying seed animations */
+@keyframes flyRight1 {
+  0% {
+    transform: translate(-120%, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(100px, -50px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes flyRight2 {
+  0% {
+    transform: translate(-110%, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(120px, -30px) rotate(420deg);
+    opacity: 0;
+  }
+}
+
+@keyframes flyRight3 {
+  0% {
+    transform: translate(-130%, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(90px, -70px) rotate(300deg);
+    opacity: 0;
+  }
+}
+
+@keyframes flyRight4 {
+  0% {
+    transform: translate(-125%, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(110px, -40px) rotate(380deg);
+    opacity: 0;
+  }
+}
+
+@keyframes flyRight5 {
+  0% {
+    transform: translate(-115%, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(100px, -60px) rotate(340deg);
+    opacity: 0;
+  }
+}
+
+@keyframes flyRight6 {
+  0% {
+    transform: translate(-135%, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(80px, -80px) rotate(400deg);
+    opacity: 0;
+  }
+}
+
+@keyframes gentleSway {
+  0%, 100% {
+    transform: rotate(12deg);
+  }
+  50% {
+    transform: rotate(18deg);
+  }
+}
+
+/* Summer - Sunflower */
+.sunflower {
+  position: relative;
+  width: 60px;
+  height: 120px;
+  transform-origin: bottom center;
+  transform: rotate(10deg);
+  animation: gentleSway 6s ease-in-out infinite;
+}
+
+.sunflowerStem {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  height: 80px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.2));
+  transform: translateX(-50%);
+}
+
+.sunflowerHead {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  transform: translate(-50%, 0);
+}
+
+.sunflowerCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+}
+
+.sunflowerPetal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 50% 50% 0 0;
+  transform-origin: center bottom;
+}
+
+/* Generate 12 petals */
+.sunflowerPetal:nth-child(1) { transform: translate(-50%, -50%) rotate(0deg); }
+.sunflowerPetal:nth-child(2) { transform: translate(-50%, -50%) rotate(30deg); }
+.sunflowerPetal:nth-child(3) { transform: translate(-50%, -50%) rotate(60deg); }
+.sunflowerPetal:nth-child(4) { transform: translate(-50%, -50%) rotate(90deg); }
+.sunflowerPetal:nth-child(5) { transform: translate(-50%, -50%) rotate(120deg); }
+.sunflowerPetal:nth-child(6) { transform: translate(-50%, -50%) rotate(150deg); }
+.sunflowerPetal:nth-child(7) { transform: translate(-50%, -50%) rotate(180deg); }
+.sunflowerPetal:nth-child(8) { transform: translate(-50%, -50%) rotate(210deg); }
+.sunflowerPetal:nth-child(9) { transform: translate(-50%, -50%) rotate(240deg); }
+.sunflowerPetal:nth-child(10) { transform: translate(-50%, -50%) rotate(270deg); }
+.sunflowerPetal:nth-child(11) { transform: translate(-50%, -50%) rotate(300deg); }
+.sunflowerPetal:nth-child(12) { transform: translate(-50%, -50%) rotate(330deg); }
+
+/* Autumn - Falling Leaves */
+.mapleLeaf {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  transform-origin: bottom center;
+  z-index: 2;
+}
+
+.fallingLeaf {
   position: absolute;
   width: 20px;
   height: 20px;
-  background: rgba(255, 255, 255, 0.3);
-  animation: float 10s infinite ease-in-out;
+  background: rgba(255, 255, 255, 0.6);
+  clip-path: polygon(
+    50% 0,    /* Top point */
+    65% 15%,  /* Upper right curve start */
+    90% 25%,  /* Right lobe top */
+    75% 45%,  /* Right lobe indent */
+    95% 45%,  /* Right point */
+    80% 60%,  /* Lower right curve */
+    85% 75%,  /* Bottom right lobe */
+    50% 100%, /* Bottom point */
+    15% 75%,  /* Bottom left lobe */
+    20% 60%,  /* Lower left curve */
+    5% 45%,   /* Left point */
+    25% 45%,  /* Left lobe indent */
+    10% 25%,  /* Left lobe top */
+    35% 15%   /* Upper left curve start */
+  );
+  opacity: 0;
+  animation: fallAndDrift 8s linear infinite;
+  animation-delay: var(--fall-delay);
+  will-change: transform, opacity;
 }
 
-.holidaySymbol:nth-child(1) {
-  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-  top: 30%;
-  left: 20%;
-  animation-delay: -2s;
+@keyframes fallAndDrift {
+  0% {
+    transform: translate(0, -20px) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  25% {
+    transform: translate(15px, 20px) rotate(90deg);
+  }
+  50% {
+    transform: translate(30px, 60px) rotate(180deg);
+  }
+  75% {
+    transform: translate(45px, 100px) rotate(270deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(60px, 160px) rotate(360deg);
+    opacity: 0;
+  }
 }
 
-.holidaySymbol:nth-child(2) {
-  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  top: 40%;
-  right: 25%;
-  animation-delay: -4s;
+/* Winter - Mountain Scene */
+.snowflake {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  transform-origin: bottom center;
+  z-index: 2;
 }
 
-.holidaySymbol:nth-child(3) {
+.mountainScene {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.mountain {
+  position: absolute;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.mountain:nth-child(1) {
+  left: 0;
+  width: 70px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.mountain:nth-child(2) {
+  left: 30px;
+  width: 90px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.mountain:nth-child(3) {
+  right: 0;
+  width: 60px;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.snow {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 50%;
-  top: 60%;
-  left: 40%;
-  animation-delay: -6s;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
+  animation: snowfall 4s linear infinite;
 }
 
 /* Animations */
-@keyframes glow {
-  0%, 100% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.1); opacity: 1; }
-}
-
-@keyframes sway {
-  0%, 100% { transform: rotate(-2deg); }
-  50% { transform: rotate(2deg); }
-}
-
-@keyframes waveMotion {
-  from { transform: translateX(0) rotate(2deg); }
-  to { transform: translateX(-50%) rotate(-1deg); }
-}
-
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  25% { transform: translate(10px, -10px) rotate(5deg); }
-  50% { transform: translate(0, -20px) rotate(0deg); }
-  75% { transform: translate(-10px, -10px) rotate(-5deg); }
-}
-
-.headerOverlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, 
-    rgba(var(--state-primary-rgb), 0.4) 0%, 
-    rgba(var(--state-secondary-rgb), 0.4) 100%);
-  z-index: 2;
-  backdrop-filter: blur(0px);
-}
-
-.headerContent {
-  position: relative;
-  z-index: 3;
-  max-width: 1200px;
-  margin: 0 auto;
-  text-align: center;
-  padding: 4rem 2rem;
-  width: 100%;
-}
-
-.decorativeElements {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  overflow: hidden;
-  opacity: 0.1;
-  pointer-events: none;
-}
-
-.decorativeElement {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  background: white;
-  opacity: 0.3;
-  border-radius: 50%;
-  animation: float 20s infinite linear;
-}
-
-.decorativeElement:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
-.decorativeElement:nth-child(2) { top: 20%; right: 20%; animation-delay: -5s; }
-.decorativeElement:nth-child(3) { bottom: 30%; left: 30%; animation-delay: -10s; }
-.decorativeElement:nth-child(4) { bottom: 20%; right: 10%; animation-delay: -15s; }
-
-@keyframes float {
-  0% {
-    transform: translate(0, 0) rotate(0deg) scale(1);
-    opacity: 0.3;
-  }
-  25% {
-    transform: translate(100px, 50px) rotate(90deg) scale(1.2);
-    opacity: 0.4;
+@keyframes gentleSway {
+  0%, 100% {
+    transform: rotate(10deg);
   }
   50% {
-    transform: translate(200px, 0) rotate(180deg) scale(1);
-    opacity: 0.3;
+    transform: rotate(15deg);
   }
-  75% {
-    transform: translate(100px, -50px) rotate(270deg) scale(1.2);
-    opacity: 0.4;
+}
+
+@keyframes spinLeaf {
+  0% {
+    transform: rotate(0deg) scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+    filter: brightness(1.2);
   }
   100% {
-    transform: translate(0, 0) rotate(360deg) scale(1);
-    opacity: 0.3;
+    transform: rotate(360deg) scale(1);
+    filter: brightness(1);
   }
 }
 
-.heroStats {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2rem;
-  margin-bottom: 3rem;
-  animation: fadeInUp 1s ease-out;
+@keyframes snowfall {
+  0% {
+    transform: translate(0, -20px);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--x-end), var(--y-end));
+    opacity: 0;
+  }
 }
 
-.statBadge {
+@keyframes gentleFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+}
+
+/* Media Queries */
+@media (min-width: 769px) {
+  .seasonalDecorations {
+    padding: 0 10%;
+  }
+}
+
+.holidayColumn:nth-child(1) .holidayRow {
+  background: #fafbff;
+  border-color: rgba(66, 153, 225, 0.2);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.holidayColumn:nth-child(1) .holidayRow:hover {
+  background: #f0f5ff;
+  transform: translateY(-2px);
+  border-color: rgba(66, 153, 225, 0.4);
+}
+
+.holidayColumn:nth-child(1) .duration {
+  background: rgba(26, 54, 93, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  color: #1a365d;
+  margin-left: 0.75rem;
+  font-weight: 500;
+}
+
+.holidayColumn:nth-child(1) .holidayDate {
+  color: #1a365d;
+  font-weight: 500;
+  min-width: 140px;
+  margin-right: 1.5rem;
+}
+
+.holidayColumn:nth-child(1) .dateSeparator {
+  color: #1a365d;
+  opacity: 0.5;
+}
+
+.holidayColumn:nth-child(1) .headerIcon {
+  color: #1a365d;
+  font-size: 1.75rem;
+  opacity: 0.9;
+}
+
+/* Vacation Section */
+.vacationSection {
+  width: 100%;
+  margin-top: 3rem;
+  padding: 2rem;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.vacationGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.vacationCard {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.vacationCard:hover {
+  transform: var(--hover-transform);
+  box-shadow: var(--shadow-hover);
+}
+
+.destinationHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.destinationIcon {
+  color: var(--state-primary-color);
+  font-size: 1.5rem;
+}
+
+.destinationContent {
+  padding: 1.5rem;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 1.5rem 2rem;
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: transform 0.3s ease;
-  animation: float 6s ease-in-out infinite;
-}
-
-.statBadge:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.statNumber {
-  font-size: 3rem;
-  font-weight: 800;
-  line-height: 1;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.7));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.statLabel {
-  font-size: 1rem;
-  opacity: 0.9;
-}
-
-.statDivider {
-  width: 2px;
-  height: 60px;
-  background: rgba(255, 255, 255, 0.2);
-  transform: rotate(15deg);
-}
-
-.stateHeader h1 {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  font-weight: 800;
-  line-height: 1.2;
-  animation: fadeInUp 1s ease-out 0.2s backwards;
-}
-
-.heroSubtitle {
-  font-size: 1.5rem;
-  margin-bottom: 3rem;
-  opacity: 0.9;
-  animation: fadeInUp 1s ease-out 0.4s backwards;
-}
-
-.heroActions {
-  display: flex;
-  justify-content: center;
   gap: 1.5rem;
-  animation: fadeInUp 1s ease-out 0.6s backwards;
 }
 
-.primaryButton, .secondaryButton {
-  padding: 1rem 2rem;
-  border-radius: 30px;
-  font-size: 1.1rem;
-  font-weight: 600;
+.destinationDescription {
+  color: #4a5568;
+  line-height: 1.6;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.destinationDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: auto;
+}
+
+/* Update destination section headers */
+.sectionHeader {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  position: relative;
-  overflow: hidden;
-}
-
-.primaryButton {
-  background: white;
-  color: var(--state-primary-color);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.primaryButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-}
-
-.secondaryButton {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-}
-
-.secondaryButton:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
-
-.buttonIcon {
-  font-size: 1.2rem;
-  transition: transform 0.3s ease;
-}
-
-.primaryButton:hover .buttonIcon,
-.secondaryButton:hover .buttonIcon {
-  transform: translateX(5px);
-}
-
-.content {
-  max-width: 1400px;
-  margin: -4rem auto 0;
-  padding: 0 2rem 4rem;
-  position: relative;
-  z-index: 4;
-}
-
-.mainGrid {
-  display: grid !important;
-  grid-template-columns: 2fr 1fr !important;
-  gap: 2rem !important;
-  align-items: start !important;
-  width: 100% !important;
-}
-
-.leftColumn {
-  min-width: 0;
-  width: 100% !important;
-}
-
-.rightColumn {
-  min-width: 0;
-  width: 100% !important;
-}
-
-.stickyContent {
-  position: sticky;
-  top: 80px;
-  width: 100% !important;
-}
-
-.mainContent {
-  background: white;
-  border-radius: 20px;
-  padding: 2.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  width: 100% !important;
-}
-
-.intro {
-  font-size: 1.2rem;
-  line-height: 1.8;
-  color: #2d3748;
-  margin-bottom: 3rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.holidaySection,
-.seasonalSection {
-  margin-bottom: 4rem;
-}
-
-.holidayList {
-  display: grid;
-  gap: 1.5rem;
-  margin-top: 2rem;
-}
-
-.holidayItem {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
-}
-
-.holidayItem:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.holidayContent {
-  padding: 1.5rem;
-}
-
-.holidayContent h3 {
-  color: var(--state-primary-color);
   margin-bottom: 0.75rem;
-  font-size: 1.3rem;
+  background: linear-gradient(135deg, 
+    var(--landing-primary),
+    var(--landing-secondary)
+  );
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
 }
 
-.seasonGrid {
+.sectionHeader h4,
+.sectionIcon {
+  color: white !important;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+}
+
+.attractionsSection ul,
+.activitiesSection ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.attractionsSection li,
+.activitiesSection li {
+  background: #f7fafc;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.attractionsSection li:hover,
+.activitiesSection li:hover {
+  background: #edf2f7;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .vacationGrid {
+    grid-template-columns: 1fr;
+    padding: 0 1rem;
+  }
+  
+  .destinationHeader {
+    padding: 1.25rem;
+  }
+  
+  .destinationHeader h3 {
+    font-size: 1.25rem;
+  }
+  
+  .destinationContent {
+    padding: 1.25rem;
+  }
+}
+
+.holidayColumn:nth-child(1) .headerIcon {
+  color: #1a365d;  /* Theme color for public holidays */
+  font-size: 1.75rem;
+  opacity: 0.9;
+}
+
+.holidayColumn:nth-child(2) .headerIcon {
+  font-size: 1.75rem;
+  opacity: 0.9;
+}
+
+.holidayColumn:nth-child(2) .holidayDate {
+  min-width: 140px;
+  font-size: 0.9rem;
+  color: #666 !important;
+  margin-right: 2rem;
+}
+
+.stateOverviewSection {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 1rem 2rem;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.stateOverviewSection h2 {
+  color: #1a365d;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
+.microInfoBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1rem;
+  margin: 0.5rem auto;
+  max-width: 1600px;
+  flex-wrap: wrap;
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.microInfoBar:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.microInfoItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  transition: all var(--transition-normal);
+  min-width: fit-content;
+}
+
+.microInfoIcon {
+  color: var(--theme-primary);
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.microInfoLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-right: 0.25rem;
+}
+
+.microInfoValue {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+.microInfoTags {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.microInfoTag {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  background: color-mix(in srgb, var(--landing-primary) 15%, white 85%);
+  border-radius: 999px;
+  color: var(--landing-primary);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.microInfoTag:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--landing-primary) 20%, white 80%);
+}
+
+/* Update section spacing */
+.stateOverviewSection {
+  margin-top: 1rem;
+  padding: 1rem 2rem;
+}
+
+.stateOverviewSection h2 {
+  margin-bottom: 1rem;
+  font-size: 1.75rem;
+}
+
+.stateDescription {
+  padding: 0.75rem 1rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .microInfoBar {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+  
+  .microInfoItem {
+    padding: 0.4rem 0.6rem;
+  }
+  
+  .microInfoLabel {
+    font-size: 0.7rem;
+  }
+  
+  .microInfoValue {
+    font-size: 0.8rem;
+  }
+}
+
+.stateDescription {
+  color: #4a5568;
+  line-height: 1.6;
+  font-size: 1rem;
+  text-align: center;
+  padding: 1rem;
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: 2rem;
+}
+
+.stateDescription::before {
+  content: '"';
+  position: absolute;
+  top: -1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 3rem;
+  color: #1a365d;
+  opacity: 0.1;
+  font-family: Georgia, serif;
+}
+
+.seasonalTraditions {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
-  margin-top: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .seasonCard {
-  background: white;
-  padding: 1.5rem;
+  padding: 1.25rem;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: #f8fafc;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .seasonCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.seasonIcon {
+  color: var(--landing-primary);
+  font-size: 1.75rem;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.seasonContent {
+  flex: 1;
 }
 
 .seasonCard h3 {
-  color: var(--state-primary-color);
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--state-secondary-color);
-}
-
-.quickInfo {
-  background: white;
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-  width: 100% !important;
-}
-
-.infoCard {
-  background: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.infoCard:last-child {
-  margin-bottom: 0;
-}
-
-.infoCard h3 {
-  color: var(--state-primary-color);
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
-}
-
-.faqSection {
-  background: white;
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  width: 100% !important;
-}
-
-.faqList {
-  display: grid;
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-}
-
-.faqItem {
-  background: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.faqItem h3 {
-  color: var(--state-primary-color);
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+  font-size: 1rem;
+  margin: 0 0 0.25rem;
+  color: #1a365d;
   font-weight: 600;
 }
 
-.bottomSection {
-  max-width: 1400px;
-  margin: 4rem auto 0;
+.seasonCard p {
+  margin: 0;
+  color: #4a5568;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
-.callToAction {
-  background: linear-gradient(135deg, 
-    var(--state-primary-color) 0%, 
-    var(--state-secondary-color) 100%);
-  border-radius: 20px;
-  padding: 4rem;
-  color: white;
-  position: relative;
-  overflow: hidden;
-}
-
-.ctaContent {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-}
-
-.ctaStats {
-  display: flex;
-  justify-content: center;
-  gap: 3rem;
-  margin: 2rem 0;
-}
-
-.ctaStat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  animation: float 6s ease-in-out infinite;
-}
-
-.ctaNumber {
-  font-size: 3rem;
-  font-weight: 800;
-  line-height: 1;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.7));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.ctaStat span:last-child {
-  font-size: 1.1rem;
-  opacity: 0.9;
-}
-
-.ctaButton {
-  background: white;
-  color: var(--state-primary-color);
-  padding: 1rem 2rem;
-  border-radius: 30px;
-  font-size: 1.2rem;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  text-decoration: none;
-  position: relative;
-  overflow: hidden;
-}
-
-.ctaButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+@media (max-width: 1024px) {
+  .microInfoBar {
+    gap: 1.5rem;
+    padding: 1rem 0.5rem;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  
+  .microInfoItem {
+    gap: 0.5rem;
   }
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .mainGrid {
-    grid-template-columns: 1fr !important;
-  }
-
-  .stickyContent {
-    position: static;
-  }
-
-  .seasonGrid {
+  
+  .seasonalTraditions {
     grid-template-columns: 1fr;
   }
-
-  .ctaStats {
-    flex-wrap: wrap;
-    justify-content: space-around;
+  
+  .seasonCard {
+    padding: 1rem;
+  }
+  
+  .stateDescription {
+    text-align: left;
+    font-size: 0.95rem;
   }
 }
 
 @media (max-width: 768px) {
-  .stateHeader {
-    min-height: 80vh;
-  }
-
-  .headerContent {
-    padding: 2rem 1rem;
-  }
-
-  .stateHeader h1 {
-    font-size: 2.5rem;
-  }
-
-  .heroStats {
-    flex-direction: column;
+  .microInfoBar {
     gap: 1rem;
+    justify-content: flex-start;
+    padding: 1rem 0;
+    overflow-x: auto;
   }
-
-  .statDivider {
-    display: none;
+  
+  .microInfoItem {
+    flex-shrink: 0;
   }
-
-  .heroActions {
-    flex-direction: column;
-    width: 100%;
+  
+  .seasonalTraditions {
+    grid-template-columns: 1fr;
   }
-
-  .primaryButton,
-  .secondaryButton {
-    width: 100%;
-    justify-content: center;
+  
+  .seasonCard {
+    padding: 1rem;
   }
-
-  .content {
-    margin-top: -2rem;
-    padding: 0 1rem 2rem;
+  
+  .stateDescription {
+    text-align: left;
+    font-size: 0.95rem;
   }
+}
 
-  .mainContent,
-  .quickInfo,
-  .faqSection {
+/* Regional Specialties Section */
+.regionalSection {
+  width: 100%;
+  margin-top: 3rem;
+  padding: 2rem;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.regionalSection h2 {
+  color: #1a365d;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.regionalGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.regionalCard {
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.regionalCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.regionalHeader {
+  background: linear-gradient(135deg, 
+    var(--landing-primary),
+    var(--landing-secondary)
+  );
+  padding: 1.25rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.regionalIcon {
+  font-size: 1.5rem;
+  opacity: 0.9;
+}
+
+.regionalHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.regionalContent {
+  padding: 1.5rem;
+}
+
+.regionalList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.regionalItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.regionalItem:hover {
+  transform: translateX(4px);
+  box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.regionalItemIcon {
+  color: var(--landing-primary);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.regionalItemContent {
+  flex: 1;
+}
+
+.regionalItemTitle {
+  font-weight: 600;
+  color: #1a365d;
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+
+.regionalItemDescription {
+  color: #4a5568;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .regionalGrid {
+    grid-template-columns: 1fr;
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .regionalSection {
     padding: 1.5rem;
   }
-
-  .callToAction {
-    padding: 2rem 1rem;
+  
+  .regionalHeader {
+    padding: 1rem;
   }
-
-  .ctaButton {
-    width: 100%;
-    justify-content: center;
+  
+  .regionalContent {
+    padding: 1.25rem;
   }
-} 
+  
+  .regionalItem {
+    padding: 0.75rem;
+  }
+}
 
-/* Add loading animation */
-@keyframes imagePlaceholder {
+/* Add smooth scrolling to the whole page */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Add custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    135deg,
+    var(--landing-primary),
+    var(--landing-secondary)
+  );
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  opacity: var(--hover-opacity);
+}
+
+/* Enhance button styles */
+.primaryButton, .secondaryButton {
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.primaryButton::after, .secondaryButton::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300%;
+  height: 300%;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  transition: transform 0.5s ease-out, opacity 0.3s ease-out;
+}
+
+.primaryButton:hover::after, .secondaryButton:hover::after {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+
+.primaryButton:hover, .secondaryButton:hover {
+  transform: var(--hover-transform);
+  box-shadow: var(--shadow-md);
+}
+
+.primaryButton:active, .secondaryButton:active {
+  transform: var(--active-transform);
+}
+
+/* Update header backgrounds */
+.columnHeader,
+.regionalHeader,
+.destinationHeader,
+.sectionHeader {
+  background: linear-gradient(135deg, 
+    var(--landing-primary),
+    var(--landing-secondary)
+  );
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px 12px 0 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.columnHeader::after,
+.regionalHeader::after,
+.destinationHeader::after,
+.sectionHeader::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.03)
+  );
+  pointer-events: none;
+}
+
+.columnHeader h2,
+.regionalHeader h3,
+.destinationHeader h3,
+.sectionHeader h4,
+.columnHeader p {
+  color: white;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.headerIcon,
+.regionalIcon,
+.destinationIcon,
+.sectionIcon {
+  color: var(--landing-primary) !important;
+  font-size: 1.75rem;
+  opacity: 0.9;
+  position: relative;
+  z-index: 1;
+}
+
+/* Section titles */
+.holidayOverview h2,
+.stateOverviewSection h2,
+.seasonalSection h2,
+.vacationSection h2,
+.regionalSection h2 {
+  color: #1a365d;
+  padding: 1rem 0;
+  text-align: center;
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-bottom: 2.5rem;
+  position: relative;
+  letter-spacing: -0.02em;
+}
+
+.holidayOverview h2:not(.columnHeader h2)::after,
+.stateOverviewSection h2:not(.columnHeader h2)::after,
+.seasonalSection h2:not(.columnHeader h2)::after,
+.vacationSection h2:not(.columnHeader h2)::after,
+.regionalSection h2:not(.columnHeader h2)::after {
+  content: '';
+  position: absolute;
+  bottom: -0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(135deg, 
+    var(--landing-primary),
+    var(--landing-secondary)
+  );
+  border-radius: 2px;
+}
+
+/* Add subtle section transitions */
+.holidayOverview,
+.stateOverviewSection,
+.seasonalSection,
+.vacationSection,
+.regionalSection {
+  position: relative;
+  z-index: 1;
+  margin-top: 4rem;
+  padding-top: 2rem;
+}
+
+/* Add subtle section separators */
+.holidayOverview::before,
+.stateOverviewSection::before,
+.seasonalSection::before,
+.vacationSection::before,
+.regionalSection::before {
+  content: '';
+  position: absolute;
+  top: -2rem;
+  left: 0;
+  right: 0;
+  height: 2rem;
+  background: linear-gradient(to bottom,
+    transparent,
+    rgba(0, 0, 0, 0.02)
+  );
+  pointer-events: none;
+}
+
+/* Enhanced Interactive Elements */
+.interactiveElement {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.interactiveElement::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(26, 54, 93, 0.1), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.interactiveElement:hover::after {
+  opacity: 1;
+}
+
+/* Improved Button Styles */
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.05)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.button:hover::before {
+  opacity: 1;
+}
+
+/* Smooth Scroll Behavior */
+.scrollContainer {
+  scroll-behavior: smooth;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Enhanced Loading States */
+@keyframes shimmer {
   0% {
     background-position: -200% 0;
   }
@@ -833,431 +2749,697 @@
   }
 }
 
-.destinationImage.loading {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: imagePlaceholder 1.5s infinite;
-} 
-
-/* Add these new animations and decorative styles */
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.05); opacity: 0.8; }
-}
-
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.headerOverlay::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle at center, 
-    rgba(255, 255, 255, 0.1) 0%,
-    transparent 50%);
-  animation: rotate 60s linear infinite;
-  pointer-events: none;
-}
-
-.headerOverlay::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2V6h4V4H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  opacity: 0.1;
-  pointer-events: none;
-}
-
-.decorativeCircle {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(circle at center,
-    rgba(255, 255, 255, 0.2) 0%,
-    transparent 70%);
-  animation: pulse 4s ease-in-out infinite;
-  pointer-events: none;
-}
-
-.decorativeCircle:nth-child(1) {
-  width: 300px;
-  height: 300px;
-  top: -150px;
-  right: -150px;
-  animation-delay: 0s;
-}
-
-.decorativeCircle:nth-child(2) {
-  width: 200px;
-  height: 200px;
-  bottom: -100px;
-  left: -100px;
-  animation-delay: -1s;
-}
-
-.statBadge {
-  animation: float 6s ease-in-out infinite;
-}
-
-.statBadge:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.statBadge:nth-child(2) {
-  animation-delay: -2s;
-}
-
-.seasonCard {
-  position: relative;
-  overflow: hidden;
-}
-
-.seasonCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 50%;
-  height: 100%;
+.loading {
   background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    transparent 100%
+    90deg,
+    rgba(26, 54, 93, 0.03) 25%,
+    rgba(26, 54, 93, 0.06) 37%,
+    rgba(26, 54, 93, 0.03) 63%
   );
-  transform: skewX(-25deg);
-  transition: all 0.75s;
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }
 
-.seasonCard:hover::before {
-  left: 150%;
+/* Improved Focus States */
+:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
 }
 
-.holidayItem {
-  position: relative;
-  overflow: hidden;
+/* Enhanced Hover Effects */
+.hoverEffect {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.holidayContent::before {
-  content: '';
-  position: absolute;
+.hoverEffect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(26, 54, 93, 0.08);
+}
+
+/* Improved Scroll Indicators */
+.scrollIndicator {
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(
-    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(255, 255, 255, 0.1) 0%,
-    transparent 50%
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--landing-primary),
+    var(--landing-secondary)
   );
-  opacity: 0;
-  transition: opacity 0.3s;
-  pointer-events: none;
+  transform-origin: 0 50%;
+  z-index: 1000;
 }
 
-.holidayItem:hover .holidayContent::before {
-  opacity: 1;
-}
-
-.callToAction {
+/* Enhanced Tooltips */
+.tooltip {
   position: relative;
-  overflow: hidden;
 }
 
-.callToAction::before {
-  content: '';
+.tooltip::before {
+  content: attr(data-tooltip);
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 255, 255, 0.1) 0%,
-    transparent 50%
-  );
-  animation: rotate 30s linear infinite;
-}
-
-.ctaStat {
-  position: relative;
-  animation: float 6s ease-in-out infinite;
-}
-
-.ctaStat:nth-child(1) { animation-delay: 0s; }
-.ctaStat:nth-child(2) { animation-delay: -2s; }
-.ctaStat:nth-child(3) { animation-delay: -4s; }
-
-/* Add hover effect for buttons */
-.primaryButton, .secondaryButton, .ctaButton {
-  position: relative;
-  overflow: hidden;
-}
-
-.primaryButton::after,
-.secondaryButton::after,
-.ctaButton::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 255, 255, 0.2) 0%,
-    transparent 50%
-  );
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  padding: 0.5rem 1rem;
+  background: var(--theme-primary);
+  color: white;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  white-space: nowrap;
   opacity: 0;
-  transition: opacity 0.3s;
-  transform: translate(-50%, -50%) rotate(45deg);
+  visibility: hidden;
+  transition: all 0.2s ease;
 }
 
-.primaryButton:hover::after,
-.secondaryButton:hover::after,
-.ctaButton:hover::after {
+.tooltip:hover::before {
   opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-4px);
 }
 
-/* Add smooth section transitions */
-.mainContent section {
+/* Improved Micro-animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fadeInUp {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.scaleIn {
+  animation: scaleIn 0.3s ease forwards;
+}
+
+/* Enhanced Card Interactions */
+.card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.card:hover {
+  transform: translateY(-4px) rotateX(2deg) rotateY(2deg);
+  box-shadow: 
+    0 12px 24px rgba(26, 54, 93, 0.06),
+    0 4px 8px rgba(26, 54, 93, 0.04);
+}
+
+/* Improved Section Transitions */
+.section {
   opacity: 0;
   transform: translateY(20px);
-  transition: all 0.6s ease-out;
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.mainContent section.visible {
+.section.visible {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* Add decorative elements to sections */
-.sectionDecoration {
-  position: absolute;
-  width: 100px;
-  height: 100px;
-  background: var(--state-primary-color);
-  opacity: 0.05;
-  border-radius: 50%;
-  pointer-events: none;
+/* Enhanced Loading Spinners */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.quickInfo::before,
-.faqSection::before {
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(26, 54, 93, 0.1);
+  border-top-color: var(--theme-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Performance Optimizations */
+.optimizedAnimation {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .animatedElement {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .noPrint {
+    display: none !important;
+  }
+  
+  .printOnly {
+    display: block !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  a {
+    text-decoration: underline !important;
+  }
+  
+  .card,
+  .section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
+/* High Contrast Mode */
+@media (forced-colors: active) {
+  .card,
+  .button,
+  .badge {
+    border: 1px solid CanvasText;
+  }
+  
+  .icon {
+    forced-color-adjust: none;
+  }
+}
+
+/* Enhanced Focus Styles */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(26, 54, 93, 0.1);
+}
+
+/* Skip Links */
+.skipLink {
+  position: fixed;
+  top: -100%;
+  left: 0;
+  padding: 1rem;
+  background: var(--theme-primary);
+  color: white;
+  z-index: 9999;
+  transition: top 0.3s;
+}
+
+.skipLink:focus {
+  top: 0;
+}
+
+/* Screen Reader Only */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Enhanced Keyboard Navigation */
+[role="button"],
+[role="tab"],
+[role="link"] {
+  cursor: pointer;
+}
+
+[role="button"]:focus,
+[role="tab"]:focus,
+[role="link"]:focus {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+}
+
+/* Loading States */
+.loadingState {
+  position: relative;
+  overflow: hidden;
+}
+
+.loadingState::after {
   content: '';
   position: absolute;
   top: 0;
+  left: 0;
   right: 0;
-  width: 150px;
-  height: 150px;
-  background: var(--state-secondary-color);
-  opacity: 0.05;
-  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-  transform: translate(30%, -30%);
-} 
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
 
-.holidayOverview {
-  background: white;
-  margin-top: -2rem;
+/* Error States */
+.errorState {
+  border-color: #e53e3e;
+  background-color: #fff5f5;
+}
+
+.errorMessage {
+  color: #e53e3e;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* Success States */
+.successState {
+  border-color: #38a169;
+  background-color: #f0fff4;
+}
+
+.successMessage {
+  color: #38a169;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* Enhanced Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(26, 54, 93, 0.05);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    135deg,
+    var(--landing-primary),
+    var(--landing-secondary)
+  );
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    135deg,
+    var(--landing-secondary),
+    var(--landing-primary)
+  );
+}
+
+/* Enhanced Selection */
+::selection {
+  background: color-mix(in srgb, var(--landing-primary) 30%, transparent 70%);
+  color: inherit;
+}
+
+/* Update header text colors */
+.columnHeader h2,
+.columnHeader p,
+.regionalHeader h3,
+.destinationHeader h3 {
+  color: white !important;
   position: relative;
-  z-index: 5;
-  padding: 0 2rem;
+  z-index: 1;
 }
 
-.holidayGrid {
-  max-width: 1400px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
-  padding: 2rem;
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+/* Update header icons to white */
+.columnHeader .headerIcon,
+.regionalHeader .regionalIcon,
+.destinationHeader .destinationIcon {
+  color: white !important;
+  opacity: 0.9;
+  position: relative;
+  z-index: 1;
 }
 
-.holidayColumn {
-  min-width: 0;
+/* Update regional and destination section icons to darker color */
+.regionalItemIcon,
+.sectionIcon {
+  color: #1a365d !important;
+  opacity: 0.9;
 }
 
+/* Ensure all text in gradient headers is white */
+.columnHeader .duration,
+.columnHeader .headerSubtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Update section icons in cards to be darker */
+.regionalItem .regionalItemIcon,
+.destinationContent .sectionIcon {
+  color: #1a365d !important;
+  opacity: 0.9;
+}
+
+/* Ensure contrast for section headers */
+.sectionHeader h4 {
+  color: #1a365d !important;
+  font-weight: 600;
+}
+
+/* Update heading styles for better hierarchy */
+.regionalHeader h3,
+.destinationHeader h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: white !important;
+  margin: 0;
+}
+
+.sectionHeader h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: white !important;
+  margin: 0;
+}
+
+/* Update other h3 and h4 instances for consistency */
+.seasonCard h3,
+.regionalItemTitle,
+.microInfoItem h3 {
+  font-size: 1.4rem;
+  color: #1a365d;
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+.attractionsSection h4,
+.activitiesSection h4,
+.traditions h4,
+.locations h4 {
+  font-size: 1.2rem;
+  color: #1a365d;
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+/* Update activity section icons to white */
+.sectionHeader .sectionIcon {
+  color: white !important;
+  opacity: 0.9;
+}
+
+/* Update holiday headers */
 .columnHeader {
+  background: linear-gradient(135deg, 
+    var(--landing-primary),
+    var(--landing-secondary)
+  );
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px 12px 0 0;
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid var(--state-primary-color);
 }
 
-.headerIcon {
-  font-size: 2rem;
-  background: linear-gradient(135deg,
-    var(--state-primary-color),
-    var(--state-secondary-color));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: pulse 2s ease-in-out infinite;
+.columnHeader h2,
+.columnHeader p,
+.columnHeader .headerIcon {
+  color: white !important;
+  position: relative;
+  z-index: 1;
 }
 
-.columnHeader h2 {
-  font-size: 1.5rem;
-  margin: 0;
-  color: var(--state-primary-color);
+/* Ensure holiday column headers are white */
+.holidayColumn:nth-child(1) .headerIcon,
+.holidayColumn:nth-child(2) .headerIcon {
+  color: white !important;
+  opacity: 0.9;
 }
 
-.columnHeader h2::after {
-  display: none;
+.holidayColumn:nth-child(1) .columnHeader h2,
+.holidayColumn:nth-child(2) .columnHeader h2 {
+  color: white !important;
 }
 
-.columnHeader p {
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0.25rem 0 0;
+/* Keep only content icons dark */
+.regionalItem .regionalItemIcon {
+  color: #1a365d !important;
+  opacity: 0.9;
 }
 
-.holidayList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.holidayRow {
-  display: flex;
-  align-items: center;
+/* Ensure section headers in cards have white text and icons */
+.sectionHeader {
+  background: linear-gradient(135deg, 
+    var(--landing-primary),
+    var(--landing-secondary)
+  );
   padding: 0.75rem 1rem;
   border-radius: 8px;
-  background: #f8f9fa;
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
-}
-
-.holidayRow:hover {
-  transform: translateX(5px);
-  background: #f0f2f5;
-  border-color: rgba(0, 0, 0, 0.05);
-}
-
-.holidayDate {
-  min-width: 140px;
-  font-family: 'Roboto Mono', monospace;
-  font-size: 0.9rem;
-  color: #666;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding-right: 1rem;
-  border-right: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.dateSeparator {
-  color: var(--state-primary-color);
-  font-weight: bold;
-  margin: 0 0.25rem;
+.sectionHeader h4,
+.sectionHeader .sectionIcon {
+  color: white !important;
+  margin: 0;
+  position: relative;
+  z-index: 1;
 }
 
-.holidayName {
-  flex: 1;
-  font-weight: 500;
-  display: flex;
+/* Call to Action Section */
+.ctaSection {
+  width: 100%;
+  margin: 4rem auto 0;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--landing-primary) 15%, white 85%),
+    color-mix(in srgb, var(--landing-secondary) 15%, white 85%)
+  );
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+
+.ctaSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(66, 153, 225, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(236, 110, 241, 0.1) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noiseFilter)' opacity='0.015'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.ctaContent {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.ctaTitle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1a365d;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+
+.ctaDescription {
+  font-size: 1.25rem;
+  color: #4a5568;
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+}
+
+.ctaButton {
+  display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  padding-left: 1rem;
-  letter-spacing: 0.01em;
-}
-
-.regionalBadge {
-  font-size: 0.7rem;
-  padding: 0.2rem 0.5rem;
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
   border-radius: 12px;
-  background: var(--state-primary-color);
+  background: linear-gradient(135deg,
+    var(--landing-primary),
+    var(--landing-secondary)
+  );
   color: white;
-  font-weight: normal;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-/* Update content margin to account for holiday overview */
-.content {
-  margin-top: 2rem;
+.ctaButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.ctaIcon {
+  font-size: 1.25rem;
+  transition: transform 0.3s ease;
+}
+
+.ctaButton:hover .ctaIcon {
+  transform: translateX(4px);
+}
+
+/* Footer */
+.footer {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  margin-top: 4rem;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.footer p {
+  color: #4a5568;
+  margin-bottom: 1rem;
+}
+
+.footer nav {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.footer a {
+  color: var(--landing-primary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.footer a:hover {
+  color: var(--landing-secondary);
 }
 
 /* Responsive adjustments */
-@media (max-width: 1024px) {
-  .holidayGrid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+@media (max-width: 768px) {
+  .ctaSection {
+    padding: 3rem 1.5rem;
+    margin: 3rem auto 0;
   }
 
-  .holidayOverview {
-    margin-top: -1rem;
-    padding: 0 1rem;
+  .ctaTitle {
+    font-size: 2rem;
+  }
+
+  .ctaDescription {
+    font-size: 1.1rem;
+  }
+
+  .ctaButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .footer nav {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .holidayColumn:first-child .holidayList {
+    grid-template-columns: 1fr;
+  }
+  
+  .holidayGrid {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .holidayRow {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+  .holidayOverview,
+  .stateOverviewSection,
+  .seasonalSection,
+  .vacationSection,
+  .regionalSection,
+  .ctaSection {
+    width: calc(100% - 2rem);
   }
-
-  .holidayDate {
-    min-width: auto;
-    font-size: 0.85rem;
-    padding-right: 0;
-    border-right: none;
-  }
-
-  .holidayName {
-    padding-left: 0;
-    font-size: 0.95rem;
+  
+  .holidayGrid {
+    padding: 0 1rem;
   }
 }
 
-/* Add these to the existing animations */
-@keyframes pulse {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
+/* Update header text styles - remove background for column headers */
+.columnHeader h2 {
+  color: white !important;
+  position: relative;
+  z-index: 1;
+  background: none;
+  padding: 0;
+  margin: 0;
 }
 
-.stateSelection {
-  margin-bottom: 2rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
+/* Adjust spacing between holiday date and name */
+.holidayColumn:nth-child(1) .holidayDate {
+  min-width: 120px;
+  margin-right: 1rem;
 }
 
-.stateSelection select {
-  background-color: rgba(255, 255, 255, 0.9);
-  border: none;
-  border-radius: 20px;
-  padding: 0.5rem 2rem 0.5rem 1rem;
-  font-size: 1rem;
-  color: var(--state-primary-color);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%234338ca' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 0.5rem center;
-  background-size: 1.5rem 1.5rem;
+.holidayColumn:nth-child(2) .holidayDate {
+  min-width: 120px;
+  margin-right: 1rem;
 }
 
-.stateSelection select:hover {
-  background-color: rgba(255, 255, 255, 1);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+/* Column Header Styles */
+.columnHeader h2 {
+  color: white !important;
+  margin: 0;
+  font-weight: 600;
+  -webkit-text-fill-color: white !important;
 }
-
-.stateSelection select:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
-} 
