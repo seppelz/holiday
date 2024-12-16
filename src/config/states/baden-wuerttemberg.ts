@@ -1,5 +1,6 @@
 import { StateInfo } from '../types/StateInfo';
 import { Holiday, SeasonalTradition } from '../types/Holiday';
+import { VacationDestination } from '../types/StateInfo';
 import { holidays } from '../../data/holidays';
 
 const stateSpecificHolidayDetails: Record<string, { description: string, traditions?: string[], culturalSignificance?: string, locations?: string[] }> = {
@@ -88,6 +89,42 @@ const seasonalTraditions: SeasonalTradition[] = [
   }
 ];
 
+const vacationDestinations: VacationDestination[] = [
+  {
+    name: "Schwarzwald",
+    description: "Der größte deutsche Mittelgebirgsraum mit einzigartigen Naturerlebnissen",
+    attractions: ["Triberg Wasserfälle", "Titisee", "Feldberg", "Schwarzwaldhochstraße"],
+    activities: [
+      "Wandern auf dem Westweg",
+      "Skifahren im Winter",
+      "Kuckucksuhren-Workshops",
+      "Thermalbäder besuchen"
+    ]
+  },
+  {
+    name: "Bodensee",
+    description: "Deutschlands größter See mit mediterranem Flair",
+    attractions: ["Mainau", "Konstanz Altstadt", "Meersburg", "Reichenau"],
+    activities: [
+      "Schifffahrten",
+      "Radfahren am Bodensee-Radweg",
+      "Wassersport",
+      "Weinproben"
+    ]
+  },
+  {
+    name: "Schwäbische Alb",
+    description: "UNESCO Geopark mit beeindruckender Höhlenlandschaft",
+    attractions: ["Lichtenstein Schloss", "Nebelhöhle", "Uracher Wasserfall"],
+    activities: [
+      "Höhlenwanderungen",
+      "Klettern",
+      "Fossilien suchen",
+      "Burgen erkunden"
+    ]
+  }
+];
+
 export const badenWuerttemberg: StateInfo = {
   fullName: "Baden-Württemberg",
   shortName: "BW",
@@ -117,6 +154,7 @@ export const badenWuerttemberg: StateInfo = {
       ...holiday,
       type: "public",
       isRegional: false,
+      date: holiday.start,
       details: stateSpecificHolidayDetails[holiday.name] || {
         description: `${holiday.name} ist in Baden-Württemberg ein gesetzlicher Feiertag.`
       }
@@ -125,17 +163,123 @@ export const badenWuerttemberg: StateInfo = {
       ...holiday,
       type: "public",
       isRegional: true,
+      date: holiday.start,
       details: stateSpecificHolidayDetails[holiday.name] || {
         description: `${holiday.name} ist in Baden-Württemberg ein gesetzlicher Feiertag.`
       }
     }))
   ],
-  schoolHolidays: [
-    ...holidays.schoolHolidays["2024"]["BW"],
-    ...holidays.schoolHolidays["2025"]["BW"],
-    ...holidays.schoolHolidays["2026"]["BW"]
-  ],
+  schoolHolidays: holidays.schoolHolidays["2025"]["BW"].map(holiday => {
+    const familyActivities: Record<string, { description: string, activities: string[] }> = {
+      "Winterferien": {
+        description: "Winterferien in Baden-Württemberg - Wintersport und Naturerlebnisse",
+        activities: [
+          "Skifahren und Rodeln im Schwarzwald",
+          "Besuch der Therme Caracalla in Baden-Baden",
+          "Winterwanderungen auf der Schwäbischen Alb",
+          "Europa-Park Rust im Winterzauber"
+        ]
+      },
+      "Osterferien": {
+        description: "Osterferien in Baden-Württemberg - Frühlingserwachen und Osterbräuche",
+        activities: [
+          "Ostereiermärkte und Osterbrunnen im Schwarzwald",
+          "Frühlingsblüte auf der Insel Mainau",
+          "Osterprogramm im Freilichtmuseum Vogtsbauernhof",
+          "Familienausflüge zu den Stuttgarter Zoos"
+        ]
+      },
+      "Pfingstferien": {
+        description: "Pfingstferien in Baden-Württemberg - Aktiv in der Natur",
+        activities: [
+          "Wandern auf dem Schwarzwald-Westweg",
+          "Bodensee-Radweg mit der Familie",
+          "Besuch der Höhlen der Schwäbischen Alb",
+          "Schifffahrten auf dem Bodensee"
+        ]
+      },
+      "Sommerferien": {
+        description: "Sommerferien in Baden-Württemberg - Sechs Wochen voller Abenteuer",
+        activities: [
+          "Badespaß an den Bodensee-Stränden",
+          "Kletterparks im Schwarzwald",
+          "Besuch der Ravensburger Spieleland",
+          "Erlebnispfade auf der Schwäbischen Alb"
+        ]
+      },
+      "Herbstferien": {
+        description: "Herbstferien in Baden-Württemberg - Bunte Naturerlebnisse",
+        activities: [
+          "Wandern durch herbstliche Weinberge",
+          "Besuch der Kürbisausstellung in Ludwigsburg",
+          "Kastaniensammeln im Schwarzwald",
+          "Herbstliche Stadtführungen in historischen Städten"
+        ]
+      },
+      "Weihnachtsferien": {
+        description: "Weihnachtsferien in Baden-Württemberg - Festliche Stimmung und Winterzauber",
+        activities: [
+          "Besuch der historischen Weihnachtsmärkte",
+          "Schneeschuhwandern im Schwarzwald",
+          "Schlittschuhlaufen in den Eiswelten",
+          "Weihnachtliche Schlossführungen"
+        ]
+      }
+    };
+
+    const baseHolidayName = holiday.name.split(" ")[0];
+    const holidayName = baseHolidayName.charAt(0).toUpperCase() + baseHolidayName.slice(1);
+    const holidayInfo = familyActivities[holidayName] || {
+      description: `${holiday.name} in Baden-Württemberg`,
+      activities: []
+    };
+
+    return {
+      ...holiday,
+      type: 'school' as const,
+      date: holiday.start,
+      details: {
+        description: holidayInfo.description,
+        familyActivities: holidayInfo.activities
+      }
+    };
+  }),
   uniqueHolidayInfo: "Baden-Württemberg verbindet bei seinen Feiertagen alemannische und schwäbische Traditionen mit katholischem und evangelischem Brauchtum.",
   traditionInfo: "Die Feiertage in Baden-Württemberg sind geprägt von der reichen kulturellen Vielfalt des Landes, von der Fasnet bis zu den Weinfesten.",
-  seasonalTraditions
+  seasonalTraditions,
+  vacationDestinations,
+  regionalSpecialties: [
+    {
+      title: "Traditionelle Feste",
+      icon: "mask",
+      items: [
+        {
+          title: "Schwäbisch-Alemannische Fasnet",
+          description: "Eines der ältesten Winterfeste mit einzigartigen Masken und Bräuchen",
+          icon: "carnival"
+        },
+        {
+          title: "Cannstatter Wasen",
+          description: "Das zweitgrößte Volksfest Deutschlands mit schwäbischer Festtradition",
+          icon: "ferrisWheel"
+        }
+      ]
+    },
+    {
+      title: "Kulturelles Erbe",
+      icon: "landmark",
+      items: [
+        {
+          title: "UNESCO-Welterbestätten",
+          description: "Von Kloster Maulbronn bis zur Höhlen der Schwäbischen Alb",
+          icon: "monument"
+        },
+        {
+          title: "Historische Altstädte",
+          description: "Mittelalterliche Städte wie Tübingen, Heidelberg und Konstanz",
+          icon: "castle"
+        }
+      ]
+    }
+  ]
 }; 

@@ -1,5 +1,6 @@
 import { StateInfo } from '../types/StateInfo';
 import { Holiday, SeasonalTradition } from '../types/Holiday';
+import { VacationDestination } from '../types/StateInfo';
 import { holidays } from '../../data/holidays';
 
 const stateSpecificHolidayDetails: Record<string, { description: string, traditions?: string[], culturalSignificance?: string, locations?: string[] }> = {
@@ -76,6 +77,57 @@ const seasonalTraditions: SeasonalTradition[] = [
   }
 ];
 
+const vacationDestinations: VacationDestination[] = [
+  {
+    name: "Historische Altstadt",
+    description: "UNESCO-Weltkulturerbe mit mittelalterlichem Charme und hanseatischer Geschichte",
+    attractions: [
+      "Bremer Rathaus und Roland",
+      "Schnoorviertel",
+      "Böttcherstraße",
+      "Bremer Stadtmusikanten"
+    ],
+    activities: [
+      "Historische Stadtführungen",
+      "Märchentouren",
+      "Shopping in der Sögestraße",
+      "Museumsbesuche"
+    ]
+  },
+  {
+    name: "Maritime Überseestadt",
+    description: "Modernes Hafenviertel mit historischem Charme und Wasserlage",
+    attractions: [
+      "Hafenwelten",
+      "Europahafen",
+      "Speicher XI",
+      "Waterfront"
+    ],
+    activities: [
+      "Hafenrundfahrten",
+      "Industriekultur erkunden",
+      "Gastronomie am Wasser",
+      "Kulturveranstaltungen"
+    ]
+  },
+  {
+    name: "Bremerhaven",
+    description: "Seestadt mit Wissenschafts- und Erlebniszentren",
+    attractions: [
+      "Klimahaus 8° Ost",
+      "Deutsches Auswandererhaus",
+      "Zoo am Meer",
+      "Deutsches Schifffahrtsmuseum"
+    ],
+    activities: [
+      "Wissenschaftliche Experimente",
+      "Maritime Geschichte erleben",
+      "Tierbeobachtungen",
+      "Hafenbesichtigungen"
+    ]
+  }
+];
+
 export const bremen: StateInfo = {
   fullName: "Bremen",
   shortName: "HB",
@@ -103,27 +155,134 @@ export const bremen: StateInfo = {
   holidays: [
     ...holidays.publicHolidays["2025"]["ALL"].map(holiday => ({
       ...holiday,
-      type: "public",
+      type: "public" as const,
       isRegional: false,
+      date: holiday.start,
       details: stateSpecificHolidayDetails[holiday.name] || {
         description: `${holiday.name} ist in Bremen ein gesetzlicher Feiertag.`
       }
     })),
     ...(holidays.publicHolidays["2025"]["HB"] || []).map(holiday => ({
       ...holiday,
-      type: "public",
+      type: "public" as const,
       isRegional: true,
+      date: holiday.start,
       details: stateSpecificHolidayDetails[holiday.name] || {
         description: `${holiday.name} ist in Bremen ein gesetzlicher Feiertag.`
       }
     }))
   ],
-  schoolHolidays: [
-    ...holidays.schoolHolidays["2024"]["HB"],
-    ...holidays.schoolHolidays["2025"]["HB"],
-    ...holidays.schoolHolidays["2026"]["HB"]
-  ],
+  schoolHolidays: holidays.schoolHolidays["2025"]["HB"].map(holiday => {
+    const familyActivities: Record<string, { description: string, activities: string[] }> = {
+      "Winterferien": {
+        description: "Winterferien in Bremen - Maritime Entdeckungen und Indoor-Abenteuer",
+        activities: [
+          "Klimahaus 8° Ost in Bremerhaven",
+          "Universum Bremen Science Center",
+          "Überseemuseum mit Kinderführungen",
+          "Schlittschuhlaufen in der Eisarena"
+        ]
+      },
+      "Osterferien": {
+        description: "Osterferien in Bremen - Frühlingserwachen in der Hansestadt",
+        activities: [
+          "Osterwiese auf der Bürgerweide",
+          "Stadtmusikantenführungen",
+          "Zoo am Meer Bremerhaven",
+          "Osteraktionen im Bürgerpark"
+        ]
+      },
+      "Pfingstferien": {
+        description: "Pfingstferien in Bremen - Maritime Erlebnisse",
+        activities: [
+          "Hafenrundfahrten an der Schlachte",
+          "Deutsches Schifffahrtsmuseum",
+          "Seehundstation Nationalpark-Haus",
+          "Wasserspielplatz im Rhododendronpark"
+        ]
+      },
+      "Sommerferien": {
+        description: "Sommerferien in Bremen - Sechs Wochen Hanseatische Abenteuer",
+        activities: [
+          "Breminale am Osterdeich",
+          "Badespaß am Stadtwaldsee",
+          "Maritime Woche an der Schlachte",
+          "Vegesacker Hafenfest"
+        ]
+      },
+      "Herbstferien": {
+        description: "Herbstferien in Bremen - Traditionelle Volksfeste",
+        activities: [
+          "Freimarkt auf der Bürgerweide",
+          "Maritimer Markt",
+          "Kürbisschnitzen im Rhododendronpark",
+          "Herbstaktionen im Universum"
+        ]
+      },
+      "Weihnachtsferien": {
+        description: "Weihnachtsferien in Bremen - Maritimer Winterzauber",
+        activities: [
+          "Historischer Weihnachtsmarkt",
+          "Schlachte-Zauber am Weserufer",
+          "Winterlights im Bürgerpark",
+          "Weihnachtszirkus"
+        ]
+      }
+    };
+
+    const baseHolidayName = holiday.name.split(" ")[0];
+    const holidayName = baseHolidayName.charAt(0).toUpperCase() + baseHolidayName.slice(1);
+    const holidayInfo = familyActivities[holidayName] || {
+      description: `${holiday.name} in Bremen`,
+      activities: []
+    };
+
+    return {
+      ...holiday,
+      type: 'school' as const,
+      date: holiday.start,
+      details: {
+        description: holidayInfo.description,
+        familyActivities: holidayInfo.activities
+      }
+    };
+  }),
   uniqueHolidayInfo: "Bremen verbindet bei seinen Feiertagen hanseatische Tradition mit norddeutscher Lebensart und maritimem Flair.",
   traditionInfo: "Die Feiertage in Bremen sind geprägt von der protestantischen Tradition und der engen Verbindung zur Seefahrt und zum Handel.",
-  seasonalTraditions
+  seasonalTraditions,
+  vacationDestinations,
+  regionalSpecialties: [
+    {
+      title: "Maritime Traditionen",
+      icon: "anchor",
+      items: [
+        {
+          title: "Hafenkultur",
+          description: "Historische Häfen und moderne Maritime Meile",
+          icon: "ship"
+        },
+        {
+          title: "Schlachte-Promenade",
+          description: "Historisches Weserufer mit maritimem Flair",
+          icon: "water"
+        }
+      ]
+    },
+    {
+      title: "Hanseatisches Erbe",
+      icon: "landmark",
+      items: [
+        {
+          title: "Bremer Stadtmusikanten",
+          description: "Wahrzeichen und Märchenfiguren der Stadt",
+          icon: "music"
+        },
+        {
+          title: "UNESCO-Welterbe",
+          description: "Rathaus und Roland als Symbol bürgerlicher Freiheit",
+          icon: "monument"
+        }
+      ]
+    }
+  ]
 }; 

@@ -1,5 +1,6 @@
 import { StateInfo } from '../types/StateInfo';
 import { Holiday, SeasonalTradition } from '../types/Holiday';
+import { VacationDestination } from '../types/StateInfo';
 import { holidays } from '../../data/holidays';
 
 const stateSpecificHolidayDetails: Record<string, { description: string, traditions?: string[], culturalSignificance?: string, locations?: string[] }> = {
@@ -76,6 +77,57 @@ const seasonalTraditions: SeasonalTradition[] = [
   }
 ];
 
+const vacationDestinations: VacationDestination[] = [
+  {
+    name: "Spreewald",
+    description: "UNESCO-Biosphärenreservat mit einzigartiger Wasserlandschaft und sorbischer Kultur",
+    attractions: [
+      "Kahnfahrten durch die Fließe",
+      "Freilandmuseum Lehde",
+      "Gurkenradweg",
+      "Sorbische Kulturstätten"
+    ],
+    activities: [
+      "Traditionelle Kahnfahrten",
+      "Radtouren durch die Auenlandschaft",
+      "Besuch der Gurkenmanufakturen",
+      "Sorbische Bräuche erleben"
+    ]
+  },
+  {
+    name: "Potsdamer Schlösserlandschaft",
+    description: "UNESCO-Weltkulturerbe mit prächtigen Schlössern und Gartenanlagen",
+    attractions: [
+      "Schloss Sanssouci",
+      "Neues Palais",
+      "Park Babelsberg",
+      "Cecilienhof"
+    ],
+    activities: [
+      "Schlossführungen",
+      "Parkwanderungen",
+      "Historische Gärten erkunden",
+      "Konzerte in historischen Sälen"
+    ]
+  },
+  {
+    name: "Märkische Seen",
+    description: "Ausgedehnte Seenlandschaft mit historischen Städten und Naturerlebnissen",
+    attractions: [
+      "Scharmützelsee",
+      "Tropical Islands",
+      "Kloster Chorin",
+      "Märkische Schweiz"
+    ],
+    activities: [
+      "Wassersport und Baden",
+      "Naturpark-Wanderungen",
+      "Kletterwald-Besuche",
+      "Historische Stadtführungen"
+    ]
+  }
+];
+
 export const brandenburg: StateInfo = {
   fullName: "Brandenburg",
   shortName: "BB",
@@ -102,27 +154,133 @@ export const brandenburg: StateInfo = {
   holidays: [
     ...holidays.publicHolidays["2025"]["ALL"].map(holiday => ({
       ...holiday,
-      type: "public",
+      type: "public" as const,
       isRegional: false,
+      date: holiday.start,
       details: stateSpecificHolidayDetails[holiday.name] || {
         description: `${holiday.name} ist in Brandenburg ein gesetzlicher Feiertag.`
       }
     })),
     ...(holidays.publicHolidays["2025"]["BB"] || []).map(holiday => ({
       ...holiday,
-      type: "public",
+      type: "public" as const,
       isRegional: true,
+      date: holiday.start,
       details: stateSpecificHolidayDetails[holiday.name] || {
         description: `${holiday.name} ist in Brandenburg ein gesetzlicher Feiertag.`
       }
     }))
   ],
-  schoolHolidays: [
-    ...holidays.schoolHolidays["2024"]["BB"],
-    ...holidays.schoolHolidays["2025"]["BB"],
-    ...holidays.schoolHolidays["2026"]["BB"]
-  ],
+  schoolHolidays: holidays.schoolHolidays["2025"]["BB"].map(holiday => {
+    const familyActivities: Record<string, { description: string, activities: string[] }> = {
+      "Winterferien": {
+        description: "Winterferien in Brandenburg - Naturerlebnisse und Indoor-Abenteuer",
+        activities: [
+          "Tropical Islands Resort besuchen",
+          "Winterwanderungen im Naturpark Hoher Fläming",
+          "Filmpark Babelsberg Indoor-Attraktionen",
+          "Eislaufen auf den Seen"
+        ]
+      },
+      "Osterferien": {
+        description: "Osterferien in Brandenburg - Frühlingserwachen in der Natur",
+        activities: [
+          "Ostereiertradition im Spreewald",
+          "Frühlingserwachen in den Schlossparks",
+          "Erste Kahnfahrten der Saison",
+          "Tierpark Cottbus besuchen"
+        ]
+      },
+      "Pfingstferien": {
+        description: "Pfingstferien in Brandenburg - Aktiv in der Natur",
+        activities: [
+          "Radtouren auf dem Gurkenradweg",
+          "Kletterwald im Spreewald",
+          "Wassersport am Scharmützelsee",
+          "Naturerkundungen im Nationalpark Unteres Odertal"
+        ]
+      },
+      "Sommerferien": {
+        description: "Sommerferien in Brandenburg - Sechs Wochen Natur und Kultur",
+        activities: [
+          "Badespaß an den Märkischen Seen",
+          "Kahnfahrten im Spreewald",
+          "Schlössertour in Potsdam",
+          "Erlebnispark Paaren im Glien"
+        ]
+      },
+      "Herbstferien": {
+        description: "Herbstferien in Brandenburg - Bunte Naturerlebnisse",
+        activities: [
+          "Drachensteigen auf dem Gollenberg",
+          "Kürbisfeste im Spreewald",
+          "Herbstwanderungen im Naturpark Dahme-Heideseen",
+          "Kartoffelfeste auf den Bauernhöfen"
+        ]
+      },
+      "Weihnachtsferien": {
+        description: "Weihnachtsferien in Brandenburg - Winterzauber und Tradition",
+        activities: [
+          "Historische Weihnachtsmärkte besuchen",
+          "Schlittschuhlaufen auf den Seen",
+          "Winterwanderungen durch verschneite Wälder",
+          "Weihnachtliche Schlossführungen"
+        ]
+      }
+    };
+
+    const holidayName = holiday.name.split(" ")[0] as keyof typeof familyActivities;
+    const holidayInfo = familyActivities[holidayName] || {
+      description: `${holiday.name} in Brandenburg`,
+      activities: []
+    };
+
+    return {
+      ...holiday,
+      type: "school" as const,
+      date: holiday.start,
+      details: {
+        description: holidayInfo.description,
+        familyActivities: holidayInfo.activities
+      }
+    };
+  }),
   uniqueHolidayInfo: "Brandenburg verbindet preußische Traditionen mit regionalen Festen. Die Reformationsgeschichte und die Naturverbundenheit prägen das Festjahr.",
   traditionInfo: "Die brandenburgischen Traditionen sind geprägt von der preußischen Geschichte und dem ländlichen Erbe. Handwerk, Naturverbundenheit und regionale Bräuche bestimmen das kulturelle Leben.",
-  seasonalTraditions
+  seasonalTraditions,
+  vacationDestinations,
+  regionalSpecialties: [
+    {
+      title: "Naturerlebnisse",
+      icon: "tree",
+      items: [
+        {
+          title: "Spreewald",
+          description: "UNESCO-Biosphärenreservat mit traditionellen Kahnfahrten und sorbischer Kultur",
+          icon: "boat"
+        },
+        {
+          title: "Märkische Seenlandschaft",
+          description: "Über 3.000 Seen für Wassersport und Naturerlebnisse",
+          icon: "water"
+        }
+      ]
+    },
+    {
+      title: "Kulturelles Erbe",
+      icon: "landmark",
+      items: [
+        {
+          title: "Preußische Schlösser",
+          description: "UNESCO-Weltkulturerbe mit Sanssouci und weiteren Residenzen",
+          icon: "castle"
+        },
+        {
+          title: "Filmstadt Babelsberg",
+          description: "Europas ältestes Großfilmstudio mit Filmpark",
+          icon: "film"
+        }
+      ]
+    }
+  ]
 }; 

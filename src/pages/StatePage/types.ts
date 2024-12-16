@@ -1,16 +1,19 @@
+export interface HolidayDetails {
+  description: string;
+  traditions?: string[];
+  locations?: string[];
+  culturalSignificance?: string;
+  familyActivities?: string[];
+}
+
 export interface StatePageHoliday {
   name: string;
   date?: string;
   start?: string;
   end?: string;
-  type?: 'public' | 'school';
+  type: 'public' | 'school';
   isRegional?: boolean;
-  details?: {
-    description: string;
-    traditions?: string[];
-    locations?: string[];
-    culturalSignificance?: string;
-  };
+  details?: HolidayDetails;
 }
 
 export interface SeasonalTradition {

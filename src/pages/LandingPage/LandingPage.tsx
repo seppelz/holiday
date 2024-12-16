@@ -260,30 +260,34 @@ const HeroSection = () => {
   return (
     <section className={styles.hero}>
       <div className={styles.heroContent}>
-        <h1>Intelligente Urlaubsplanung mit Brückentagen</h1>
-        <p>
-          Maximiere deinen Urlaub mit unserem smarten Urlaubsplaner. 
-          Plane effizient, nutze Brückentage und genieße mehr Freizeit.
-        </p>
-        <CTAButton>Jetzt Planen</CTAButton>
+        <div className={styles.heroText}>
+          <h1>Intelligente Urlaubsplanung mit Brückentagen</h1>
+          <p>
+            Maximiere deinen Urlaub mit unserem smarten Urlaubsplaner. 
+            Plane effizient, nutze Brückentage und genieße mehr Freizeit.
+          </p>
+          <CTAButton>Jetzt Planen</CTAButton>
+        </div>
+        <HeroIllustration />
       </div>
-      <HeroIllustration />
     </section>
   );
 };
 
 const FeaturesSection = () => (
   <section className={styles.features}>
-    <h2>Unsere Features</h2>
-    <div className={styles.featureGrid}>
-      {FEATURES.map((feature, index) => (
-        <FeatureCard
-          key={index}
-          icon={feature.icon}
-          title={feature.title}
-          description={feature.description}
-        />
-      ))}
+    <div className={styles.sectionContent}>
+      <h2>Unsere Features</h2>
+      <div className={styles.featureGrid}>
+        {FEATURES.map((feature, index) => (
+          <FeatureCard
+            key={index}
+            icon={feature.icon}
+            title={feature.title}
+            description={feature.description}
+          />
+        ))}
+      </div>
     </div>
   </section>
 );
@@ -291,48 +295,50 @@ const FeaturesSection = () => (
 const DemoSection = () => {
   return (
     <section className={styles.demo}>
-      <h2>Ausprobieren</h2>
-      <div className={styles.demoContent}>
-        <div className={styles.demoCalendarWrapper}>
-          <div className={styles.demoCalendar}>
-            <div className={styles.demoCalendarHeader}>
-              <h3>Oktober 2024</h3>
-              <p className={styles.efficiency}>Effizienz: 1 Urlaubstag = 4 freie Tage</p>
+      <div className={styles.sectionContent}>
+        <h2>Ausprobieren</h2>
+        <div className={styles.demoContent}>
+          <div className={styles.demoCalendarWrapper}>
+            <div className={styles.demoCalendar}>
+              <div className={styles.demoCalendarHeader}>
+                <h3>Oktober 2024</h3>
+                <p className={styles.efficiency}>Effizienz: 1 Urlaubstag = 4 freie Tage</p>
+              </div>
+              <div className={styles.demoCalendarDays}>
+                {DEMO_CALENDAR_DAYS.map((day, index) => (
+                  <div 
+                    key={index} 
+                    className={`${styles.demoDay} ${styles[day.type]}`}
+                    title={day.label}
+                    role="gridcell"
+                    aria-label={`${day.date}. Oktober${day.label ? `, ${day.label}` : ''}`}
+                  >
+                    <span className={styles.dayNumber}>{day.date}</span>
+                    {day.label && <span className={styles.dayLabel}>{day.label}</span>}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className={styles.demoCalendarDays}>
-              {DEMO_CALENDAR_DAYS.map((day, index) => (
-                <div 
-                  key={index} 
-                  className={`${styles.demoDay} ${styles[day.type]}`}
-                  title={day.label}
-                  role="gridcell"
-                  aria-label={`${day.date}. Oktober${day.label ? `, ${day.label}` : ''}`}
-                >
-                  <span className={styles.dayNumber}>{day.date}</span>
-                  {day.label && <span className={styles.dayLabel}>{day.label}</span>}
-                </div>
-              ))}
+            <div className={styles.demoLegend}>
+              <div className={styles.legendItem}>
+                <span className={`${styles.legendDot} ${styles.holiday}`}></span>
+                <span>Feiertag</span>
+              </div>
+              <div className={styles.legendItem}>
+                <span className={`${styles.legendDot} ${styles.bridge}`}></span>
+                <span>Brückentag</span>
+              </div>
+              <div className={styles.legendItem}>
+                <span className={`${styles.legendDot} ${styles.weekend}`}></span>
+                <span>Wochenende</span>
+              </div>
             </div>
           </div>
-          <div className={styles.demoLegend}>
-            <div className={styles.legendItem}>
-              <span className={`${styles.legendDot} ${styles.holiday}`}></span>
-              <span>Feiertag</span>
-            </div>
-            <div className={styles.legendItem}>
-              <span className={`${styles.legendDot} ${styles.bridge}`}></span>
-              <span>Brückentag</span>
-            </div>
-            <div className={styles.legendItem}>
-              <span className={`${styles.legendDot} ${styles.weekend}`}></span>
-              <span>Wochenende</span>
-            </div>
+          <div className={styles.demoText}>
+            <h3>Intelligent geplant</h3>
+            <p>Mit nur einem Urlaubstag am 4. Oktober erhältst du vier freie Tage am Stück.</p>
+            <CTAButton>Jetzt selbst planen</CTAButton>
           </div>
-        </div>
-        <div className={styles.demoText}>
-          <h3>Intelligent geplant</h3>
-          <p>Mit nur einem Urlaubstag am 4. Oktober erhältst du vier freie Tage am Stück.</p>
-          <CTAButton>Jetzt selbst planen</CTAButton>
         </div>
       </div>
     </section>
@@ -342,17 +348,19 @@ const DemoSection = () => {
 const BenefitsSection = () => {
   return (
     <section className={styles.benefits}>
-      <h2>Deine Vorteile</h2>
-      <div className={styles.benefitsGrid}>
-        {BENEFITS.map((benefit, index) => (
-          <BenefitCard
-            key={index}
-            icon={benefit.icon}
-            title={benefit.title}
-            value={benefit.value}
-            description={benefit.description}
-          />
-        ))}
+      <div className={styles.sectionContent}>
+        <h2>Deine Vorteile</h2>
+        <div className={styles.benefitsGrid}>
+          {BENEFITS.map((benefit, index) => (
+            <BenefitCard
+              key={index}
+              icon={benefit.icon}
+              title={benefit.title}
+              value={benefit.value}
+              description={benefit.description}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -361,29 +369,31 @@ const BenefitsSection = () => {
 const HowItWorksSection = () => {
   return (
     <section className={styles.howItWorks}>
-      <h2>So funktioniert's</h2>
-      <div className={styles.stepsContainer}>
-        {HOW_IT_WORKS_STEPS.map((step, index) => (
-          <div key={index} className={styles.stepCard}>
-            <div className={styles.stepNumber}>{index + 1}</div>
-            <div className={styles.stepIcon}>{step.icon}</div>
-            <div className={styles.stepContent}>
-              <h3>{step.title}</h3>
-              <p>{step.description}</p>
-            </div>
-            {index < HOW_IT_WORKS_STEPS.length - 1 && (
-              <div className={styles.stepConnector}>
-                <svg viewBox="0 0 24 24" className={styles.connectorArrow}>
-                  <path d="M5 12h14m-4 4l4-4-4-4" />
-                </svg>
+      <div className={styles.sectionContent}>
+        <h2>So funktioniert's</h2>
+        <div className={styles.stepsContainer}>
+          {HOW_IT_WORKS_STEPS.map((step, index) => (
+            <div key={index} className={styles.stepCard}>
+              <div className={styles.stepNumber}>{index + 1}</div>
+              <div className={styles.stepIcon}>{step.icon}</div>
+              <div className={styles.stepContent}>
+                <h3>{step.title}</h3>
+                <p>{step.description}</p>
               </div>
-            )}
-          </div>
-        ))}
-      </div>
-      <div className={styles.startNow}>
-        <p>Bereit zum Starten?</p>
-        <CTAButton>Jetzt Urlaub planen</CTAButton>
+              {index < HOW_IT_WORKS_STEPS.length - 1 && (
+                <div className={styles.stepConnector}>
+                  <svg viewBox="0 0 24 24" className={styles.connectorArrow}>
+                    <path d="M5 12h14m-4 4l4-4-4-4" />
+                  </svg>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className={styles.startNow}>
+          <p>Bereit zum Starten?</p>
+          <CTAButton>Jetzt Urlaub planen</CTAButton>
+        </div>
       </div>
     </section>
   );
@@ -392,38 +402,40 @@ const HowItWorksSection = () => {
 const PWASection = () => {
   return (
     <section className={styles.pwa}>
-      <h2>Immer & Überall verfügbar</h2>
-      <div className={styles.pwaContent}>
-        <div className={styles.pwaFeatures}>
-          {PWA_FEATURES.map((feature, index) => (
-            <div key={index} className={styles.pwaFeatureCard}>
-              <div className={styles.pwaFeatureIcon}>{feature.icon}</div>
-              <h3>{feature.title}</h3>
-              <p>{feature.description}</p>
-            </div>
-          ))}
-        </div>
-        
-        <div className={styles.pwaDemo}>
-          <div className={styles.deviceFrame}>
-            <div className={styles.deviceScreen}>
-              <div className={styles.installPrompt}>
-                <div className={styles.appIcon}>🏖️</div>
-                <div className={styles.installText}>
-                  <h4>Holiday Planner</h4>
-                  <p>Zum Homescreen hinzufügen</p>
+      <div className={styles.sectionContent}>
+        <h2>Immer & Überall verfügbar</h2>
+        <div className={styles.pwaContent}>
+          <div className={styles.pwaFeatures}>
+            {PWA_FEATURES.map((feature, index) => (
+              <div key={index} className={styles.pwaFeatureCard}>
+                <div className={styles.pwaFeatureIcon}>{feature.icon}</div>
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
+              </div>
+            ))}
+          </div>
+          
+          <div className={styles.pwaDemo}>
+            <div className={styles.deviceFrame}>
+              <div className={styles.deviceScreen}>
+                <div className={styles.installPrompt}>
+                  <div className={styles.appIcon}>🏖️</div>
+                  <div className={styles.installText}>
+                    <h4>Holiday Planner</h4>
+                    <p>Zum Homescreen hinzufügen</p>
+                  </div>
+                  <button className={styles.installButton}>Installieren</button>
                 </div>
-                <button className={styles.installButton}>Installieren</button>
               </div>
             </div>
-          </div>
-          <div className={styles.pwaInstructions}>
-            <h3>Installation leicht gemacht</h3>
-            <ol className={styles.installSteps}>
-              <li>Öffne die App im Browser</li>
-              <li>Tippe auf "Zum Homescreen hinzufügen"</li>
-              <li>Fertig! Die App ist jetzt installiert</li>
-            </ol>
+            <div className={styles.pwaInstructions}>
+              <h3>Installation leicht gemacht</h3>
+              <ol className={styles.installSteps}>
+                <li>Öffne die App im Browser</li>
+                <li>Tippe auf "Zum Homescreen hinzufügen"</li>
+                <li>Fertig! Die App ist jetzt installiert</li>
+              </ol>
+            </div>
           </div>
         </div>
       </div>
@@ -491,62 +503,48 @@ const TESTIMONIALS_DATA = [
 
 // FAQ Section Component
 const FAQSection = () => (
-  <section className={styles.faq} aria-labelledby="faq-title">
-    <h2 id="faq-title">Häufig gestellte Fragen</h2>
-    <div className={styles.faqGrid}>
-      {FAQ_DATA.map((item, index) => (
-        <div key={index} className={styles.faqItem}>
-          <h3>{item.question}</h3>
-          <p>{item.answer}</p>
-        </div>
-      ))}
+  <section className={styles.faq}>
+    <div className={styles.sectionContent}>
+      <h2 id="faq-title">Häufig gestellte Fragen</h2>
+      <div className={styles.faqGrid}>
+        {FAQ_DATA.map((item, index) => (
+          <div key={index} className={styles.faqItem}>
+            <h3>{item.question}</h3>
+            <p>{item.answer}</p>
+          </div>
+        ))}
+      </div>
     </div>
   </section>
 );
 
 // Testimonials Section Component
 const TestimonialsSection = () => (
-  <section className={styles.testimonials} aria-labelledby="testimonials-title">
-    <h2 id="testimonials-title">Das sagen unsere Nutzer</h2>
-    <div className={styles.testimonialsGrid}>
-      {TESTIMONIALS_DATA.map((testimonial, index) => (
-        <div key={index} className={styles.testimonialCard} itemScope itemType="https://schema.org/Review">
-          <div className={styles.testimonialContent}>
-            <p itemProp="reviewBody">{testimonial.text}</p>
-            <div className={styles.testimonialRating} itemProp="reviewRating" itemScope itemType="https://schema.org/Rating">
-              <meta itemProp="ratingValue" content={testimonial.rating.toString()} />
-              <meta itemProp="bestRating" content="5" />
-              {'★'.repeat(testimonial.rating)}
+  <section className={styles.testimonials}>
+    <div className={styles.sectionContent}>
+      <h2 id="testimonials-title">Das sagen unsere Nutzer</h2>
+      <div className={styles.testimonialsGrid}>
+        {TESTIMONIALS_DATA.map((testimonial, index) => (
+          <div key={index} className={styles.testimonialCard} itemScope itemType="https://schema.org/Review">
+            <div className={styles.testimonialContent}>
+              <p itemProp="reviewBody">{testimonial.text}</p>
+              <div className={styles.testimonialRating} itemProp="reviewRating" itemScope itemType="https://schema.org/Rating">
+                <meta itemProp="ratingValue" content={testimonial.rating.toString()} />
+                <meta itemProp="bestRating" content="5" />
+                {'★'.repeat(testimonial.rating)}
+              </div>
+            </div>
+            <div className={styles.testimonialAuthor}>
+              <p itemProp="author" itemScope itemType="https://schema.org/Person">
+                <span itemProp="name">{testimonial.name}</span>
+                <span className={styles.testimonialRole} itemProp="jobTitle">{testimonial.role}</span>
+              </p>
             </div>
           </div>
-          <div className={styles.testimonialAuthor}>
-            <p itemProp="author" itemScope itemType="https://schema.org/Person">
-              <span itemProp="name">{testimonial.name}</span>
-              <span className={styles.testimonialRole} itemProp="jobTitle">{testimonial.role}</span>
-            </p>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   </section>
-);
-
-// Add breadcrumbs for SEO
-const Breadcrumbs = () => (
-  <nav aria-label="Breadcrumb" className={styles.breadcrumbs}>
-    <ol itemScope itemType="https://schema.org/BreadcrumbList">
-      <li
-        itemProp="itemListElement"
-        itemScope
-        itemType="https://schema.org/ListItem"
-      >
-        <a itemProp="item" href="/holiday">
-          <span itemProp="name">Home</span>
-        </a>
-        <meta itemProp="position" content="1" />
-      </li>
-    </ol>
-  </nav>
 );
 
 // Update main component to include new sections
@@ -554,7 +552,6 @@ export const LandingPage: React.FC = () => {
   return (
     <div className={styles.landingPage}>
       <MetaTags />
-      <Breadcrumbs />
       <main>
         <HeroSection />
         <FeaturesSection />

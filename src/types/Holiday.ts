@@ -3,6 +3,7 @@ export interface HolidayDetails {
   traditions?: string[];
   culturalSignificance?: string;
   locations?: string[];
+  familyActivities?: string[];
 }
 
 export interface Holiday {

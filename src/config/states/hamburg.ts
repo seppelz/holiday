@@ -1,5 +1,6 @@
 import { StateInfo } from '../types/StateInfo';
 import { Holiday, SeasonalTradition } from '../types/Holiday';
+import { VacationDestination } from '../types/StateInfo';
 import { holidays } from '../../data/holidays';
 
 const stateSpecificHolidayDetails: Record<string, { description: string, traditions?: string[], culturalSignificance?: string, locations?: string[] }> = {
@@ -76,6 +77,57 @@ const seasonalTraditions: SeasonalTradition[] = [
   }
 ];
 
+const vacationDestinations: VacationDestination[] = [
+  {
+    name: "HafenCity & Speicherstadt",
+    description: "Moderne Architektur trifft UNESCO-Weltkulturerbe",
+    attractions: [
+      "Elbphilharmonie",
+      "Speicherstadt",
+      "Miniatur Wunderland",
+      "HafenCity Universität"
+    ],
+    activities: [
+      "Hafenrundfahrten",
+      "Speicherstadtführungen",
+      "Miniatur Wunderland besuchen",
+      "Maritime Architekturtouren"
+    ]
+  },
+  {
+    name: "Alster & Stadtparks",
+    description: "Grüne Oasen und Wasserwege im Herzen der Stadt",
+    attractions: [
+      "Außenalster",
+      "Planten un Blomen",
+      "Stadtpark",
+      "Alsterarkaden"
+    ],
+    activities: [
+      "Alstervergnügen",
+      "Bootfahren und Segeln",
+      "Picknick im Stadtpark",
+      "Botanische Führungen"
+    ]
+  },
+  {
+    name: "St. Pauli & Altona",
+    description: "Hamburgs bunte Seite mit Kultur und Entertainment",
+    attractions: [
+      "Reeperbahn",
+      "Fischmarkt",
+      "Landungsbrücken",
+      "Altonaer Balkon"
+    ],
+    activities: [
+      "Fischmarkt am frühen Morgen",
+      "Musicalbesuche",
+      "Hafenrundgänge",
+      "Stadtteilführungen"
+    ]
+  }
+];
+
 export const hamburg: StateInfo = {
   fullName: "Hamburg",
   shortName: "HH",
@@ -103,27 +155,134 @@ export const hamburg: StateInfo = {
   holidays: [
     ...holidays.publicHolidays["2025"]["ALL"].map(holiday => ({
       ...holiday,
-      type: "public",
+      type: "public" as const,
       isRegional: false,
+      date: holiday.start,
       details: stateSpecificHolidayDetails[holiday.name] || {
         description: `${holiday.name} ist in Hamburg ein gesetzlicher Feiertag.`
       }
     })),
     ...(holidays.publicHolidays["2025"]["HH"] || []).map(holiday => ({
       ...holiday,
-      type: "public",
+      type: "public" as const,
       isRegional: true,
+      date: holiday.start,
       details: stateSpecificHolidayDetails[holiday.name] || {
         description: `${holiday.name} ist in Hamburg ein gesetzlicher Feiertag.`
       }
     }))
   ],
-  schoolHolidays: [
-    ...holidays.schoolHolidays["2024"]["HH"],
-    ...holidays.schoolHolidays["2025"]["HH"],
-    ...holidays.schoolHolidays["2026"]["HH"]
-  ],
+  schoolHolidays: holidays.schoolHolidays["2025"]["HH"].map(holiday => {
+    const familyActivities: Record<string, { description: string, activities: string[] }> = {
+      "Winterferien": {
+        description: "Winterferien in Hamburg - Maritime Indoor-Abenteuer",
+        activities: [
+          "Miniatur Wunderland entdecken",
+          "Internationales Maritimes Museum",
+          "Dialog im Dunkeln erleben",
+          "Planetarium Hamburg besuchen"
+        ]
+      },
+      "Osterferien": {
+        description: "Osterferien in Hamburg - Frühlingserwachen an Alster und Elbe",
+        activities: [
+          "Hagenbecks Tierpark mit Osteraktionen",
+          "Kirschblütenfest in der HafenCity",
+          "Alstervergnügen für Familien",
+          "Frühlingserwachen in Planten un Blomen"
+        ]
+      },
+      "Pfingstferien": {
+        description: "Pfingstferien in Hamburg - Maritimes Flair",
+        activities: [
+          "Hafengeburtstag mit Kinderprogramm",
+          "Museumsschiff Cap San Diego",
+          "Wasserlichtspiele in Planten un Blomen",
+          "Ausflugsschifffahrt auf der Alster"
+        ]
+      },
+      "Sommerferien": {
+        description: "Sommerferien in Hamburg - Sechs Wochen Großstadtabenteuer",
+        activities: [
+          "Strandperle und Elbstrand",
+          "Hamburger DOM-Besuch",
+          "Alsterkanal-Kanufahrten",
+          "Wildpark Schwarze Berge"
+        ]
+      },
+      "Herbstferien": {
+        description: "Herbstferien in Hamburg - Kulturelle Entdeckungen",
+        activities: [
+          "Hamburger Kinderbuchhaus",
+          "Herbst-DOM mit Attraktionen",
+          "Laternenumzüge in den Stadtteilen",
+          "Kindertheater im Schmidt Theater"
+        ]
+      },
+      "Weihnachtsferien": {
+        description: "Weihnachtsferien in Hamburg - Maritimer Winterzauber",
+        activities: [
+          "Historischer Weihnachtsmarkt am Rathaus",
+          "Eisvergnügen in Planten un Blomen",
+          "Weihnachtsparade in der HafenCity",
+          "Märchenschiffe an den Landungsbrücken"
+        ]
+      }
+    };
+
+    const baseHolidayName = holiday.name.split(" ")[0];
+    const holidayName = baseHolidayName.charAt(0).toUpperCase() + baseHolidayName.slice(1);
+    const holidayInfo = familyActivities[holidayName] || {
+      description: `${holiday.name} in Hamburg`,
+      activities: []
+    };
+
+    return {
+      ...holiday,
+      type: 'school' as const,
+      date: holiday.start,
+      details: {
+        description: holidayInfo.description,
+        familyActivities: holidayInfo.activities
+      }
+    };
+  }),
   uniqueHolidayInfo: "Hamburg verbindet bei seinen Feiertagen hanseatische Tradition mit maritimem Flair und weltoffener Modernität.",
   traditionInfo: "Die Feiertage in Hamburg sind geprägt von der protestantischen Tradition und der engen Verbindung zum Hafen und zur Seefahrt.",
-  seasonalTraditions
+  seasonalTraditions,
+  vacationDestinations,
+  regionalSpecialties: [
+    {
+      title: "Maritime Kultur",
+      icon: "anchor",
+      items: [
+        {
+          title: "Hamburger Hafen",
+          description: "Deutschlands größter Seehafen mit jahrhundertealter Geschichte",
+          icon: "ship"
+        },
+        {
+          title: "Speicherstadt",
+          description: "UNESCO-Weltkulturerbe und größter historischer Lagerhauskomplex der Welt",
+          icon: "building"
+        }
+      ]
+    },
+    {
+      title: "Hanseatische Tradition",
+      icon: "landmark",
+      items: [
+        {
+          title: "Historische Hauptkirchen",
+          description: "Die fünf Hauptkirchen als Wahrzeichen hanseatischer Tradition",
+          icon: "church"
+        },
+        {
+          title: "Alster & Elbe",
+          description: "Die prägenden Wasserwege der Hansestadt",
+          icon: "water"
+        }
+      ]
+    }
+  ]
 }; 

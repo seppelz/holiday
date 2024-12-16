@@ -6,8 +6,13 @@ import { Helmet } from 'react-helmet-async';
 import { FaSun, FaLeaf, FaSnowflake, FaUmbrella, FaCalendarAlt, FaGraduationCap, FaArrowRight } from 'react-icons/fa';
 import { FaMonument, FaMountain, FaCity, FaLandmark, FaTree, FaWater, FaLocationDot, FaPersonHiking, FaBuilding, FaUsers, FaRulerCombined, FaIndustry, FaEuroSign, FaBriefcase, FaWallet, FaCrown, FaChurch, FaMusic, FaGift, FaUtensils, FaWineGlass, FaMask, FaMasksTheater, FaMugHot } from 'react-icons/fa6';
 import styles from './StatePage.module.css';
-import { StatePageHoliday, StateInfo } from './types';
+import { StatePageHoliday, StateInfo, HolidayDetails } from './types';
 import { parseDateString } from '../../utils/dateUtils';
+
+declare module '*.module.css' {
+  const classes: { [key: string]: string };
+  export default classes;
+}
 
 const calculateDuration = (start: string, end: string): number => {
   const startDate = new Date(start);
@@ -17,54 +22,40 @@ const calculateDuration = (start: string, end: string): number => {
 };
 
 const getUnsplashId = (destinationName: string): string => {
-  // High-quality, optimized images from Unsplash for different destination types
+  const lowerName = destinationName.toLowerCase();
   const imageMap: { [key: string]: string } = {
-    // Nature & Mountains
     'Alpen': 'u0ZgqJD55pE',
     'Schwarzwald': 'szFUQoyvrxM',
     'Harz': 'nqZzKcwqS3E',
     'Bayerischer Wald': 'y2azHvupCVo',
     'Eifel': 'JgOeRuGD_Y4',
-    
-    // Cities & Culture
     'Berlin': 'K_VwS0jEjvs',
     'München': 'V5asA4gCgJA',
     'Hamburg': 'pRQWJhKZ5sc',
     'Dresden': 'vYAHgbPRpEk',
     'Heidelberg': 'e9zJh_4vVOY',
-    
-    // Coastal Areas
     'Ostsee': 'AX9sJ-mShw8',
     'Nordsee': 'N3t6qwV5sL8',
     'Sylt': 'YQB-QbEDSII',
     'Rügen': 'K7oqWgDJQ6E',
-    
-    // Lakes & Rivers
     'Bodensee': 'cQKKw6S3Gqc',
     'Chiemsee': 'Y7Y6J3VaVTU',
     'Rhein': 'UqP7U400AZs',
     'Mosel': 'x9yfTxHpj5U',
-    
-    // Historic Sites
     'Rothenburg': 'photo-1467269204594-9661b134dd2b',
     'Wartburg': 'nKcx6jbFE-A',
     'Schloss Neuschwanstein': 'photo-1515018947777-9a6355139e68',
     'Berchtesgadener Land': 'photo-1516815231560-8f41ec531527',
-    
-    // Default images for generic types
     'default_city': 'q8kR_ie6WnI',
     'default_nature': 'y2azHvupCVo',
     'default_historic': 'V93Qb7EgEtA',
     'default_coastal': 'N3t6qwV5sL8'
   };
 
-  // Try to find an exact match
   if (imageMap[destinationName]) {
     return imageMap[destinationName];
   }
 
-  // If no exact match, try to find a suitable default based on the destination type
-  const lowerName = destinationName.toLowerCase();
   if (lowerName.includes('stadt') || lowerName.includes('city')) {
     return imageMap.default_city;
   }
@@ -74,11 +65,10 @@ const getUnsplashId = (destinationName: string): string => {
   if (lowerName.includes('schloss') || lowerName.includes('burg') || lowerName.includes('kirche')) {
     return imageMap.default_historic;
   }
-  if (lowerName.includes('see') || name.includes('meer') || lowerName.includes('strand')) {
+  if (lowerName.includes('see') || lowerName.includes('meer') || lowerName.includes('strand')) {
     return imageMap.default_coastal;
   }
 
-  // Final fallback
   return imageMap.default_nature;
 };
 
@@ -99,7 +89,6 @@ const getSeasonIcon = (season: string) => {
 };
 
 const getDestinationImage = (destinationName: string): string => {
-  // Map of destination names to local image paths
   const imageMap: { [key: string]: string } = {
     'Schloss Neuschwanstein': '/images/destinations/neuschwanstein.jpg',
     'Berchtesgadener Land': '/images/destinations/berchtesgaden.jpg',
@@ -121,28 +110,26 @@ const getDestinationIcon = (destinationName: string) => {
 
 const getRegionalIcon = (iconName: string, className = 'regionalIcon') => {
   const icons: { [key: string]: JSX.Element } = {
-    'crown': <FaCrown className={styles[className]} />,
-    'church': <FaChurch className={styles[className]} />,
-    'music': <FaMusic className={styles[className]} />,
-    'gift': <FaGift className={styles[className]} />,
-    'food': <FaUtensils className={styles[className]} />,
-    'wine': <FaWineGlass className={styles[className]} />,
-    'mask': <FaMask className={styles[className]} />,
-    'theater': <FaMasksTheater className={styles[className]} />,
-    'monument': <FaMonument className={styles[className]} />,
-    'mountain': <FaMountain className={styles[className]} />,
-    'city': <FaCity className={styles[className]} />,
-    'landmark': <FaLandmark className={styles[className]} />,
-    'beer': <FaMugHot className={styles[className]} />,
+    'crown': <FaCrown className={styles[className] || ''} />,
+    'church': <FaChurch className={styles[className] || ''} />,
+    'music': <FaMusic className={styles[className] || ''} />,
+    'gift': <FaGift className={styles[className] || ''} />,
+    'food': <FaUtensils className={styles[className] || ''} />,
+    'wine': <FaWineGlass className={styles[className] || ''} />,
+    'mask': <FaMask className={styles[className] || ''} />,
+    'theater': <FaMasksTheater className={styles[className] || ''} />,
+    'monument': <FaMonument className={styles[className] || ''} />,
+    'mountain': <FaMountain className={styles[className] || ''} />,
+    'city': <FaCity className={styles[className] || ''} />,
+    'landmark': <FaLandmark className={styles[className] || ''} />,
+    'beer': <FaMugHot className={styles[className] || ''} />,
   };
-  return icons[iconName] || <FaLandmark className={styles[className]} />;
+  return icons[iconName] || <FaLandmark className={styles[className] || ''} />;
 };
 
 const StatePage: React.FC = () => {
   const { stateId } = useParams<{ stateId: string }>();
   const [selectedHoliday, setSelectedHoliday] = useState<StatePageHoliday | null>(null);
-  console.log('Current stateId param:', stateId);
-  console.log('Available states:', Object.keys(stateData));
   
   if (!stateId) {
     return (
@@ -155,7 +142,6 @@ const StatePage: React.FC = () => {
   }
 
   const stateInfo = getStateInfo(stateId);
-  console.log('State info:', stateInfo);
   const stateColors = GERMAN_STATES.find(s => s.slug === stateId)?.colors || ['#4299e1', '#2b6cb0'];
   const sectionsRef = useRef<HTMLElement[]>([]);
 
@@ -169,28 +155,43 @@ const StatePage: React.FC = () => {
     );
   }
 
-  // Filter holidays for 2025
+  const getHolidayDetails = (holidayName: string) => {
+    const stateObject = stateData[stateId];
+    if (stateObject && 'stateSpecificHolidayDetails' in stateObject) {
+      return (stateObject as any).stateSpecificHolidayDetails[holidayName];
+    }
+    return null;
+  };
+
   const allHolidays = stateInfo?.holidays || [] as StatePageHoliday[];
   const publicHolidays = allHolidays.filter(h => {
     if (h.type !== 'public') return false;
     if (h.isRegional) return false;
     const holidayDate = h.date || h.start;
     return holidayDate?.startsWith('2025');
-  });
+  }).map(holiday => ({
+    ...holiday,
+    details: getHolidayDetails(holiday.name) || holiday.details
+  }));
 
   const regionalHolidays = allHolidays.filter(h => {
     if (h.type !== 'public') return false;
     if (!h.isRegional) return false;
     const holidayDate = h.date || h.start;
     return holidayDate?.startsWith('2025');
-  });
+  }).map(holiday => ({
+    ...holiday,
+    details: getHolidayDetails(holiday.name) || holiday.details
+  }));
 
   const schoolHolidays = (stateInfo?.schoolHolidays || []) as StatePageHoliday[];
   const filteredSchoolHolidays = schoolHolidays.filter(h => {
     return h.start && h.start.startsWith('2025');
-  });
+  }).map(holiday => ({
+    ...holiday,
+    details: getHolidayDetails(holiday.name) || holiday.details
+  }));
 
-  // Calculate total duration of school holidays
   const totalSchoolHolidayDays = filteredSchoolHolidays.reduce((total, holiday) => {
     if (holiday.start && holiday.end) {
       return total + calculateDuration(holiday.start, holiday.end);
@@ -204,24 +205,20 @@ const StatePage: React.FC = () => {
         return color.toLowerCase() === '#ffffff' || color.toLowerCase() === '#fff';
       };
 
-      // Set state colors for the header gradient
       document.documentElement.style.setProperty('--state-primary-color', stateColors[0]);
       document.documentElement.style.setProperty('--state-secondary-color', stateColors[1]);
 
-      // Set header text color based on state colors
       document.documentElement.style.setProperty(
         '--header-text-color',
         isWhiteColor(stateColors[0]) && isWhiteColor(stateColors[1]) ? '#1a365d' : 'white'
       );
 
-      // Set primary button color based on state colors
       document.documentElement.style.setProperty(
         '--primary-button-color',
         isWhiteColor(stateColors[0]) ? '#1a365d' : stateColors[0]
       );
     }
 
-    // Initialize intersection observer for animations
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -236,14 +233,15 @@ const StatePage: React.FC = () => {
       }
     );
 
-    // Observe all sections
     sectionsRef.current.forEach((section) => {
       if (section) observer.observe(section);
     });
 
-    // Mouse move effect for holiday items
     const handleMouseMove = (e: MouseEvent) => {
-      const cards = document.querySelectorAll(`.${styles.holidayContent}`);
+      const holidayContentClass = styles.holidayContent;
+      if (!holidayContentClass) return;
+
+      const cards = document.querySelectorAll(`.${holidayContentClass}`);
       cards.forEach((card) => {
         const rect = card.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -256,7 +254,6 @@ const StatePage: React.FC = () => {
     document.addEventListener('mousemove', handleMouseMove);
 
     return () => {
-      // Cleanup
       sectionsRef.current.forEach((section) => {
         if (section) observer.unobserve(section);
       });
@@ -287,6 +284,95 @@ const StatePage: React.FC = () => {
     setSelectedHoliday(selectedHoliday?.name === holiday.name ? null : holiday);
   };
 
+  const formatHolidayDate = (holiday: StatePageHoliday) => {
+    if (holiday.date) {
+      return formatDate(holiday.date);
+    }
+    if (holiday.start && holiday.end) {
+      return (
+        <>
+          {formatDate(holiday.start)}
+          <span className={styles.dateSeparator}>-</span>
+          {formatDate(holiday.end)}
+        </>
+      );
+    }
+    return holiday.start ? formatDate(holiday.start) : '';
+  };
+
+  const renderKeyFacts = (stateInfo: StateInfo) => {
+    const { keyFacts } = stateInfo;
+    return (
+      <>
+        <div className={styles.microInfoItem}>
+          <FaUsers className={styles.microInfoIcon} />
+          <span className={styles.microInfoLabel}>Einwohner:</span>
+          <span className={styles.microInfoValue}>{keyFacts.population.toLocaleString()}</span>
+        </div>
+        <div className={styles.microInfoItem}>
+          <FaRulerCombined className={styles.microInfoIcon} />
+          <span className={styles.microInfoLabel}>Fläche:</span>
+          <span className={styles.microInfoValue}>{keyFacts.area.toLocaleString()} km²</span>
+        </div>
+        {keyFacts.gdp && (
+          <div className={styles.microInfoItem}>
+            <FaEuroSign className={styles.microInfoIcon} />
+            <span className={styles.microInfoLabel}>BIP p.K.:</span>
+            <span className={styles.microInfoValue}>{keyFacts.gdp.toLocaleString()} €</span>
+          </div>
+        )}
+      </>
+    );
+  };
+
+  const renderHolidayDetails = (holiday: StatePageHoliday) => {
+    if (!holiday.details) {
+      return null;
+    }
+
+    return (
+      <div className={styles.holidayDetails}>
+        {holiday.details.description && (
+          <p className={styles.description}>{holiday.details.description}</p>
+        )}
+        {holiday.type === 'school' && holiday.details.familyActivities && holiday.details.familyActivities.length > 0 && (
+          <div className={styles.familyActivities}>
+            <h4>Familienaktivitäten</h4>
+            <ul>
+              {holiday.details.familyActivities.map((activity, i) => (
+                <li key={i}>{activity}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {holiday.type === 'public' && (
+          <>
+            {holiday.details.traditions && holiday.details.traditions.length > 0 && (
+              <div className={styles.traditions}>
+                <h4>Traditionen</h4>
+                <ul>
+                  {holiday.details.traditions.map((tradition, i) => (
+                    <li key={i}>{tradition}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {holiday.details.locations && holiday.details.locations.length > 0 && (
+              <div className={styles.locations}>
+                <h4>Beliebte Orte</h4>
+                <ul>
+                  {holiday.details.locations.map((location, i) => (
+                    <li key={i}>{location}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className={styles.statePage}>
       <Helmet>
@@ -306,7 +392,6 @@ const StatePage: React.FC = () => {
           <div className={styles.cloud} />
           
           <div className={styles.seasonalDecorations}>
-            {/* Spring - Dandelion */}
             <div className={styles.springDandelion}>
               <div className={styles.dandelionStem}></div>
               <div className={styles.dandelionHead}>
@@ -326,7 +411,6 @@ const StatePage: React.FC = () => {
               ))}
             </div>
 
-            {/* Summer - Sunflower */}
             <div className={styles.sunflower}>
               <div className={styles.sunflowerStem}></div>
               <div className={styles.sunflowerHead}>
@@ -337,7 +421,6 @@ const StatePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Autumn - Maple Tree */}
             <div className={styles.mapleLeaf}>
               <div className={styles.mapleTreeTrunk} />
               <div className={styles.mapleTreeBranch} />
@@ -359,7 +442,6 @@ const StatePage: React.FC = () => {
               ))}
             </div>
 
-            {/* Winter - Mountain Scene */}
             <div className={styles.snowflake}>
               <div className={styles.mountainScene}>
                 <div className={styles.mountain}></div>
@@ -395,21 +477,27 @@ const StatePage: React.FC = () => {
                 <span className={styles.statNumber}>{regionalHolidays.length}</span>
                 <span className={styles.statLabel}>Regionale Feiertage</span>
               </div>
+              <div className={styles.statDivider} />
+              <div className={styles.statBadge}>
+                <span className={styles.statNumber}>{totalSchoolHolidayDays}</span>
+                <span className={styles.statLabel}>Ferientage</span>
               </div>
+            </div>
             <h1 className={styles.heroTitle}>Feiertage und Schulferien in {stateInfo.fullName} 2025</h1>
             <p className={styles.heroSubtitle}>
-              Entdecken Sie die einzigartigen Traditionen und optimale Urlaubsplanung
+              Maximieren Sie Ihren Urlaub in {stateInfo.fullName} mit unserem intelligenten Urlaubsplaner.
+              Nutzen Sie {publicHolidays.length + regionalHolidays.length} Feiertage für optimale Brückentage.
             </p>
             <div className={styles.heroActions}>
               <Link to="/app" className={styles.primaryButton}>
-                Urlaub jetzt planen
+                Urlaubsplaner starten
                 <span className={styles.buttonIcon}>→</span>
               </Link>
               <button 
                 className={styles.secondaryButton} 
                 onClick={() => document.querySelector('#overview')?.scrollIntoView({ behavior: 'smooth' })}
               >
-                Mehr erfahren
+                Feiertage erkunden
                 <span className={styles.buttonIcon}>↓</span>
               </button>
             </div>
@@ -441,15 +529,7 @@ const StatePage: React.FC = () => {
                     onClick={() => toggleHolidayDetails(holiday)}
                   >
                     <div className={styles.holidayDate}>
-                      {holiday.date ? formatDate(holiday.date) : (
-                        holiday.start && holiday.end ? (
-                          <>
-                            {formatDate(holiday.start)}
-                            <span className={styles.dateSeparator}>-</span>
-                            {formatDate(holiday.end)}
-                          </>
-                        ) : holiday.start ? formatDate(holiday.start) : ''
-                      )}
+                      {formatHolidayDate(holiday)}
                     </div>
                     <div className={styles.holidayName}>
                       {holiday.name}
@@ -466,31 +546,7 @@ const StatePage: React.FC = () => {
                       </button>
                     )}
                   </div>
-                  {selectedHoliday?.name === holiday.name && holiday.details && (
-                    <div className={styles.holidayDetails}>
-                      <p className={styles.description}>{holiday.details.description}</p>
-                      {holiday.details.traditions && (
-                        <div className={styles.traditions}>
-                          <h4>Traditionen</h4>
-                          <ul>
-                            {holiday.details.traditions.map((tradition, i) => (
-                              <li key={i}>{tradition}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {holiday.details.locations && (
-                        <div className={styles.locations}>
-                          <h4>Besondere Orte</h4>
-                          <ul>
-                            {holiday.details.locations.map((location, i) => (
-                              <li key={i}>{location}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {selectedHoliday?.name === holiday.name && renderHolidayDetails(holiday)}
                 </div>
               ))}
             </div>
@@ -508,32 +564,83 @@ const StatePage: React.FC = () => {
               {filteredSchoolHolidays
                 .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
                 .map((holiday, index) => {
-                // Remove state names in parentheses and after the holiday name
-                const name = holiday.name
-                  .replace(/\s*\([^)]*\)/g, '') // Remove text in parentheses
-                  .split(/\s+(?=baden-württemberg|bayern|berlin|brandenburg|bremen|hamburg|hessen|mecklenburg-vorpommern|niedersachsen|nordrhein-westfalen|rheinland-pfalz|saarland|sachsen|sachsen-anhalt|schleswig-holstein|thüringen)/i)[0] // Remove state names
-                  .trim()
-                  .split(' ') // Split into words
-                  .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
-                  .join(' '); // Join back together
-                return (
-                  <div key={index} className={styles.holidayItem}>
-                    <div className={styles.holidayRow}>
-                      <div className={styles.holidayDate}>
-                        {formatDate(holiday.start)}
-                        <span className={styles.dateSeparator}>-</span>
-                        {formatDate(holiday.end)}
+                  const cleanName = holiday.name.split(" ")[0]
+                    .charAt(0).toUpperCase() + holiday.name.split(" ")[0].slice(1).toLowerCase();
+
+                  return (
+                    <div key={index} className={styles.holidayItem}>
+                      <div 
+                        className={`${styles.holidayRow} ${styles.clickable} ${selectedHoliday?.name === holiday.name ? styles.active : ''}`}
+                        onClick={() => toggleHolidayDetails(holiday)}
+                      >
+                        <div className={styles.holidayDate}>
+                          {formatDate(holiday.start)}
+                          <span className={styles.dateSeparator}>-</span>
+                          {formatDate(holiday.end)}
+                        </div>
+                        <div className={styles.holidayName}>
+                          {cleanName}
+                          <span className={styles.duration}>
+                            ({calculateDuration(holiday.start, holiday.end)} Tage)
+                          </span>
+                        </div>
+                        {holiday.details && (
+                          <button 
+                            className={`${styles.detailsButton} ${selectedHoliday?.name === holiday.name ? styles.active : ''}`}
+                            aria-label="Details anzeigen"
+                          >
+                            +
+                          </button>
+                        )}
                       </div>
-                      <div className={styles.holidayName}>
-                        {name}
-                        <span className={styles.duration}>
-                          ({calculateDuration(holiday.start, holiday.end)} Tage)
-                        </span>
-                      </div>
+                      {selectedHoliday?.name === holiday.name && renderHolidayDetails(holiday)}
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.plannerPromo}>
+          <div className={styles.promoContent}>
+            <div className={styles.promoStats}>
+              <div className={styles.promoStat}>
+                <span className={styles.promoValue}>4x</span>
+                <span className={styles.promoLabel}>mehr freie Tage durch Brückentage</span>
+              </div>
+              <div className={styles.promoStat}>
+                <span className={styles.promoValue}>5 Min</span>
+                <span className={styles.promoLabel}>schnelle Urlaubsplanung</span>
+              </div>
+              <div className={styles.promoStat}>
+                <span className={styles.promoValue}>100%</span>
+                <span className={styles.promoLabel}>kostenlos</span>
+              </div>
+            </div>
+            <div className={styles.promoText}>
+              <h2>Clever Urlaub planen in {stateInfo.fullName}</h2>
+              <p>
+                Nutzen Sie unseren intelligenten Urlaubsplaner, um das Beste aus Ihren Urlaubstagen herauszuholen.
+                Finden Sie die optimalen Brückentage und verlängern Sie Ihren Urlaub effizient.
+              </p>
+              <div className={styles.promoFeatures}>
+                <div className={styles.promoFeature}>
+                  <FaCalendarAlt className={styles.promoIcon} />
+                  <span>Brückentage-Optimierung</span>
+                </div>
+                <div className={styles.promoFeature}>
+                  <FaUsers className={styles.promoIcon} />
+                  <span>Zwei-Personen Planung</span>
+                </div>
+                <div className={styles.promoFeature}>
+                  <FaGraduationCap className={styles.promoIcon} />
+                  <span>Schulferien-Integration</span>
+                </div>
+              </div>
+              <Link to="/app" className={styles.promoCTA}>
+                Jetzt Urlaub clever planen
+                <FaArrowRight className={styles.promoArrow} />
+              </Link>
             </div>
           </div>
         </div>
@@ -547,37 +654,7 @@ const StatePage: React.FC = () => {
                 <span className={styles.microInfoLabel}>Hauptstadt:</span>
                 <span className={styles.microInfoValue}>{stateInfo.capital}</span>
               </div>
-              <div className={styles.microInfoItem}>
-                <FaUsers className={styles.microInfoIcon} />
-                <span className={styles.microInfoLabel}>Einwohner:</span>
-                <span className={styles.microInfoValue}>{stateInfo.keyFacts.population.toLocaleString('de-DE')}</span>
-              </div>
-              <div className={styles.microInfoItem}>
-                <FaRulerCombined className={styles.microInfoIcon} />
-                <span className={styles.microInfoLabel}>Fläche:</span>
-                <span className={styles.microInfoValue}>{stateInfo.keyFacts.area.toLocaleString('de-DE')} km²</span>
-              </div>
-              {stateInfo.keyFacts.gdp && (
-                <div className={styles.microInfoItem}>
-                  <FaEuroSign className={styles.microInfoIcon} />
-                  <span className={styles.microInfoLabel}>BIP p.K.:</span>
-                  <span className={styles.microInfoValue}>{stateInfo.keyFacts.gdp.toLocaleString('de-DE')} €</span>
-                </div>
-              )}
-              {stateInfo.keyFacts.unemployment && (
-                <div className={styles.microInfoItem}>
-                  <FaBriefcase className={styles.microInfoIcon} />
-                  <span className={styles.microInfoLabel}>Arbeitslosenquote:</span>
-                  <span className={styles.microInfoValue}>{stateInfo.keyFacts.unemployment.toLocaleString('de-DE')}%</span>
-                </div>
-              )}
-              {stateInfo.keyFacts.averageIncome && (
-                <div className={styles.microInfoItem}>
-                  <FaWallet className={styles.microInfoIcon} />
-                  <span className={styles.microInfoLabel}>Ø Einkommen:</span>
-                  <span className={styles.microInfoValue}>{stateInfo.keyFacts.averageIncome.toLocaleString('de-DE')} €</span>
-                </div>
-              )}
+              {renderKeyFacts(stateInfo)}
               <div className={styles.microInfoItem}>
                 <FaIndustry className={styles.microInfoIcon} />
                 <div className={styles.microInfoTags}>

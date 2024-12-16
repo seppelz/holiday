@@ -1,5 +1,6 @@
 import { StateInfo } from '../types/StateInfo';
 import { Holiday, SeasonalTradition } from '../types/Holiday';
+import { VacationDestination } from '../types/StateInfo';
 import { holidays } from '../../data/holidays';
 
 const stateSpecificHolidayDetails: Record<string, { description: string, traditions?: string[], culturalSignificance?: string, locations?: string[] }> = {
@@ -76,6 +77,57 @@ const seasonalTraditions: SeasonalTradition[] = [
   }
 ];
 
+const vacationDestinations: VacationDestination[] = [
+  {
+    name: "Rhein-Main-Gebiet",
+    description: "Dynamische Metropolregion mit Skyline und Kultur",
+    attractions: [
+      "Frankfurter Skyline",
+      "Museumsmeile am Main",
+      "Wiesbadener Kurhaus",
+      "Opel-Zoo Kronberg"
+    ],
+    activities: [
+      "Skyline-Touren",
+      "Museumsbesuche",
+      "Main-Schifffahrten",
+      "Palmengarten erkunden"
+    ]
+  },
+  {
+    name: "Märchenland der Brüder Grimm",
+    description: "Historische Fachwerkstädte und märchenhafte Landschaften",
+    attractions: [
+      "Marburg Altstadt",
+      "Grimmwelt Kassel",
+      "Bergpark Wilhelmshöhe",
+      "Alsfeld Märchenhaus"
+    ],
+    activities: [
+      "Märchenpfade erwandern",
+      "Fachwerkführungen",
+      "Wasserspiele im Bergpark",
+      "Grimm-Museen besuchen"
+    ]
+  },
+  {
+    name: "Naturparadiese",
+    description: "Vielfältige Naturlandschaften von Taunus bis Rheingau",
+    attractions: [
+      "Rheingau-Weinberge",
+      "Taunus-Gipfel",
+      "Vogelsberg",
+      "Edersee"
+    ],
+    activities: [
+      "Weinproben im Rheingau",
+      "Wandern im Taunus",
+      "Wassersport am Edersee",
+      "Vulkantouren im Vogelsberg"
+    ]
+  }
+];
+
 export const hessen: StateInfo = {
   fullName: "Hessen",
   shortName: "HE",
@@ -102,27 +154,133 @@ export const hessen: StateInfo = {
   holidays: [
     ...holidays.publicHolidays["2025"]["ALL"].map(holiday => ({
       ...holiday,
-      type: "public",
+      type: "public" as const,
       isRegional: false,
+      date: holiday.start,
       details: stateSpecificHolidayDetails[holiday.name] || {
         description: `${holiday.name} ist in Hessen ein gesetzlicher Feiertag.`
       }
     })),
     ...(holidays.publicHolidays["2025"]["HE"] || []).map(holiday => ({
       ...holiday,
-      type: "public",
+      type: "public" as const,
       isRegional: true,
+      date: holiday.start,
       details: stateSpecificHolidayDetails[holiday.name] || {
         description: `${holiday.name} ist in Hessen ein gesetzlicher Feiertag.`
       }
     }))
   ],
-  schoolHolidays: [
-    ...holidays.schoolHolidays["2024"]["HE"],
-    ...holidays.schoolHolidays["2025"]["HE"],
-    ...holidays.schoolHolidays["2026"]["HE"]
-  ],
+  schoolHolidays: holidays.schoolHolidays["2025"]["HE"].map(holiday => {
+    const familyActivities: Record<string, { description: string, activities: string[] }> = {
+      "Winterferien": {
+        description: "Winterferien in Hessen - Zwischen Großstadt und Naturerlebnis",
+        activities: [
+          "Winterwandern im Taunus",
+          "Dialogmuseum Frankfurt erleben",
+          "Experiminta Science Center",
+          "Schlittenfahren am Hoherodskopf"
+        ]
+      },
+      "Osterferien": {
+        description: "Osterferien in Hessen - Frühlingserwachen in Stadt und Land",
+        activities: [
+          "Ostereiersuche im Palmengarten",
+          "Tierpark Sababurg besuchen",
+          "Märchenpfade erkunden",
+          "Frühlingsblüte an der Bergstraße"
+        ]
+      },
+      "Pfingstferien": {
+        description: "Pfingstferien in Hessen - Aktiv in der Natur",
+        activities: [
+          "Wasserspiele im Bergpark Wilhelmshöhe",
+          "Kletterwald im Taunus",
+          "Schifffahrt auf dem Edersee",
+          "Hessenpark entdecken"
+        ]
+      },
+      "Sommerferien": {
+        description: "Sommerferien in Hessen - Sechs Wochen Abenteuer",
+        activities: [
+          "Museumsuferfest Frankfurt",
+          "Sommerrodelbahn Taunus",
+          "Lochmühle Freizeitpark",
+          "Naturerlebnisse im Vogelsberg"
+        ]
+      },
+      "Herbstferien": {
+        description: "Herbstferien in Hessen - Bunte Kulturerlebnisse",
+        activities: [
+          "Grimmwelt Kassel besuchen",
+          "Weinlese im Rheingau",
+          "Herbstwanderungen im Odenwald",
+          "Kürbisfest auf Burg Frankenstein"
+        ]
+      },
+      "Weihnachtsferien": {
+        description: "Weihnachtsferien in Hessen - Winterzauber und Tradition",
+        activities: [
+          "Frankfurter Weihnachtsmarkt",
+          "Winterwanderung zur Saalburg",
+          "Schlittschuhlaufen in der Eissporthalle",
+          "Märchenweihnacht in Steinau"
+        ]
+      }
+    };
+
+    const holidayName = holiday.name.split(" ")[0] as keyof typeof familyActivities;
+    const holidayInfo = familyActivities[holidayName] || {
+      description: `${holiday.name} in Hessen`,
+      activities: []
+    };
+
+    return {
+      ...holiday,
+      type: "school" as const,
+      date: holiday.start,
+      details: {
+        description: holidayInfo.description,
+        familyActivities: holidayInfo.activities
+      }
+    };
+  }),
   uniqueHolidayInfo: "Hessen verbindet urbane Festkultur mit ländlichen Traditionen. Die Finanzmetropole Frankfurt und die historischen Kulturstädte prägen das Festjahr.",
   traditionInfo: "Die hessischen Traditionen sind geprägt von der Vielfalt zwischen Stadt und Land. Märchen der Brüder Grimm, Weinkultur und moderne Stadtfeste bestimmen das kulturelle Leben.",
-  seasonalTraditions
+  seasonalTraditions,
+  vacationDestinations,
+  regionalSpecialties: [
+    {
+      title: "Kulturelles Erbe",
+      icon: "landmark",
+      items: [
+        {
+          title: "Märchenland",
+          description: "Heimat der Brüder Grimm mit lebendiger Märchentradition",
+          icon: "book"
+        },
+        {
+          title: "UNESCO-Welterbe",
+          description: "Bergpark Wilhelmshöhe als Meisterwerk der Gartenkunst",
+          icon: "mountain"
+        }
+      ]
+    },
+    {
+      title: "Moderne Metropole",
+      icon: "city",
+      items: [
+        {
+          title: "Finanzplatz Frankfurt",
+          description: "Europäische Bankenmetropole mit beeindruckender Skyline",
+          icon: "bank"
+        },
+        {
+          title: "Rheingau-Kultur",
+          description: "Traditionsreiche Weinregion mit kulturellem Flair",
+          icon: "grapes"
+        }
+      ]
+    }
+  ]
 }; 

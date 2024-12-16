@@ -52,8 +52,17 @@ export const usePersonStorage = () => {
       console.warn('IndexedDB failed, falling back to localStorage:', error);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
-        // Set cookie with proper SameSite attribute
-        document.cookie = `${STORAGE_KEY}=${JSON.stringify(dataToSave)}; SameSite=Lax; Secure; max-age=${30 * 24 * 60 * 60}`;
+        // Set cookie with proper SameSite attribute and other security settings
+        const cookieOptions = [
+          `${STORAGE_KEY}=${encodeURIComponent(JSON.stringify(dataToSave))}`,
+          'SameSite=Strict',  // Using Strict since this is a first-party cookie
+          'Secure',           // Only send over HTTPS
+          'Path=/',           // Available across the entire site
+          `Max-Age=${30 * 24 * 60 * 60}`,  // 30 days expiry
+          'HttpOnly'          // Not accessible via JavaScript, extra security
+        ].join('; ');
+        
+        document.cookie = cookieOptions;
       } catch (error) {
         console.error('Storage failed:', error);
       }

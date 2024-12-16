@@ -7,6 +7,18 @@ export interface VacationDestination {
   activities: string[];
 }
 
+export interface RegionalSpecialtyItem {
+  title: string;
+  description: string;
+  icon: string;
+}
+
+export interface RegionalSpecialtyCategory {
+  title: string;
+  icon: string;
+  items: RegionalSpecialtyItem[];
+}
+
 export interface StateInfo {
   fullName: string;
   shortName: string;
@@ -25,4 +37,5 @@ export interface StateInfo {
   traditionInfo: string;
   seasonalTraditions: SeasonalTradition[];
   vacationDestinations: VacationDestination[];
+  regionalSpecialties: RegionalSpecialtyCategory[];
 } 

@@ -1,90 +1,142 @@
 import { StateInfo } from '../types/StateInfo';
 import { Holiday, SeasonalTradition } from '../types/Holiday';
+import { VacationDestination } from '../types/StateInfo';
 import { holidays } from '../../data/holidays';
 
 const stateSpecificHolidayDetails: Record<string, { description: string, traditions?: string[], culturalSignificance?: string, locations?: string[] }> = {
   "Neujahr": {
-    description: "Die saarländischen Neujahrsfeiern verbinden deutsch-französische Festkultur mit traditionellem Feuerwerk an der Saar.",
-    traditions: ["Deutsch-französische Neujahrsfeste", "Feuerwerk an der Saar", "Grenzüberschreitende Neujahrsempfänge"],
-    locations: ["Saarbrücken", "Völklingen", "Saarlouis"]
+    description: "Das neue Jahr wird mit einer Mischung aus französischen und deutschen Traditionen begrüßt.",
+    traditions: ["Deutsch-französische Neujahrsfeste", "Feuerwerk an der Saar", "Neujahrskonzerte"],
+    locations: ["Saarbrücken", "Saarlouis", "Merzig"]
   },
   "Karfreitag": {
-    description: "Der saarländische Karfreitag wird mit grenzüberschreitenden Prozessionen und traditionellen Fastengerichten der Region begangen.",
-    traditions: ["Grenzüberschreitende Prozessionen", "Traditionelle Fastengerichte", "Ökumenische Gottesdienste"],
-    locations: ["Saarbrücker Dom", "St. Ludwig Saarlouis", "Basilika St. Johann"]
+    description: "Die Karfreitagstraditionen verbinden deutsch-französische Bräuche mit Bergbautraditionen.",
+    traditions: ["Kreuzwege", "Passionskonzerte", "Bergmannsandachten"],
+    locations: ["St. Johann Basilika", "Ludwigskirche", "Völklinger Hütte"]
   },
   "Ostermontag": {
-    description: "Die saarländischen Ostertraditionen vereinen deutsch-französische Ostermärkte mit traditionellen Bergmannsbräuchen.",
-    traditions: ["Grenzüberschreitende Ostermärkte", "Bergmannsosterfeuer", "Ostereiersuche"],
-    locations: ["Völklinger Hütte", "Saarbrücker Schloss", "Deutsch-Französischer Garten"]
+    description: "Ostertraditionen von französisch inspirierten Ostermärkten bis zu Bergmannsfesten.",
+    traditions: ["Ostermärkte", "Osterfeuer", "Bergmannsfeste"],
+    locations: ["Saarbrücken", "Neunkirchen", "St. Wendel"]
   },
   "Tag der Arbeit": {
-    description: "Der saarländische Maifeiertag steht im Zeichen der Bergbautradition und der deutsch-französischen Arbeiterbewegung.",
-    traditions: ["Bergmannsfeste", "Maikundgebungen", "Deutsch-französische Arbeiterfeste"],
-    locations: ["Völklinger Hütte", "Saarbrücken", "Neunkirchen"]
+    description: "Der Maifeiertag wird besonders im ehemaligen Bergbaurevier mit Bezug zur Industriegeschichte gefeiert.",
+    traditions: ["Maikundgebungen", "Bergmannsfeste", "Deutsch-französische Feste"],
+    locations: ["Völklingen", "Saarlouis", "Dillingen"]
   },
   "Christi Himmelfahrt": {
-    description: "Die saarländischen Himmelfahrtstraditionen führen zu Vatertagswanderungen entlang der deutsch-französischen Grenze.",
-    traditions: ["Grenzwanderungen", "Vatertagstouren", "Himmelfahrtsgottesdienste"],
+    description: "Vatertag wird mit Wanderungen durch die deutsch-französische Grenzregion gefeiert.",
+    traditions: ["Grenzwanderungen", "Vatertagstouren", "Familienausflüge"],
     locations: ["Bliesgau", "Saargau", "Hunsrück"]
   },
   "Pfingstmontag": {
-    description: "Der saarländische Pfingstmontag lockt mit deutsch-französischen Kulturfesten und traditionellen Bergmannsfeiern.",
-    traditions: ["Deutsch-französische Kulturfeste", "Bergmannsfeste", "Pfingstmärkte"],
-    locations: ["Saarbrücken", "Saarlouis", "St. Ingbert"]
+    description: "Pfingsttraditionen von französisch geprägten Festen bis zu saarländischen Bergmannsfeiern.",
+    traditions: ["Pfingstmärkte", "Bergmannsfeste", "Grenzfeste"],
+    locations: ["Saarbrücken", "Homburg", "St. Ingbert"]
   },
   "Fronleichnam": {
-    description: "Die saarländischen Fronleichnamsfeiern beeindrucken mit grenzüberschreitenden Prozessionen und kunstvollen Blumenteppichen.",
+    description: "Das Fronleichnamsfest wird mit deutsch-französischer Prägung und prächtigen Prozessionen gefeiert.",
     traditions: ["Prozessionen", "Blumenteppiche", "Kirchenfeste"],
-    culturalSignificance: "Verbindung deutscher und französischer katholischer Traditionen",
-    locations: ["Saarbrücker Dom", "St. Ludwig Saarlouis", "Basilika St. Wendel"]
+    culturalSignificance: "Wichtiger katholischer Feiertag mit grenzüberschreitender Bedeutung",
+    locations: ["Saarbrücken", "Merzig", "Saarlouis"]
   },
   "Mariä Himmelfahrt": {
-    description: "Das saarländische Marienfest vereint lothringische Wallfahrtstraditionen mit deutschen Marienbräuchen.",
-    traditions: ["Wallfahrten", "Marienprozessionen", "Kräuterweihe"],
-    culturalSignificance: "Besondere Bedeutung in der deutsch-französischen Grenzregion",
-    locations: ["Basilika St. Johann", "Wallfahrtskirche Blieskastel", "Marienkapelle Saarlouis"]
+    description: "Mariä Himmelfahrt wird als wichtiger katholischer Feiertag mit französischem Einfluss begangen.",
+    traditions: ["Prozessionen", "Kräuterweihe", "Marienfeste"],
+    culturalSignificance: "Bedeutender katholischer Feiertag mit regionaler Tradition",
+    locations: ["Saarbrücker Dom", "Basilika St. Johann", "Merziger Kirche"]
   },
   "Tag der Deutschen Einheit": {
-    description: "Das Saarland feiert die Deutsche Einheit mit besonderem Fokus auf die deutsch-französische Freundschaft und europäische Integration.",
-    traditions: ["Deutsch-französische Bürgerfeste", "Europafeste", "Kulturveranstaltungen"],
-    culturalSignificance: "Symbol für europäische Integration und grenzüberschreitende Zusammenarbeit",
-    locations: ["Saarbrücken", "Völklingen", "Saarlouis"]
+    description: "Das Saarland feiert die Deutsche Einheit mit Fokus auf deutsch-französische Freundschaft.",
+    traditions: ["Bürgerfeste", "Grenzfeste", "Konzerte"],
+    culturalSignificance: "Symbol für europäische Integration",
+    locations: ["Saarbrücken", "Saarlouis", "Völklingen"]
   },
   "Allerheiligen": {
-    description: "Das saarländische Allerheiligenfest verbindet deutsche und französische Gedenktraditionen mit bergmännischem Brauchtum.",
-    traditions: ["Grenzüberschreitende Gedenkfeiern", "Bergmannsprozessionen", "Friedhofsbesuche"],
-    culturalSignificance: "Tag des deutsch-französischen Gedenkens",
-    locations: ["Saarbrücker Hauptfriedhof", "Bergmannsfriedhof Luisenthal", "St. Eligius Völklingen"]
+    description: "Allerheiligen wird mit deutsch-französischen Traditionen als wichtiger Gedenktag begangen.",
+    traditions: ["Gräberbesuche", "Gedenkgottesdienste", "Lichtermeere"],
+    culturalSignificance: "Bedeutender katholischer Feiertag",
+    locations: ["Saarbrücken", "Dillingen", "Merzig"]
   },
   "1. Weihnachtstag": {
-    description: "Der erste Weihnachtsfeiertag im Saarland vereint deutsch-französische Festtraditionen mit bergmännischen Weihnachtsbräuchen.",
-    traditions: ["Bergmannsweihnacht", "Deutsch-französische Weihnachtslieder", "Festessen"],
-    locations: ["Saarbrücker Dom", "Völklinger Hütte", "St. Ludwig Saarlouis"]
+    description: "Der erste Weihnachtsfeiertag verbindet deutsche und französische Weihnachtstraditionen.",
+    traditions: ["Weihnachtsgottesdienste", "Festessen", "Konzerte"],
+    locations: ["Saarbrücken", "St. Wendel", "Homburg"]
   },
   "2. Weihnachtstag": {
-    description: "Am zweiten Weihnachtsfeiertag lädt das Saarland zu grenzüberschreitenden Winterwanderungen und traditionellen Bergmannskonzerten.",
-    traditions: ["Bergmannskonzerte", "Grenzwanderungen", "Familienfeste"],
-    locations: ["Deutsch-Französischer Garten", "Warndt", "Bliesgau"]
+    description: "Am zweiten Weihnachtstag locken deutsch-französische Traditionen und winterliche Aktivitäten.",
+    traditions: ["Weihnachtskonzerte", "Winterwanderungen", "Familienbesuche"],
+    locations: ["Bliesgau", "Saargau", "Saarbrücken"]
   }
 };
 
 const seasonalTraditions: SeasonalTradition[] = [
   {
     season: "Frühjahr",
-    description: "Traditionelle Fastnacht mit französischem Einfluss. Frühlingsfeste und erste Weinfeste beleben die Region."
+    description: "Deutsch-französische Frühlingsfeste, erste Bergmannsfeste und Wanderungen im Bliesgau."
   },
   {
     season: "Sommer",
-    description: "Zahlreiche Stadtfeste, deutsch-französische Kulturfeste und Open-Air-Veranstaltungen prägen den Sommer."
+    description: "Industriekultur-Events, deutsch-französische Stadtfeste und Saar-Spektakel prägen den Sommer."
   },
   {
     season: "Herbst",
-    description: "Erntedankfeste, traditionelle Herbstmärkte und Weinfeste bestimmen die Jahreszeit. Die Bergmannstradition wird besonders gepflegt."
+    description: "Erntedankfeste mit französischem Einfluss, Bergmannsfeste und kulinarische Wochen."
   },
   {
     season: "Winter",
-    description: "Historische Weihnachtsmärkte wie der Saarbrücker Christkindlmarkt und traditionelle Bergmannsweihnacht prägen die Adventszeit."
+    description: "Französisch inspirierte Weihnachtsmärkte, Bergmannsweihnacht und winterliche Industriekultur."
+  }
+];
+
+const vacationDestinations: VacationDestination[] = [
+  {
+    name: "UNESCO-Weltkulturerbe Völklinger Hütte",
+    description: "Industriekultur von Weltrang und lebendige Geschichte",
+    attractions: [
+      "Völklinger Hütte",
+      "Science Center Ferrodrom",
+      "Industriekulturpfad",
+      "Ausstellungen"
+    ],
+    activities: [
+      "Industriekultur erleben",
+      "Führungen",
+      "Kulturveranstaltungen",
+      "Fototouren"
+    ]
+  },
+  {
+    name: "UNESCO-Biosphärenreservat Bliesgau",
+    description: "Einzigartige Naturlandschaft mit deutsch-französischem Charakter",
+    attractions: [
+      "Orchideenwiesen",
+      "Streuobstwiesen",
+      "Historische Städte",
+      "Kulturlandschaft"
+    ],
+    activities: [
+      "Naturwanderungen",
+      "Radtouren",
+      "Kulturerbe erkunden",
+      "Kulinarische Entdeckungen"
+    ]
+  },
+  {
+    name: "Saarschleife & Saartal",
+    description: "Naturwunder und deutsch-französische Kulturregion",
+    attractions: [
+      "Saarschleife",
+      "Baumwipfelpfad",
+      "Burgruinen",
+      "Weinberge"
+    ],
+    activities: [
+      "Schifffahrten",
+      "Wandern",
+      "Weinproben",
+      "Aussichtsplattformen"
+    ]
   }
 ];
 
@@ -92,49 +144,156 @@ export const saarland: StateInfo = {
   fullName: "Saarland",
   shortName: "SL",
   capital: "Saarbrücken",
-  description: "Das Saarland, das kleinste Flächenland Deutschlands, verbindet französisches Savoir-vivre mit deutscher Tradition. Die ehemalige Montanregion hat sich zu einem modernen Wirtschafts- und Technologiestandort entwickelt.",
+  description: "Das Saarland vereint deutsch-französische Lebensart mit industriellem Weltkulturerbe und reizvoller Natur. Von der UNESCO-Welterbestätte Völklinger Hütte über das Biosphärenreservat Bliesgau bis zur eindrucksvollen Saarschleife bietet das Land eine einzigartige Mischung aus Kultur und Natur.",
   culturalHighlights: [
     "UNESCO-Weltkulturerbe Völklinger Hütte",
+    "UNESCO-Biosphärenreservat Bliesgau",
     "Deutsch-französische Kultur",
-    "Industriekultur und Bergbautradition",
-    "Saarländische Küche und Lebensart",
-    "Historische Barockbauten",
-    "Traditionelle Bergmannskultur"
+    "Industriekultur",
+    "Saarschleife",
+    "Kulinarische Tradition"
   ],
   keyFacts: {
     population: "0,98 Millionen (2021)",
     area: "2.570 km²",
-    founded: "1957 (Beitritt zur BRD)",
+    founded: "1957",
     economicStrength: [
-      "Automobilzulieferindustrie",
-      "IT und Digitalisierung",
-      "Innovative Technologieregion"
+      "Automobilindustrie",
+      "IT-Technologie",
+      "Tourismus",
+      "Kulturwirtschaft"
     ]
   },
   holidays: [
     ...holidays.publicHolidays["2025"]["ALL"].map(holiday => ({
       ...holiday,
-      type: "public",
+      type: "public" as const,
       isRegional: false,
+      date: holiday.start,
       details: stateSpecificHolidayDetails[holiday.name] || {
         description: `${holiday.name} ist im Saarland ein gesetzlicher Feiertag.`
       }
     })),
     ...(holidays.publicHolidays["2025"]["SL"] || []).map(holiday => ({
       ...holiday,
-      type: "public",
+      type: "public" as const,
       isRegional: true,
+      date: holiday.start,
       details: stateSpecificHolidayDetails[holiday.name] || {
         description: `${holiday.name} ist im Saarland ein gesetzlicher Feiertag.`
       }
     }))
   ],
-  schoolHolidays: [
-    ...holidays.schoolHolidays["2024"]["SL"],
-    ...holidays.schoolHolidays["2025"]["SL"],
-    ...holidays.schoolHolidays["2026"]["SL"]
-  ],
-  uniqueHolidayInfo: "Das Saarland verbindet deutsche und französische Festtraditionen. Die Bergbautradition und die grenzüberschreitende Kultur prägen das Festjahr.",
-  traditionInfo: "Die saarländischen Traditionen sind geprägt von der Bergbaugeschichte und dem französischen Einfluss. Bergmannsfeste, kulinarische Traditionen und grenzüberschreitende Feste bestimmen das kulturelle Leben.",
-  seasonalTraditions
+  schoolHolidays: holidays.schoolHolidays["2025"]["SL"].map(holiday => {
+    const familyActivities: Record<string, { description: string, activities: string[] }> = {
+      "Winterferien": {
+        description: "Winterferien zwischen Industrie und Natur - Vielfältiges Vergnügen",
+        activities: [
+          "Industriekultur erkunden",
+          "Winterwanderungen",
+          "Indoor-Spielwelten",
+          "Museumsbesuche"
+        ]
+      },
+      "Osterferien": {
+        description: "Osterferien im Grenzland - Deutsch-französische Traditionen",
+        activities: [
+          "Ostermärkte besuchen",
+          "Frühlingsradtouren",
+          "Industriekultur erleben",
+          "Naturerkundungen"
+        ]
+      },
+      "Pfingstferien": {
+        description: "Pfingstferien in der Kulturregion - Aktiv zwischen Geschichte und Natur",
+        activities: [
+          "Völklinger Hütte erkunden",
+          "Wandern im Bliesgau",
+          "Saarschleife besuchen",
+          "Kulturtouren"
+        ]
+      },
+      "Sommerferien": {
+        description: "Sommerferien im Grenzland - Sechs Wochen Kultur und Natur",
+        activities: [
+          "Saar-Spektakel erleben",
+          "Freibäder besuchen",
+          "Naturparks erkunden",
+          "Industriekultur entdecken"
+        ]
+      },
+      "Herbstferien": {
+        description: "Herbstferien in bunter Vielfalt - Kultur und Natur",
+        activities: [
+          "Herbstwanderungen",
+          "Industriekultur erleben",
+          "Kulinarische Touren",
+          "Museumsbesuche"
+        ]
+      },
+      "Weihnachtsferien": {
+        description: "Weihnachtsferien im Lichterglanz - Festliche Zeit im Grenzland",
+        activities: [
+          "Weihnachtsmärkte besuchen",
+          "Bergmannsweihnacht erleben",
+          "Winterwanderungen",
+          "Indoor-Aktivitäten"
+        ]
+      }
+    };
+
+    const holidayName = holiday.name.split(" ")[0] as keyof typeof familyActivities;
+    const holidayInfo = familyActivities[holidayName] || {
+      description: `${holiday.name} im Saarland`,
+      activities: []
+    };
+
+    return {
+      ...holiday,
+      type: "school" as const,
+      date: holiday.start,
+      details: {
+        description: holidayInfo.description,
+        familyActivities: holidayInfo.activities
+      }
+    };
+  }),
+  uniqueHolidayInfo: "Das Saarland verbindet deutsch-französische Festkultur mit Industrietraditionen. Die Vielfalt der Regionen und die Nähe zu Frankreich spiegeln sich in den Feierlichkeiten wider.",
+  traditionInfo: "Die Traditionen des Saarlandes sind geprägt von deutsch-französischer Lebensart, Industriegeschichte und katholischen Bräuchen. Bergmannsfeste, französisch inspirierte Feiern und regionale Traditionen prägen das kulturelle Leben.",
+  seasonalTraditions,
+  vacationDestinations,
+  regionalSpecialties: [
+    {
+      title: "Kulturmix",
+      icon: "globe-europe",
+      items: [
+        {
+          title: "Deutsch-französisch",
+          description: "Einzigartige Mischung der Kulturen",
+          icon: "flag"
+        },
+        {
+          title: "Industriekultur",
+          description: "Lebendiges Weltkulturerbe",
+          icon: "industry"
+        }
+      ]
+    },
+    {
+      title: "Naturerlebnis",
+      icon: "leaf",
+      items: [
+        {
+          title: "Bliesgau",
+          description: "UNESCO-Biosphärenreservat",
+          icon: "tree"
+        },
+        {
+          title: "Saarschleife",
+          description: "Einzigartiges Naturwunder",
+          icon: "water"
+        }
+      ]
+    }
+  ]
 }; 
